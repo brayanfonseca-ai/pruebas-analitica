@@ -1,0 +1,19 @@
+{
+  "name": "datasense-mcp-server",
+  "version": "0.1.0",
+  "description": "Servidor MCP para DataSense (clon local de Qlik Sense). Expone el backend REST /api/v1 como herramientas para un agente de IA.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/index.js",
+    "test": "node --test \"dist/test/*.test.js\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "@types/node": "26.6.6"
+  }
+}

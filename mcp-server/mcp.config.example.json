@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "datasense": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "<ABS>\\mcp-server\\dist\\src\\index.js"
+      ],
+      "env": {
+        "DATASENSE_BASE_URL": "http://localhost:8080"
+      }
+    }
+  }
+}

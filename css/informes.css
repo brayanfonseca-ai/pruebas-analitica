@@ -1,0 +1,45 @@
+/* informes.css — Generador de informes PDF (vista Narrar). Marca AZUL #172983.
+   Clases prefijadas rp-. Aditivo; no colisiona con otras vistas. */
+
+.rp-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.rp-title { margin: 0; font-size: 16px; }
+.rp-muted { color: var(--q-muted, #6b7280); font-size: 12.5px; margin: 2px 0 0; }
+.rp-wrap { padding: 20px 26px; }
+
+.rp-empty { text-align: center; padding: 40px 12px; color: var(--q-muted, #6b7280); }
+.rp-empty p { margin: 4px 0; }
+
+/* Galería de plantillas */
+.rp-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.rp-card { border: 1px solid var(--q-border, #e3e6ea); border-radius: 12px; background: #fff; overflow: hidden;
+  display: flex; flex-direction: column; transition: box-shadow .15s ease, transform .1s ease, border-color .15s ease; }
+.rp-card:hover { box-shadow: 0 10px 28px -10px rgba(23,41,131,.35); border-color: #c3cbee; transform: translateY(-2px); }
+.rp-card-preview { height: 120px; background: #e8ebf7; display: block; }
+.rp-card-preview svg { display: block; }
+.rp-card-ico { width: 34px; height: 34px; margin: -17px 0 0 16px; border-radius: 9px; background: var(--q-green, #172983);
+  color: #fff; display: grid; place-items: center; font-size: 17px; box-shadow: 0 4px 12px -3px rgba(23,41,131,.5); position: relative; }
+.rp-card-title { margin: 10px 16px 4px; font-size: 15px; color: var(--q-text, #1b1f24); }
+.rp-card-desc { margin: 0 16px 14px; font-size: 12.5px; color: var(--q-muted, #6b7280); line-height: 1.45; flex: 1; }
+.rp-card-btn { margin: 0 16px 16px; }
+
+/* Botón primario (por si la vista se abre sin hub.css) */
+.q-btn.primary { background: var(--q-green, #172983); border-color: var(--q-green, #172983); color: #fff; }
+
+/* Overlay de progreso */
+.rp-progress-backdrop { position: fixed; inset: 0; z-index: 95; background: rgba(20,24,30,.42); display: grid; place-items: center; }
+.rp-progress-backdrop[hidden] { display: none !important; }
+.rp-progress { width: min(420px, 90%); background: #fff; border-radius: 12px; padding: 22px 24px; box-shadow: 0 24px 60px rgba(0,0,0,.3); }
+.rp-progress-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.rp-progress-head strong { font-size: 15px; color: var(--q-text, #1b1f24); }
+.rp-progress-spin { width: 20px; height: 20px; flex: none; border-radius: 50%;
+  border: 3px solid #d7dcf0; border-top-color: var(--q-green, #172983); animation: rp-spin .8s linear infinite; }
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+.rp-progress-steps { display: flex; flex-direction: column; gap: 10px; }
+.rp-pstep { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--q-muted, #6b7280); }
+.rp-pstep-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: #d7dcf0; }
+.rp-pstep.run .rp-pstep-dot { background: var(--q-green, #172983); animation: rp-pulse 1s ease-in-out infinite; }
+.rp-pstep.done { color: var(--q-text, #1b1f24); }
+.rp-pstep.done .rp-pstep-dot { background: var(--q-green, #172983); }
+.rp-pstep.err { color: #c0392b; }
+.rp-pstep.err .rp-pstep-dot { background: #c0392b; }
+@keyframes rp-pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }

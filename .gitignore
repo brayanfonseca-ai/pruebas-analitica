@@ -1,0 +1,49 @@
+# === DataSense .gitignore ===
+
+# --- Datos locales y base de datos (contiene conexiones guardadas: NO subir) ---
+backend-springboot/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Build / compilados Java ---
+backend-springboot/target/
+*.class
+
+# --- Node / MCP server ---
+mcp-server/node_modules/
+mcp-server/dist/
+node_modules/
+dist/
+npm-debug.log*
+package-lock.json.bak
+
+# --- Angular scaffold (no compilable aquí) ---
+frontend-angular/node_modules/
+frontend-angular/dist/
+frontend-angular/.angular/
+
+# --- Artefactos de workflows y QA (internos, no producto) ---
+.agents/
+.kiro/qa/*.json
+.kiro/qa/*.md
+
+# --- Credenciales y secretos (defensa en profundidad; nunca deberían existir aquí) ---
+*.pem
+*.key
+.env
+.env.*
+**/credentials
+aws-credentials*
+*secret*
+*.keystore
+
+# --- Temporales / sistema ---
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+qa-*.html
+~$*
+_chrome_prof/
+*.xlsx

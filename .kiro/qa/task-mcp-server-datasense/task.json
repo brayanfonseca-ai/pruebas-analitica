@@ -1,0 +1,7 @@
+{
+  "task_id": "task-mcp-server-datasense",
+  "task_description": "Construir un servidor MCP (Model Context Protocol) en TypeScript/Node.js en Preuba/mcp-server que exponga el backend DataSense (Spring Boot REST /api/v1 en http://localhost:8080) como herramientas reales para un agente de IA: contexto (listar apps, leer tablas y datos, modelo, script, hojas, conexiones) y acciones (crear apps, ejecutar queries/agregaciones, crear/actualizar hojas y dashboards, correr el script de carga, crear/probar conexiones, IA modelar/analizar/disenar). Transport STDIO, build con tsc, config lista para conectar, probado y aprobado por QA. NO modifica el backend Java (todas las tools se cubren con endpoints existentes).",
+  "status": "pending",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
+  "blocked_reason": null
+}

@@ -1,0 +1,24 @@
+{
+  "id": "FEAT-003",
+  "type": "test",
+  "description": "Tests unitarios (node:test con fetch mockeado) y entregables de conexion: README con como construir/configurar/conectar y mcp.config.example.json listo para pegar en un cliente MCP. Depende de FEAT-001 y FEAT-002 (prueba http-client y el mapeo tool->endpoint, y documenta el catalogo completo de tools). Cierra la tarea con todo compilando y los tests pasando.",
+  "status": "completed",
+  "steps": [
+    "Crear Preuba/mcp-server/test/http-client.test.ts (node:test): mockear fetch global (globalThis.fetch) y verificar que get/post/put/del construyen la URL getBaseUrl()+path, metodo y headers correctos, y que una respuesta !ok lanza Error con el status. Cubrir el caso 204 sin cuerpo en del().",
+    "Crear Preuba/mcp-server/test/tools.test.ts (node:test): con fetch mockeado, invocar los handlers de un par de tools de contexto (list_apps) y de accion (run_query, create_sheet) y afirmar que llaman al endpoint correcto con el body correcto y que la validacion zod rechaza inputs invalidos (p.ej. agg fuera de sum|count|avg|min|max, o measures vacio en run_query).",
+    "Crear Preuba/mcp-server/README.md (en espanol): requisitos (Node por ruta absoluta), instalar deps, build (npm run build), ejecutar (node dist/index.js, STDIO), variable DATASENSE_BASE_URL (default http://localhost:8080), catalogo de tools (contexto y accion) con una linea por tool y su endpoint, y advertencia de que read_table devuelve preview<=50 filas (usar run_query para el total). Nota de que el backend no se modifica.",
+    "Crear Preuba/mcp-server/mcp.config.example.json con el bloque mcpServers.datasense: command = ruta absoluta a node.exe, args = [ruta absoluta a dist/index.js], env.DATASENSE_BASE_URL = http://localhost:8080. Usar rutas con doble backslash escapado en JSON y dejar claro en el README que hay que ajustar <ABS> a la ruta real."
+  ],
+  "acceptance_criteria": [
+    "\"C:\\Program Files\\nodejs\\npm.cmd\" run build (cwd Preuba/mcp-server) exit 0.",
+    "\"C:\\Program Files\\nodejs\\npm.cmd\" test (cwd Preuba/mcp-server) corre node --test y TODOS los tests pasan.",
+    "README.md documenta build, DATASENSE_BASE_URL y el catalogo completo de tools; mcp.config.example.json es JSON valido con el bloque mcpServers.datasense.",
+    "No se ha modificado ningun archivo bajo backend-springboot/."
+  ],
+  "verification": [
+    "Build+Test: \"C:\\Program Files\\nodejs\\npm.cmd\" run build && \"C:\\Program Files\\nodejs\\npm.cmd\" test con cwd = Preuba\\mcp-server -> redirigir salida a $env:TEMP\\ds_feat3.txt y leerla; exit 0 y todos los tests pasan.",
+    "Validar que mcp.config.example.json parsea como JSON (p.ej. node -e con JSON.parse del contenido) -> sin error."
+  ],
+  "blocked_reason": null,
+  "findings": "FEAT-003 completado. Build exit 0 y tests exit 0 (16/16 pasan) con cwd=Preuba/mcp-server usando \"C:\\Program Files\\nodejs\\npm.cmd\" run build && test. Archivos agregados: test/http-client.test.ts, test/tools.test.ts, README.md, mcp.config.example.json. AJUSTES DE BUILD necesarios para que compilen y corran los tests (el tsconfig original no podia compilar y 'node --test dist/test' fallaba en el Node instalado): (1) tsconfig.json: quitado rootDir:'src' y dejado include:['src','test'] -> tsc infiere rootDir comun = mcp-server/, por lo que ahora el codigo compila a dist/src/ (entrypoint dist/src/index.js) y los tests a dist/test/. (2) package.json: script start = 'node dist/src/index.js' (antes dist/index.js) y test = 'node --test \"dist/test/*.test.js\"' (el Node de npm.cmd no escanea una carpeta pasada como posicional; requiere el glob). COMO CORRER TESTS: cwd=Preuba/mcp-server, \"C:\\Program Files\\nodejs\\npm.cmd\" run build luego \"C:\\Program Files\\nodejs\\npm.cmd\" test (mockean fetch, NO tocan el backend). COMO CONECTAR EL MCP: copiar mcp.config.example.json al cliente MCP; command = C:\\Program Files\\nodejs\\node.exe, args = [<ABS>\\mcp-server\\dist\\src\\index.js] (sustituir <ABS> por la ruta real del proyecto), env.DATASENSE_BASE_URL = http://localhost:8080. El entrypoint ejecutable es dist/src/index.js (STDIO). Backend no modificado (nada bajo backend-springboot/)."
+}

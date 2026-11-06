@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: datasense-backend
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# Base de datos SQLite local (archivo junto al proyecto). Mismo enfoque que el
+# backend Python: una sola fuente de verdad para apps, tablas, hojas y colecciones.
+datasense:
+  db-path: ./data/datasense.db
+  data-dir: ./data
+  # Conexiones de datos reales (S3, Athena, JDBC, HTTP). Límites configurables.
+  connections:
+    row-limit: ${DATASENSE_CONN_ROW_LIMIT:1000}
+    athena-timeout: ${DATASENSE_ATHENA_TIMEOUT:30}
+  # Asistente de IA ("estrellita"). Nova Micro SOLO via inference profile en us-east-2.
+  # Credenciales via DefaultCredentialsProvider (~/.aws); NUNCA hardcodear claves.
+  ai:
+    region: ${DATASENSE_AI_REGION:us-east-2}
+    model-id: ${DATASENSE_AI_MODEL_ID:us.amazon.nova-micro-v1:0}
+    profile: ${DATASENSE_AI_PROFILE:default}
+    agent-name: ${DATASENSE_AI_AGENT:prueba}
+    max-tokens: ${DATASENSE_AI_MAX_TOKENS:1200}

@@ -1,0 +1,28 @@
+{
+  "project_type": "Servidor MCP standalone en TypeScript/Node que consume el backend REST de DataSense (clon local de Qlik Sense). El backend es Spring Boot (Java 21) y sirve /api/v1 en http://localhost:8080; el frontend es HTML/JS estatico sin build. El MCP vive en Preuba/mcp-server y es independiente del backend.",
+  "language": "TypeScript (Node.js)",
+  "build_system": "npm + tsc. El PATH de la sesion puede NO tener node/npm: invocarlos SIEMPRE por ruta absoluta: \"C:\\Program Files\\nodejs\\node.exe\" y \"C:\\Program Files\\nodejs\\npm.cmd\". Hay otro node.exe en C:\\Users\\...\\AppData\\Local\\Kiro-Cli\\ que NO sirve. package.json con type:module, tsconfig target ES2022 module NodeNext strict, outDir dist.",
+  "test_framework": "node:test (node --test) sobre TypeScript compilado a dist/. El proyecto es nuevo: no hay tests hoy; se crean en FEAT-003. fetch se mockea en los tests (sin tocar el backend).",
+  "build_command": "\"C:\\Program Files\\nodejs\\npm.cmd\" run build   (ejecuta tsc; esperado exit 0 y dist/index.js existe). Correr con cwd = Preuba\\mcp-server.",
+  "test_command": "\"C:\\Program Files\\nodejs\\npm.cmd\" test   (node --test sobre dist/test; esperado todos pasan). Correr con cwd = Preuba\\mcp-server.",
+  "verification_instructions": "1) Build: npm run build -> exit 0, dist/index.js existe. 2) Tests: npm test -> todos pasan. 3) Smoke STDIO con el backend VIVO en :8080: arrancar node dist/index.js, enviar initialize + tools/list y confirmar el catalogo de tools; invocar list_apps y confirmar que devuelve las 2 apps vivas (ids 73f59275... 'Mi aplicacion' y a2ba7ea7... 'Dashboard de pruebas'). Backend confirmado arriba: GET /api/v1/ai/health -> 200 {ok:true,agent:'prueba',model:'us.amazon.nova-micro-v1:0',region:'us-east-2'}. NO reiniciar ni liberar el 8080: reutilizar el proceso vivo.",
+  "snapshot_or_generated_files": "dist/ lo genera tsc (no se versiona; esta en .gitignore). No hay snapshots versionados.",
+  "environment_constraints": "Windows PowerShell duplica caracteres en el eco de comandos con comillas/pipes y devuelve exit code -1 como ARTEFACTO (no es fallo real): escribir a un .ps1 en $env:TEMP y redirigir salida a $env:TEMP\\ds_*.txt, luego leer el archivo con la herramienta de lectura para juzgar. Node 26 trae fetch global: NO usar node-fetch. Backend vivo en :8080: NO reiniciarlo. Rutas: usar SIEMPRE rutas ABSOLUTAS; el worktree de trabajo es la raiz del proyecto y las relativas caen en el workspace padre.",
+  "contribution_requirements": "El MCP NO debe modificar el backend Java. Todas las tools se cubren con endpoints REST existentes. El idioma del proyecto (mensajes, README) es espanol. baseUrl configurable por variable de entorno DATASENSE_BASE_URL (default http://localhost:8080).",
+  "key_patterns": "SDK MCP oficial: paquete npm '@modelcontextprotocol/sdk' con StdioServerTransport; registro de tools con esquemas de input validados con zod. Un wrapper http-client.ts sobre fetch global centraliza GET/POST/PUT/DELETE contra DATASENSE_BASE_URL y el manejo de errores HTTP. Separar tools de lectura (context-tools.ts) de tools de accion (action-tools.ts). IMPORTANTE: GET /tables/{tableId} devuelve TableOut con preview CAPADO a 50 filas (DataController.toTableOut: Math.min(50, df.rowCount())); 'rows' es el total real. No existe endpoint de filas arbitrarias: read_table expone el preview<=50 + total + columns, y para calculos sobre todo el dataset se usa run_query (POST /query, agregacion en el motor). agg de medidas in sum|count|avg|min|max (default sum). POST /query sin dimension -> KPI escalar en QueryResult.value; con dimension -> labels + series.",
+  "relevant_files": [
+    ".kiro/qa/mcp-plan.md (plan detallado con la tabla de firmas y el mapeo tool->endpoint)",
+    "backend-springboot/src/main/java/io/datasense/web/AppController.java (GET/POST /apps, GET/DELETE /apps/{appId})",
+    "backend-springboot/src/main/java/io/datasense/web/DataController.java (GET/POST/DELETE /tables, GET /tables/{tableId}; preview capado a 50)",
+    "backend-springboot/src/main/java/io/datasense/web/QueryController.java (POST /query, GET /fields, POST /fields/values)",
+    "backend-springboot/src/main/java/io/datasense/web/ScriptController.java (GET/PUT /script, POST /script/run)",
+    "backend-springboot/src/main/java/io/datasense/web/ModelController.java (GET /model, /associations/recommend, CRUD /associations)",
+    "backend-springboot/src/main/java/io/datasense/web/SheetController.java (CRUD /sheets)",
+    "backend-springboot/src/main/java/io/datasense/repo/SheetRepository.java (create acepta {title,description,objects,props})",
+    "backend-springboot/src/main/java/io/datasense/web/ConnectionController.java (GET/POST /connections, POST /connections/test, DELETE /connections/{connId})",
+    "backend-springboot/src/main/java/io/datasense/web/AiController.java (POST /ai/{modelar,analizar,disenar} siempre 200, GET /ai/health)",
+    "backend-springboot/src/main/java/io/datasense/model/AppModels.java (records: AppOut, AppCreate, ColumnProfile, TableOut, QuerySpec, QueryResult, MeasureSpec, FieldRef, SeriesOut)",
+    "backend-springboot/src/main/java/io/datasense/engine/QueryEngine.java (semantica de agregacion)"
+  ],
+  "directory_structure": "Preuba/ raiz. backend-springboot/ = backend Spring Boot (NO tocar). mcp-server/ = a crear (no existe aun): package.json, tsconfig.json, .gitignore, README.md, mcp.config.example.json, src/{index.ts,config.ts,http-client.ts,tools.ts,tools/{schemas.ts,context-tools.ts,action-tools.ts}}, test/{http-client.test.ts,tools.test.ts}, dist/ (generado). .kiro/qa/ = artefactos de planificacion y QA (ya existe)."
+}
