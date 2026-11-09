@@ -8,14 +8,14 @@ Conectar a fuentes externas y traer datos de verdad. Catálogo amplio de conecto
 - Desde una conexión creada puedes **Cargar datos** → se materializa una tabla del modelo.
 
 ## A nivel visual
-- Rejilla de conectores agrupada y buscable; iconos por tipo con color. Formulario dinámico por conector. Estados de prueba ok/err. Estilos en `css/editor.css` y `css/connections-hub.css`.
+- Rejilla de conectores agrupada y buscable; iconos por tipo con color. Formulario dinámico por conector. Estados de prueba ok/err. Estilos en `frontend/css/editor.css` y `frontend/css/connections-hub.css`.
 
 ## A nivel de desarrollo
 - Backend:
   - `ConnectionController` — `GET/POST /connections`, `POST /connections/test` (prueba REAL), `POST /connections/{id}/load` (materializa tabla), `DELETE`.
   - `engine/connect/` — `ConnectionExecutor` por tipo: `S3Executor` (AWS SDK v2: HeadBucket/ListObjects/lee objeto), `AthenaExecutor` (StartQueryExecution/SELECT), `JdbcExecutor` (Postgres/MySQL/MariaDB/SQL Server/Oracle/Redshift: SELECT real), `HttpExecutor` (REST/webfile GET), y `StubExecutor` (conectores sin credenciales disponibles: error honesto, no fingido).
   - `ConnectionRepository` — enmascara secretos (claves, tokens, contraseñas) en las respuestas.
-- Frontend: `js/connections.js` (catálogo + `openConnectionWizard`), `js/conn-hub.js` (desde el hub), métodos en `js/api.js`.
+- Frontend: `frontend/js/connections.js` (catálogo + `openConnectionWizard`), `frontend/js/conn-hub.js` (desde el hub), métodos en `frontend/js/api.js`.
 
 ## Estado honesto de los conectores
 - **Verificados en vivo** (con credenciales del usuario, `us-east-2`): **S3** (carga real de tablas) y **Athena** (consulta real).
@@ -26,5 +26,5 @@ Conectar a fuentes externas y traer datos de verdad. Catálogo amplio de conecto
 Credenciales AWS desde `~/.aws` (nunca en el repo). Secretos enmascarados en la API. La base de datos con las conexiones (`data/`) está excluida de git.
 
 ## Archivos
-`js/connections.js`, `js/conn-hub.js`, `css/connections-hub.css`,
+`frontend/js/connections.js`, `frontend/js/conn-hub.js`, `frontend/css/connections-hub.css`,
 `backend: web/ConnectionController.java`, `repo/ConnectionRepository.java`, `engine/connect/*`.

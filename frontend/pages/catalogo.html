@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google" content="notranslate" />
+  <title>DataSense · Catálogo</title>
+  <link rel="stylesheet" href="../css/hub.css" />
+  <link rel="stylesheet" href="../css/editor.css" />
+  <link rel="stylesheet" href="../css/model.css" />
+</head>
+<body>
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="q-topbar">
+    <button class="q-apps" id="appsBtn" title="Ir al catálogo" aria-label="Aplicaciones">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </button>
+    <div class="q-logo">
+      <span class="q-logo-mark">◆</span>
+      <span class="q-logo-text">DataSense</span>
+      <span class="q-logo-sep">Catálogo</span>
+    </div>
+    <div class="q-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar aplicaciones" aria-label="Buscar aplicaciones" />
+    </div>
+    <div class="q-top-actions">
+      <div class="q-avatar" id="avatar">D</div>
+    </div>
+  </header>
+
+  <div class="q-body">
+    <aside class="q-side"><nav class="q-nav" id="nav"></nav></aside>
+
+    <main class="q-main">
+      <div class="q-greeting">
+        <h1>Catálogo</h1>
+        <button class="q-ed-btn primary" id="newAppBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Crear aplicación
+        </button>
+      </div>
+
+      <div class="q-filterbar" id="catFilters">
+        <button class="q-filter-chip" data-cat-filter="espacios">Espacios <span class="q-caret">▾</span></button>
+        <button class="q-filter-chip" data-cat-filter="tipos">Tipos <span class="q-caret">▾</span></button>
+        <button class="q-filter-chip" data-cat-filter="propietario">Propietario <span class="q-caret">▾</span></button>
+        <button class="q-filter-chip" data-cat-filter="todos">Todos los filtros</button>
+      </div>
+
+      <p class="q-muted" id="catalogHint" style="color:var(--q-muted);margin:0 0 18px;">
+        Abre una aplicación para gestionar sus datos, modelar y analizar.
+      </p>
+
+      <div class="q-create-grid" id="appsGrid"></div>
+    </main>
+  </div>
+
+  <!-- Modal: crear aplicación -->
+  <div class="q-modal-backdrop" id="createBackdrop" hidden>
+    <div class="q-modal">
+      <div class="q-modal-head">
+        <h2>Crear aplicación</h2>
+        <button class="q-modal-x" id="createX" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="q-modal-body">
+        <label for="appName" style="font-size:.82rem;color:var(--q-muted);">Nombre de la aplicación</label>
+        <input type="text" id="appName" placeholder="Mi aplicación"
+          style="width:100%;margin-top:6px;padding:11px 13px;border:1px solid var(--q-border);border-radius:8px;outline:none;font-size:.95rem;" />
+        <p class="q-upload-status" id="createStatus"></p>
+      </div>
+      <div class="q-modal-foot">
+        <button class="q-ed-btn ghost" id="createCancel">Cancelar</button>
+        <button class="q-ed-btn primary" id="createCommit">Crear y abrir</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/catalogo.js"></script>
+</body>
+</html>

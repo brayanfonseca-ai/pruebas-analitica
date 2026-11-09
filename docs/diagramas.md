@@ -114,7 +114,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CAT[Catálogo] -->|abrir app| APP[app.html?app=ID]
+    CAT[Catálogo] -->|abrir app| APP[pages/app.html?app=ID]
     APP --> SEL[Selector de vista]
     SEL --> G[General]
     SEL --> H[Hoja / Analizar]
@@ -123,4 +123,21 @@ flowchart LR
     SEL --> E[Editor de carga]
     SEL --> MO[Visor del modelo]
     SEL --> L[Modelo lógico]
+```
+
+## 10. Laboratorio de ML
+
+```mermaid
+flowchart LR
+    T[Tarjeta de algoritmo] -->|Abrir| W[Flujo guiado]
+    T -->|Ejecutar ejemplo| EX[Configuración automática]
+    W --> D[1 Datos] --> V[2 Variables] --> P[3 Parámetros] --> TR[4 Entrenar]
+    EX --> TR
+    TR -->|POST /ml/run| C[MlController]
+    C --> S[TableStore: CSV de la tabla]
+    C --> M[MlService: algoritmo]
+    M --> R[Resultado: métricas, gráficos, lectura]
+    R --> RS[5 Resultados]
+    RS --> CASO[6 Probar un caso / Muestra]
+    CASO -->|POST /ml/run con input| C
 ```

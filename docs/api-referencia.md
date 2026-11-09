@@ -81,3 +81,24 @@ de negocio devuelven códigos claros (400/404); la IA y las conexiones degradan 
 
 Respuesta IA: `{ok, message, agent, action?}`. `action` puede traer un plan
 (`build-sheet`/`add-objects`/`apply-script`) que el frontend ejecuta.
+
+## Laboratorio de ML
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/apps/{appId}/ml/datasets` | Tablas con campos agrupados: `numeric`, `categorical`, `dates` (`field` físico + `display`). |
+| POST | `/apps/{appId}/ml/run` | Ejecuta un algoritmo. Cuerpo: `{table, algorithm, params}`. |
+
+`algorithm` ∈ `kmeans`, `pca`, `correlation`, `anomaly`, `linear`, `forecast`, `logistic`.
+
+| Algoritmo | `params` |
+|---|---|
+| `kmeans` | `features[]`, `k` (0 = automático), `standardize` |
+| `pca`, `correlation` | `features[]` |
+| `anomaly` | `features[]`, `method` (`both`/`zscore`/`iqr`), `threshold` |
+| `linear` | `target`, `features[]`, `testSize` |
+| `logistic` | `target`, `features[]`, `testSize`, `positive?`, `threshold?` |
+| `forecast` | `measure`, `period`, `horizon`, `aggregation` (`sum`/`avg`) |
+
+Con `params.input` (`{campo: valor}`) en `kmeans`, `linear` o `logistic`, la respuesta
+incluye `prediction` para ese caso. Todas las respuestas traen `insights[]`, `n`,
+`elapsedMs` y `table`. Errores de entrada: **400** con `message` legible.

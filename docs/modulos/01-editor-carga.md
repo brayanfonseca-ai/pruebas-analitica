@@ -12,10 +12,10 @@ Edición del **script de carga** estilo Qlik y subida de archivos. Equivale al "
 ## A nivel visual
 - Layout de 3 zonas: editor (centro), panel "Añadir datos" (derecha), bandeja inferior con "Vista previa / Resultado".
 - **Modal de progreso de carga**: ventana emergente que muestra los pasos del motor y, si hay error, lo destaca dentro del modal.
-- Estilos en `css/editor.css`. Acento azul de marca.
+- Estilos en `frontend/css/editor.css`. Acento azul de marca.
 
 ## A nivel de desarrollo
-- Frontend: `js/app-editor.js`. Funciones clave: `getCode()/setCode()`, `saveScript()` (`PUT /script`), `runNow()` (`POST /script/run` + modal de progreso), `doUpload()` (`POST /tables`, multipart), `renderConnections()`.
+- Frontend: `frontend/js/app-editor.js`. Funciones clave: `getCode()/setCode()`, `saveScript()` (`PUT /script`), `runNow()` (`POST /script/run` + modal de progreso), `doUpload()` (`POST /tables`, multipart), `renderConnections()`.
 - Backend:
   - `ScriptController` — `GET/PUT /script`, `POST /script/run`. Genera el script por defecto desde las tablas y refleja los field-overrides (alias `AS`, omite ocultos).
   - `DataController` — `POST /tables` (sube y perfila con `Profiler`), sirve tablas.
@@ -23,6 +23,6 @@ Edición del **script de carga** estilo Qlik y subida de archivos. Equivale al "
 - El asistente usa `aiModelar(appId, {pregunta, contexto})`; el contexto se arma de `listTables`.
 
 ## Archivos
-`js/app-editor.js`, `css/editor.css`,
+`frontend/js/app-editor.js`, `frontend/css/editor.css`,
 `backend: web/ScriptController.java`, `web/DataController.java`,
 `engine/Profiler.java`, `engine/TableReader.java`, `engine/TableStore.java`.

@@ -35,3 +35,23 @@ Términos del dominio de DataSense (muchos heredados de Qlik Sense).
 | **Agente / persona** | El "rol" que adopta el asistente IA según el contexto (ingeniero, analista, diseñador, asesor de informes). |
 | **QueryResult** | Respuesta de `/query`: `{labels, values, value, series}`. Sin dimensión → `value` escalar (KPI); con dimensión → `labels`+`values`. |
 | **Rejilla (grid)** | El lienzo de la hoja: 24 columnas de ancho, filas variables. Los objetos se posicionan en celdas. |
+| **Laboratorio de ML** | Vista con siete algoritmos de aprendizaje automático en tarjetas, con flujo guiado y ejemplo automático. |
+| **Aprendizaje supervisado / no supervisado** | Supervisado: se predice una variable objetivo conocida (regresión, clasificación). No supervisado: se buscan patrones sin objetivo (segmentación, PCA, anomalías). |
+| **K-Means** | Algoritmo de segmentación que agrupa registros en *k* grupos alrededor de centroides. |
+| **Silueta** | Medida de −1 a 1 de qué tan bien separados están los grupos. Mayor a 0.5 = separación fuerte. |
+| **Inercia** | Suma de distancias cuadradas de cada registro a su centroide; baja al aumentar k. |
+| **PCA** | Análisis de componentes principales: resume variables correlacionadas en ejes que conservan la mayor varianza. |
+| **Varianza explicada** | Porcentaje de la información total que retiene un componente. |
+| **Correlación (Pearson / Spearman)** | Medida de −1 a 1 de cuánto se mueven juntas dos variables (lineal / por rangos). No implica causalidad. |
+| **Z-score / IQR** | Criterios de anomalía: desviaciones respecto a la media / distancia a los cuartiles (1.5×IQR). |
+| **Regresión lineal** | Modelo que predice un número como combinación lineal de variables. |
+| **R² / R² ajustado** | Proporción de la variación que explica el modelo; el ajustado penaliza variables extra. |
+| **RMSE / MAE** | Error típico (penaliza errores grandes) / error absoluto medio, en las unidades del objetivo. |
+| **Sobreajuste** | El modelo rinde bien en entrenamiento pero mal con datos nuevos. |
+| **Conjunto de prueba** | Filas reservadas que el modelo no ve al entrenar, para medir su rendimiento real. |
+| **Regresión logística** | Modelo de clasificación que estima la probabilidad de pertenecer a una clase. |
+| **Exactitud / precisión / sensibilidad / F1** | Métricas de clasificación: aciertos totales / aciertos entre los predichos positivos / positivos reales detectados / equilibrio entre precisión y sensibilidad. |
+| **AUC / curva ROC** | Capacidad de separar clases independiente del umbral (0.5 = azar, 1 = perfecto). |
+| **Razón de momios (odds ratio)** | Factor por el que se multiplican las probabilidades al subir una variable una desviación estándar. |
+| **Pronóstico (Holt)** | Proyección de una serie con suavizado exponencial de nivel y tendencia. |
+| **Banda de confianza** | Rango esperado (95%) alrededor del pronóstico. |

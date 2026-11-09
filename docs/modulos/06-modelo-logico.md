@@ -10,14 +10,14 @@ Vista con pestañas (selector de vista → Lógica de negocio → **Modelo lógi
 - **Períodos del calendario**: si hay un campo clasificado como fecha, crear períodos (Día/Mes/Trimestre/Año); si no hay fecha, lo indica.
 
 ## A nivel visual
-- Tarjetas y tablas con acento azul de marca; modales para crear jerarquías y períodos. Estilos en `css/logico.css` (clases `lm-*`).
+- Tarjetas y tablas con acento azul de marca; modales para crear jerarquías y períodos. Estilos en `frontend/css/logico.css` (clases `lm-*`).
 
 ## A nivel de desarrollo
 - Backend (ya era la fuente de verdad):
   - `LogicalModelController` — `GET` (genera default desde los datos + mezcla lo guardado + `summary` + `enabled`), `PUT`, `reset`, `enable`/`disable`, y CRUD de `groups/packages/hierarchies/behaviors/calendar-periods`. Contrato defensivo (404/400, nunca 500).
   - `LogicalModelService` — genera la lógica por defecto: `number→measure/sum`, `date→date`, `text→dimension`; respeta los **field-overrides** (display, tipo forzado, oculto); `merge` superpone los ajustes del usuario; `summarize` calcula los conteos.
   - `LogicalModelRepository` — tabla `logical_model` (doc JSON + enabled).
-- Frontend: `js/app-logico.js` (vista con pestañas) + wrappers en `js/api.js` (`getLogicalModel`, `putLogicalModel`, `resetLogicalModel`, `enable/disableLogicalModel`, `addHierarchy`, `addCalendarPeriod`, …). Activado en el router de `js/app.js` (key `logico`).
+- Frontend: `frontend/js/app-logico.js` (vista con pestañas) + wrappers en `frontend/js/api.js` (`getLogicalModel`, `putLogicalModel`, `resetLogicalModel`, `enable/disableLogicalModel`, `addHierarchy`, `addCalendarPeriod`, …). Activado en el router de `frontend/js/app.js` (key `logico`).
 
 ## Documento del modelo
 ```
@@ -32,5 +32,9 @@ un tipo mal perfilado (p.ej. una dimensión de texto detectada como número),
 recarga el origen limpio para que la clasificación sea correcta.
 
 ## Archivos
-`js/app-logico.js`, `css/logico.css`,
+`frontend/js/app-logico.js`, `frontend/css/logico.css`,
 `backend: web/LogicalModelController.java`, `engine/LogicalModelService.java`, `repo/LogicalModelRepository.java`.
+
+## Interfaz actual
+
+Pestañas **Resumen** (tarjetas por tipo y estado de la lógica), **Campos** (tipo, visibilidad y agregación por campo con guardado automático), **Jerarquías** y **Calendario**. Iconos SVG de línea y un color por tipo (dimensión azul, medida verde, fecha ámbar, jerarquía violeta); la lógica se activa con un interruptor. Estilos en `frontend/css/logico.css` (prefijo `lm-`).

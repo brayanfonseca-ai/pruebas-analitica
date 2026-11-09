@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google" content="notranslate" />
+  <title>Qlik · Analítica</title>
+  <link rel="stylesheet" href="../css/hub.css" />
+</head>
+<body>
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="q-topbar">
+    <button class="q-apps" id="appsBtn" title="Ir al catálogo" aria-label="Aplicaciones">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </button>
+    <div class="q-logo">
+      <span class="q-logo-mark">◆</span>
+      <span class="q-logo-text">DataSense</span>
+      <span class="q-logo-sep">Analítica</span>
+    </div>
+
+    <div class="q-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <input type="text" placeholder="Buscar contenido" aria-label="Buscar contenido" />
+    </div>
+
+    <div class="q-top-actions">
+      <button class="q-top-ico" title="Crear" aria-label="Crear">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button class="q-top-ico" title="Ayuda" aria-label="Ayuda">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>
+      </button>
+      <button class="q-top-ico" title="Notificaciones" aria-label="Notificaciones">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="q-badge-dot">3</span>
+      </button>
+      <div class="q-avatar" id="avatar">QD</div>
+    </div>
+  </header>
+
+  <div class="q-body">
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="q-side" id="side">
+      <nav class="q-nav" id="nav"></nav>
+    </aside>
+
+    <!-- ===================== MAIN ===================== -->
+    <main class="q-main">
+      <div class="q-greeting">
+        <h1 id="greeting">Buenos días.</h1>
+        <button class="q-add-widget">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Agregar widgets
+        </button>
+      </div>
+
+      <div class="q-tabs">
+        <button class="q-tab active">Personal</button>
+      </div>
+
+      <section class="q-section">
+        <div class="q-section-head">
+          <h2><span class="q-sec-ico charts"></span> Utilizados recientemente</h2>
+          <div class="q-section-nav">
+            <a href="catalogo.html" class="q-seeall">Ver todo</a>
+          </div>
+        </div>
+        <div class="q-home-grid" id="recentGrid"></div>
+      </section>
+
+      <section class="q-section">
+        <div class="q-section-head">
+          <h2><span class="q-sec-ico charts"></span> Aplicaciones para explorar</h2>
+          <div class="q-section-nav">
+            <a href="catalogo.html" class="q-seeall">Ver todo</a>
+          </div>
+        </div>
+        <div class="q-home-grid" id="exploreGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="../js/inicio.js"></script>
+</body>
+</html>

@@ -12,14 +12,14 @@ Preparación de datos **por clics**, sin escribir script: renombrar campos, camb
 
 ## A nivel visual
 - Tabla de campos con: nombre origen, campo de renombrar, selector de tipo, casilla "Ocultar", y botón "Aplicar cambios".
-- Estilos en `css/model.css` (clases `q-fieldprep-*`). Acento azul de marca.
+- Estilos en `frontend/css/model.css` (clases `q-fieldprep-*`). Acento azul de marca.
 
 ## A nivel de desarrollo
 - Backend:
   - `FieldOverrideController` — `GET/PUT /apps/{appId}/tables/{tableId}/field-overrides`. Valida `forced_type ∈ {text,number,date}` (400 si inválido, nunca 500).
   - `FieldOverrideRepository` — tabla `field_overrides`.
   - `FieldOverrides` / `EffectiveFields` (engine) — aplican el override como **capa de vista**: `DataController` sirve la tabla con el rename/tipo/oculto; `ScriptController.generated` refleja los overrides.
-- Frontend: `js/app-datos.js` + `api.getFieldOverrides/putFieldOverrides`.
+- Frontend: `frontend/js/app-datos.js` + `api.getFieldOverrides/putFieldOverrides`.
 - **Identidad estable**: el override cambia la *presentación* (display name, tipo efectivo), pero la *identidad* del campo sigue siendo la columna física. Así renombrar no rompe hojas ni queries que referencian la columna real.
 
 ## Relación con otros módulos
@@ -27,6 +27,10 @@ Preparación de datos **por clics**, sin escribir script: renombrar campos, camb
 - La **Hoja** muestra el display del override en los rótulos (correlación editor↔hoja).
 
 ## Archivos
-`js/app-datos.js`, `css/model.css`,
+`frontend/js/app-datos.js`, `frontend/css/model.css`,
 `backend: web/FieldOverrideController.java`, `repo/FieldOverrideRepository.java`,
 `engine/FieldOverrides.java`, `engine/EffectiveFields.java`.
+
+## Interfaz actual
+
+La vista tiene dos pestañas. **Tablas**: resumen global (tablas, filas, columnas, completitud) y una tarjeta por tabla con los sub-paneles *Campos* (tipo, completitud, distintos, muestra), *Vista previa* (filas reales) y *Preparar campos* (renombrar, tipo, visible). **Asociaciones**: mapa SVG de tablas y enlaces, advertencias del modelo, recomendadas, activas y formulario de asociación personalizada. Estilos en `frontend/css/datos.css` (prefijo `dm-`); `frontend/css/model.css` conserva los estilos del visor del modelo.

@@ -5,7 +5,7 @@
 DataSense es una aplicación **cliente-servidor monolítica local**:
 
 - **Backend**: Spring Boot (Java 21). Expone una API REST bajo `/api/v1/**`, sirve el frontend estático y es la **única fuente de verdad** de los datos (apps, tablas, hojas, modelo, conexiones, modelo lógico). Persiste en **SQLite** (`backend-springboot/data/datasense.db`) y materializa las tablas como **CSV** en `backend-springboot/data/tables/<appId>/<tableId>.csv`.
-- **Frontend**: HTML + CSS + **JavaScript vanilla (ESM)**, servido por el backend desde la raíz del repo. No hay framework ni paso de build. Chart.js, jsPDF y SheetJS se cargan por CDN.
+- **Frontend**: HTML + CSS + **JavaScript vanilla (ESM)** en la carpeta `frontend/` (`pages/`, `css/`, `js/`), servida por el backend (`WebConfig` apunta a `../frontend/`). La raíz `/` redirige a `/pages/index.html`. No hay framework ni paso de build. Chart.js, jsPDF y SheetJS se cargan por CDN.
 - **IA**: el backend llama a **Amazon Bedrock (Nova Micro)** vía la API Converse, usando un *inference profile* en `us-east-2`. Las credenciales salen de `~/.aws` (DefaultCredentialsProvider); nunca se hardcodean ni llegan al navegador.
 - **MCP**: un servidor aparte en **TypeScript/Node** que expone la plataforma como herramientas para agentes de IA, consumiendo la misma API REST.
 
@@ -43,6 +43,7 @@ web/       Controladores REST:
            SheetController, MasterController, ScriptController, CollectionController,
            ConnectionController, FieldOverrideController, LogicalModelController,
            AiController, RootController
+ml/        MlController, MlService (7 algoritmos), MlMath (álgebra y estadística)
 engine/    Profiler (infiere tipos), DataFrame, TableReader, TableStore (CSV),
            QueryEngine (agregación + asociativo), AssociativeJoin, Associations,
            Expressions, FieldOverrides, EffectiveFields, LogicalModelService,
@@ -54,7 +55,7 @@ repo/      AppRepository, TableRepository, SheetRepository (+SheetObjectNormaliz
 model/     AppModels (DTOs)
 ```
 
-## Estructura del frontend (`js/`)
+## Estructura del frontend (`frontend/js/`)
 
 ```
 app.js            Shell de la app in-app (?app=<id>), router de vistas
@@ -64,6 +65,7 @@ app-modelo.js     Visor del modelo de datos
 app-hoja.js       Hoja: vista (analizar) + edición (construir dashboard)
 app-logico.js     Modelo lógico (Business Logic)
 app-informes.js   Generador de informes PDF
+app-lab.js        Laboratorio de ML (tarjetas + flujo guiado)
 estrellita.js     Widget del asistente de IA (flotante, fullscreen, historial)
 conn-hub.js       Apertura de conexiones desde el hub
 connections.js    Catálogo + asistente de conexiones de datos
@@ -74,6 +76,19 @@ api.js            Cliente REST (fetch) de todos los endpoints
 auth.js / auth-service.js / store.js   Sesión y estado del cliente
 hub-nav.js / inicio.js / hub.js / crear.js / catalogo.js   Hub
 ```
+
+## Estructura del repositorio
+
+```
+frontend/             pages/ (HTML), css/, js/
+backend-springboot/   API + motor + servidor de estáticos (data/ = estado, fuera de git)
+mcp-server/           Servidor MCP (TypeScript)
+docs/                 Esta documentación
+samples/              Datos de ejemplo
+```
+
+El proyecto no incluye pruebas automáticas ni scaffolds sin uso; la verificación se hace
+contra el servidor en ejecución.
 
 ## Modelo de datos (SQLite)
 
@@ -94,7 +109,8 @@ Los **datos** de cada tabla no viven en SQLite sino como **CSV** por app/tabla
 5. **Capa de presentación**: `field_overrides` (renombrar/tipo/ocultar) y
    `logical_model` (clasificación, grupos, jerarquías) ajustan cómo se interpretan
    los campos sin tocar el dato físico.
-6. **IA / Informes / MCP** consumen lo anterior vía REST.
+6. **Laboratorio de ML**: `MlController /ml/run` lee la tabla desde `TableStore`, ejecuta el algoritmo en `MlService` y devuelve métricas, datos de gráficos y una lectura del resultado.
+7. **IA / Informes / MCP** consumen lo anterior vía REST.
 
 ## Seguridad
 

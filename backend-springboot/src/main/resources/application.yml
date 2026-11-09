@@ -1,5 +1,8 @@
 server:
   port: 8080
+  error:
+    # Los 400/404 de los controladores llevan un mensaje legible para el usuario.
+    include-message: always
 
 spring:
   application:

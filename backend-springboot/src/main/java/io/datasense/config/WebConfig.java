@@ -5,11 +5,12 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Sirve el frontend estático (el mismo repo raíz) desde el mismo origen que la
- * API, igual que el StaticFiles mount de FastAPI. Así no se necesita CORS.
+ * Sirve el frontend estático ({@code frontend/}: pages, css, js) desde el mismo
+ * origen que la API. Así no se necesita CORS.
  *
- * <p>Nota: cuando el frontend Angular esté compilado, apuntar este handler a
- * {@code ../frontend-angular/dist/}. Mientras tanto sirve el frontend actual.</p>
+ * <p>Estructura: {@code frontend/pages/*.html} (páginas), {@code frontend/css},
+ * {@code frontend/js}. Las páginas referencian assets con {@code ../css/} y
+ * {@code ../js/}.</p>
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -19,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
         // setCachePeriod(0) + sin resourceChain: el navegador siempre recibe la
         // última versión del frontend (evita ver una página cacheada/antigua).
         registry.addResourceHandler("/**")
-                .addResourceLocations("file:../")
+                .addResourceLocations("file:../frontend/")
                 .setCachePeriod(0)
                 .resourceChain(false);
     }

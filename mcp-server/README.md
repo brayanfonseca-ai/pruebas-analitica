@@ -26,7 +26,7 @@ Desde la carpeta `mcp-server`:
 "C:\Program Files\nodejs\npm.cmd" run build
 ```
 
-Ejecuta `tsc` y genera el JavaScript en `dist/`. Como el proyecto compila tanto `src/` como `test/`, el codigo fuente queda en `dist/src/` (entrypoint en `dist/src/index.js`) y los tests compilados en `dist/test/`. La carpeta `dist/` es generada y no se versiona.
+Ejecuta `tsc` y genera el JavaScript en `dist/` (entrypoint en `dist/src/index.js`). La carpeta `dist/` es generada y no se versiona.
 
 ## Ejecutar
 
@@ -41,17 +41,6 @@ o con el script de npm:
 ```
 "C:\Program Files\nodejs\npm.cmd" start
 ```
-
-## Tests
-
-Los tests usan `node:test` sobre el codigo compilado y **mockean `fetch`** (no tocan el backend). Primero hay que compilar:
-
-```
-"C:\Program Files\nodejs\npm.cmd" run build
-"C:\Program Files\nodejs\npm.cmd" test
-```
-
-`npm test` ejecuta `node --test` sobre los tests compilados en `dist/test/`.
 
 ## Configuracion
 

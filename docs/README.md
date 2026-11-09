@@ -26,6 +26,7 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/08-informes.md`](./modulos/08-informes.md) | Generador de informes PDF (3 modos + agente). |
 | [`modulos/09-asistente-ia.md`](./modulos/09-asistente-ia.md) | Asistente "estrellita" (Bedrock Nova Micro). |
 | [`modulos/10-mcp.md`](./modulos/10-mcp.md) | Servidor MCP (TypeScript). |
+| [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Laboratorio de ML: 7 algoritmos con flujo guiado. |
 
 ---
 
@@ -39,7 +40,7 @@ $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot"
 ```
 Sirve el frontend y la API en **http://localhost:8080**.
 
-**Frontend:** vanilla JS/ESM servido por el propio backend (no requiere build). Tras cambios, **Ctrl+F5** para recargar sin caché.
+**Frontend:** vanilla JS/ESM en `frontend/` (`pages/`, `css/`, `js/`), servido por el propio backend (no requiere build). Las páginas se abren en `http://localhost:8080/pages/<pagina>.html`. Tras cambios, **Ctrl+F5** para recargar sin caché.
 
 **MCP:** ver [`modulos/10-mcp.md`](./modulos/10-mcp.md).
 
@@ -57,8 +58,9 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Editor de hoja | ✅ funcional |
 | Modelo lógico | ✅ funcional |
 | Conexiones reales | ✅ S3 / Athena verificadas; otras implementadas |
-| Informes PDF | ✅ 3 modos; mejora a nivel consultoría en curso |
+| Informes PDF | ✅ 3 modos con análisis especializado (margen, rentabilidad, Pareto, variación) |
+| Laboratorio de ML | ✅ 7 algoritmos verificados con datos reales |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |
 
-Última actualización: generada automáticamente por el equipo de desarrollo.
+Esta documentación se actualiza junto con cada cambio funcional o de estructura del repositorio.

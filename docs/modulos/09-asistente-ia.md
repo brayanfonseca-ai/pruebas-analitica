@@ -13,10 +13,10 @@ Un asistente conversacional flotante (botón ✦) integrado en los módulos, imp
 - Cuando el agente propone una acción (p.ej. "crear dashboard"), aparece un botón para **ejecutarla** en la hoja.
 
 ## A nivel visual
-- FAB con gradiente/acento azul de marca y glow sutil; panel con burbujas, estado "pensando", textarea con autosize. En fullscreen, barra lateral de historial. Estilos en `css/estrellita.css` (clases `star-*`).
+- FAB con gradiente/acento azul de marca y glow sutil; panel con burbujas, estado "pensando", textarea con autosize. En fullscreen, barra lateral de historial. Estilos en `frontend/css/estrellita.css` (clases `star-*`).
 
 ## A nivel de desarrollo
-- Frontend: `js/estrellita.js` — `mountEstrellita(opts)` devuelve `cleanup()` con `.setPersona(...)`. Consumido por `app-editor.js` (una instancia) y `app-hoja.js` (una instancia que alterna analista/diseñador). Render Markdown seguro; historial en `localStorage`.
+- Frontend: `frontend/js/estrellita.js` — `mountEstrellita(opts)` devuelve `cleanup()` con `.setPersona(...)`. Consumido por `app-editor.js` (una instancia) y `app-hoja.js` (una instancia que alterna analista/diseñador). Render Markdown seguro; historial en `localStorage`.
 - Backend:
   - `AiController` — `POST /ai/modelar`, `/analizar`, `/disenar`; `GET /ai/health`. Contrato defensivo: errores → `{ok:false}` 200, nunca 500. Puede devolver `action` (plan de acción) que el frontend ejecuta (`applyPlan`).
   - `BedrockService` — invoca Nova Micro vía **Converse API**, con el *inference profile* `us.amazon.nova-micro-v1:0` en `us-east-2`. Credenciales con `DefaultCredentialsProvider` (`~/.aws`). Lazy client; todo envuelto en try/catch.
@@ -26,5 +26,5 @@ Un asistente conversacional flotante (botón ✦) integrado en los módulos, imp
 Los system prompts son **conversacionales y abiertos pero anclados a datos**: saludan breve, responden lo que se pregunta, no vuelcan estructura enlatada, no inventan cifras, y distinguen cada medida por su nombre.
 
 ## Archivos
-`js/estrellita.js`, `css/estrellita.css`,
+`frontend/js/estrellita.js`, `frontend/css/estrellita.css`,
 `backend: web/AiController.java`, `ai/BedrockService.java`, `resources/application.yml`.
