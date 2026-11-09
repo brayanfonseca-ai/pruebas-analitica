@@ -38,7 +38,7 @@ const VIEW_GROUPS = [
   {
     label: "Lógica de negocio",
     views: [
-      { key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G" },
+      { key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G", module: "./app-logico.js" },
       { key: "vocabulario", label: "Vocabulario", icon: "book", shortcut: "V" },
     ],
   },

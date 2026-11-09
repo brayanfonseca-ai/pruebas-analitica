@@ -178,3 +178,17 @@ export const deleteConnection = (appId, connId) =>
 // Responde {ok, message, table:{id,name,rows,fields}} o {ok:false, message:<error real>}.
 export const loadConnection = (appId, connId, params = {}) =>
   request(`/apps/${encodeURIComponent(appId)}/connections/${encodeURIComponent(connId)}/load`, { method: "POST", body: params });
+
+/* ----------------------- Modelo lógico (Business Logic) ----------------------- */
+const LM = (appId) => `/apps/${encodeURIComponent(appId)}/logical-model`;
+export const getLogicalModel = (appId) => request(LM(appId));
+export const putLogicalModel = (appId, doc) => request(LM(appId), { method: "PUT", body: doc });
+export const resetLogicalModel = (appId) => request(`${LM(appId)}/reset`, { method: "POST", body: {} });
+export const enableLogicalModel = (appId) => request(`${LM(appId)}/enable`, { method: "POST", body: {} });
+export const disableLogicalModel = (appId) => request(`${LM(appId)}/disable`, { method: "POST", body: {} });
+export const addHierarchy = (appId, h) => request(`${LM(appId)}/hierarchies`, { method: "POST", body: h });
+export const deleteHierarchy = (appId, id) => request(`${LM(appId)}/hierarchies/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const addLmGroup = (appId, g) => request(`${LM(appId)}/groups`, { method: "POST", body: g });
+export const deleteLmGroup = (appId, id) => request(`${LM(appId)}/groups/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const addCalendarPeriod = (appId, p) => request(`${LM(appId)}/calendar-periods`, { method: "POST", body: p });
+export const deleteCalendarPeriod = (appId, id) => request(`${LM(appId)}/calendar-periods/${encodeURIComponent(id)}`, { method: "DELETE" });
