@@ -1,88 +1,106 @@
-# 11 · Laboratorio de ML
+# 11 · Experimentos de ML
 
-Vista **Ciencia de datos → Laboratorio de ML** dentro de una aplicación (`Alt + Shift + L`).
-Reúne siete algoritmos de aprendizaje automático, cada uno como una tarjeta con un flujo
-guiado de principio a fin. Todo el cálculo ocurre en el backend (Java puro, sin librerías de
-ML externas); el frontend solo configura, dibuja e interpreta.
+Módulo **independiente** (no es una vista más de una aplicación) para crear experimentos de
+aprendizaje automático sobre los datos de cualquier aplicación, entrenar y comparar modelos,
+probar casos y guardar cada ejecución. Todo el cálculo ocurre en el backend en Java puro, sin
+librerías de ML externas.
 
 ## A nivel de usuario
 
-La pantalla inicial muestra dos grupos de tarjetas. Cada tarjeta tiene **Abrir** (flujo
-manual) y **Ejecutar ejemplo** (se configura y entrena sola con tus datos).
+### Cómo se llega
 
-| Grupo | Tarjeta | Para qué sirve |
-|---|---|---|
-| Descubrir patrones | **Segmentación** (K-Means) | Agrupa registros parecidos y describe el perfil de cada grupo. |
-| | **Reducción de dimensiones** (PCA) | Resume muchas variables en pocos ejes que conservan la información. |
-| | **Correlaciones** | Mide qué variables se mueven juntas y detecta redundancias. |
-| | **Detección de anomalías** | Encuentra registros que se salen del comportamiento normal. |
-| Predecir | **Regresión lineal** | Predice un valor numérico y mide el peso de cada variable. |
-| | **Pronóstico de series** | Proyecta una medida a los próximos periodos con banda de confianza. |
-| | **Clasificación** (regresión logística) | Estima la probabilidad de que un registro pertenezca a una clase. |
+- **Crear → Experimento de ML** abre directamente el formulario de nuevo experimento.
+- **Menú lateral → Experimentos de ML** abre la lista (`pages/experimentos.html`).
+- Dentro de una aplicación, la vista **Ciencia de datos → Experimentos de ML** (`Alt+Shift+L`) lista los experimentos de esa app y crea uno nuevo con la app preseleccionada.
 
-### Flujo de cada tarjeta
+### Flujo
 
-1. **Datos** — tabla elegida, número de filas, tipos de variables y primeras filas.
-2. **Variables** — se eligen con chips: numéricas, objetivo, medida y periodo según el algoritmo.
-3. **Parámetros** — k, proporción de prueba, horizonte, umbral…; los algoritmos sin parámetros lo indican.
-4. **Entrenar** — resumen del experimento y botón para entrenar.
-5. **Resultados** — métricas, gráficos y un bloque **Lectura del resultado** con la interpretación.
-6. **Probar un caso** (K-Means, regresión, clasificación): se ingresan valores (o se cargan de una fila de ejemplo) y se obtiene el segmento, el valor estimado con rango de 95% o la probabilidad. En los demás algoritmos este paso es **Muestra**: una tabla de ejemplo exportable a **CSV**.
+1. **Nuevo experimento**: nombre, aplicación, tabla (muestra cuántas filas tiene) y descripción opcional.
+2. **Estudio del experimento** (`pages/experimento.html?id=…`), con tres pestañas:
+   - **Datos**: cada variable con su tipo, valores distintos, vacíos y uso típico, más una vista previa de filas reales.
+   - **Modelado**: catálogo de 24 algoritmos a la izquierda (con buscador). Al elegir uno se configuran las **variables** con chips (objetivo, predictoras, medida, periodo) y los **hiperparámetros**. **Entrenar y guardar** ejecuta, muestra los resultados y los guarda en el historial.
+   - **Ejecuciones**: historial con fecha, algoritmo, etiqueta, variables y métrica principal. Permite **abrir** una ejecución (restaura su configuración y resultado), **comparar** dos o más (tabla de métricas y gráfico) y **eliminar**.
+3. **Probar un caso** (segmentación con K-Means, todos los modelos de regresión y clasificación, y AutoML): se escriben valores o se carga una fila real, y el modelo devuelve el grupo, el valor estimado con rango del 95% o la probabilidad de la clase. No se guarda en el historial.
+4. **Exportar CSV** del resultado: grupos, componentes, reglas, atípicos, pronóstico, tabla de posiciones o predicciones.
+
+### Catálogo
+
+| Familia | Algoritmos |
+|---|---|
+| Segmentación | K-Means · Clúster jerárquico (Ward, promedio, completo, simple) · DBSCAN |
+| Exploración y estructura | PCA · Correlaciones (Pearson y Spearman) · Detección de anomalías (Z-score, IQR) · Reglas de asociación (Apriori) |
+| Regresión | Lineal · Ridge · Lasso · Polinómica · Árbol de decisión · Bosque aleatorio · Gradient Boosting · K vecinos |
+| Clasificación | Logística · Naive Bayes · Árbol de decisión · Bosque aleatorio · Gradient Boosting · K vecinos |
+| Series de tiempo | Pronóstico (ingenuo, tendencia lineal y Holt; elige el mejor) |
+| AutoML | Regresión (compara 8 modelos) · Clasificación (compara 6) |
 
 ### Qué muestra cada resultado
 
-- **K-Means**: mapa 2D de segmentos (PCA), curva de inercia y silueta para elegir k, tarjetas por segmento con su perfil (barras z respecto al promedio) y muestra de asignaciones.
-- **PCA**: varianza explicada individual y acumulada, cargas por componente (mapa de calor) y proyección PC1/PC2.
-- **Correlaciones**: matriz de Pearson en mapa de calor y pares ordenados por fuerza (Pearson, Spearman, R², significancia).
-- **Anomalías**: histograma con atípicos resaltados, dispersión, tabla de registros atípicos con su motivo y estadísticos con límites.
-- **Regresión**: R² (prueba), R² ajustado, RMSE, MAE, ecuación, real vs. predicho y tabla de coeficientes con significancia.
-- **Pronóstico**: serie real, ajuste, pronóstico y banda; comparación de tres modelos.
-- **Clasificación**: exactitud, precisión, sensibilidad, F1, AUC, matriz de confusión, curva ROC y razón de momios por variable.
+- **Segmentación**: mapa 2D de grupos, curva para elegir k (K-Means), altura de fusión (jerárquico) o distancia al k-ésimo vecino (DBSCAN), una tarjeta por grupo con su perfil y una muestra de asignaciones. DBSCAN separa el ruido.
+- **PCA / correlaciones / anomalías**: varianza y cargas; matrices de Pearson y Spearman con pares significativos; histograma, dispersión, atípicos con motivo y límites.
+- **Reglas de asociación**: reglas *si… entonces…* con soporte, confianza y lift, y los valores más frecuentes.
+- **Regresión**: R² de prueba, RMSE, MAE, comparación con el R² de entrenamiento (aviso de sobreajuste), real vs. predicho, importancia de variables por permutación y coeficientes en los modelos lineales.
+- **Clasificación**: exactitud frente a la clase mayoritaria, precisión, sensibilidad, F1, AUC, matriz de confusión, curva ROC e importancia de variables.
+- **AutoML**: tabla de posiciones con todos los modelos sobre la misma partición, gráfico por métrica y el detalle completo del ganador.
+- Todos incluyen **Lectura del resultado** con la interpretación en lenguaje claro.
 
 ## A nivel visual
 
-Mismo lenguaje que Modelo lógico y Gestor de datos: iconos SVG de línea, tarjetas sobrias,
-azul de marca `#172983` para "descubrir" y verde para "predecir". Estilos en
-`frontend/css/lab.css` (prefijo `ml-`). Los gráficos usan Chart.js.
+Mismo lenguaje que Modelo lógico y Gestor de datos: iconos SVG de línea, tarjetas sobrias, azul
+`#172983`. Las métricas se colorean por calidad (verde, ámbar, rojo). Estilos en
+`frontend/css/lab.css` (prefijos `ml-` y `mx-`).
 
 ## A nivel de desarrollo
 
-**Backend** (`io.datasense.ml`):
+**Backend** (`io.datasense.ml`, `io.datasense.repo`):
 
 | Clase | Rol |
 |---|---|
-| `MlController` | `GET /apps/{appId}/ml/datasets` y `POST /apps/{appId}/ml/run`. |
-| `MlService` | Los siete algoritmos y la validación de entradas. |
-| `MlMath` | Álgebra lineal y estadística: inversa Gauss-Jordan, autovalores por Jacobi, Pearson, rangos, cuantiles. |
+| `ExperimentController` | `/api/v1/ml/experiments` (CRUD) y `/{id}/runs` (entrenar, historial, abrir, eliminar). |
+| `ExperimentRepository` | Tablas `ml_experiments` y `ml_runs` (parámetros, resultado completo y métrica principal). |
+| `MlService` | Despachador y algoritmos base: K-Means, PCA, correlaciones, anomalías, regresión lineal, logística y pronóstico. |
+| `MlSupervised` | Motor supervisado genérico (partición, métricas, ROC, importancia por permutación, caso) y AutoML. |
+| `MlModels` | Ridge, Lasso (descenso por coordenadas), polinómica, árbol CART, bosque aleatorio, gradient boosting, KNN, Naive Bayes y logística. |
+| `MlUnsupervised` | Clúster jerárquico (Lance-Williams), DBSCAN y reglas de asociación (Apriori). |
+| `MlController` | `/api/v1/apps/{appId}/ml/run`, ejecución directa sin guardar (la usa el MCP). |
 
-- `datasets` devuelve cada tabla con sus campos agrupados en `numeric`, `categorical` y `dates`, usando el **tipo efectivo** (respeta los *field overrides*) y excluyendo los ocultos. `field` es la identidad física y `display` el alias.
-- `run` recibe `{table, algorithm, params}` y devuelve el resultado más `elapsedMs`. Si se envía `params.input`, devuelve además `prediction` para ese caso. Las entradas inválidas responden **400** con un mensaje legible.
-- Con más de 20 000 filas completas se usa una muestra uniforme; el resultado lo indica.
-- Los resultados son **deterministas** (semilla fija en la partición y en K-Means++).
+- Resultados **deterministas** (semilla fija en particiones, K-Means++, bosques y boosting).
+- Muestreo por rendimiento: 20 000 filas en general; 4 000 para entrenar árboles, bosque, boosting y KNN; 600 para el jerárquico y 3 000 para DBSCAN. El resultado lo indica.
+- El pronóstico ordena los periodos cronológicamente: números, nombres de mes (español e inglés) y fechas. Si no reconoce el formato, lo avisa.
+- Las entradas inválidas responden **400** con un mensaje legible que se muestra en pantalla.
 
-**Algoritmos:**
+**Frontend**: `frontend/js/ml-catalog.js` define cada algoritmo (roles, hiperparámetros y
+petición al backend), `ml-render.js` renderiza los resultados y la exportación,
+`experimentos.js` gestiona la lista y la creación, y `experimento.js` el estudio.
+`app-lab.js` es solo la vista de enlace dentro de una app.
 
-| Algoritmo | Implementación |
-|---|---|
-| K-Means | Inicialización K-Means++, 8 reinicios por k, estandarización opcional. k automático por silueta, limitado a ~5 filas por grupo. Proyección 2D vía PCA. |
-| PCA | Matriz de correlación + autovalores/autovectores de Jacobi. |
-| Correlaciones | Pearson y Spearman (rangos promedio); significancia con t aproximada. |
-| Anomalías | Z-score muestral y cercas de Tukey (1.5×IQR); criterio z, IQR o ambos. |
-| Regresión lineal | Mínimos cuadrados con ecuaciones normales; error estándar y t por coeficiente; partición entrenamiento/prueba. |
-| Pronóstico | Agrega por periodo; modelos ingenuo, tendencia lineal y Holt (rejilla α,β); elige por RMSE en periodos reservados (o en muestra si hay pocos). |
-| Clasificación | Regresión logística con descenso de gradiente y regularización L2; AUC por rangos; objetivo numérico por umbral (mediana) o categórico uno-contra-resto. |
+## Validación
 
-**Frontend:** `frontend/js/app-lab.js` (vista registrada en `app.js` como `lab`), cliente en
-`api.js` (`getMlDatasets`, `runMl`). El asistente (wizard) mantiene el estado por tarjeta;
-"Ejecutar ejemplo" deduce la configuración por nombre (p. ej. un objetivo tipo ventas/ingreso).
+Se verificó con un conjunto sintético de 2 000 registros con verdad conocida: 3 segmentos
+latentes, ventas no lineales, abandono dependiente de satisfacción, visitas y gasto, 12 meses
+y 12 atípicos inyectados.
 
-## Limitaciones conocidas
+- K-Means y el jerárquico encuentran k = 3 automáticamente (silueta de 0,70).
+- DBSCAN encuentra 3 grupos.
+- Detección de anomalías: 12 de 12 atípicos.
+- Reglas: recupera Joven digital → Online (confianza 0,86, lift 1,65).
+- Regresión: R² de prueba entre 0,88 (árbol) y 0,996 (polinómica).
+- Clasificación: AUC entre 0,95 y 0,97.
+- Pronóstico: los meses quedan en orden.
 
-- Con pocos datos los resultados son orientativos (el pronóstico advierte si hay menos de 6 periodos).
-- Los modelos se reentrenan en cada ejecución; no se guardan ni versionan.
-- Regresión y clasificación son lineales; no hay árboles ni redes neuronales.
+Además se recorrió el flujo completo en Chrome real: login, Crear → Experimento de ML, los
+24 algoritmos con clics, prueba de casos, validaciones, historial, comparación, renombrar y
+la vista dentro de la app. Se revisó que no haya errores de JavaScript ni gráficos vacíos.
+
+## Limitaciones
+
+- Los modelos se reentrenan en cada ejecución; se guarda el resultado, no el modelo serializado para publicarlo como servicio.
+- La clasificación es binaria (una clase frente al resto); con objetivos numéricos se separa por umbral.
+- Las variables categóricas no se usan como predictoras (sin codificación one-hot).
 
 ## Archivos
 
-`frontend/js/app-lab.js`, `frontend/css/lab.css`, `frontend/js/api.js`,
-`backend: ml/MlController.java`, `ml/MlService.java`, `ml/MlMath.java`.
+`frontend/pages/experimentos.html`, `frontend/pages/experimento.html`, `frontend/js/experimentos.js`,
+`frontend/js/experimento.js`, `frontend/js/ml-catalog.js`, `frontend/js/ml-render.js`,
+`frontend/js/app-lab.js`, `frontend/css/lab.css`,
+`backend: ml/*.java`, `repo/ExperimentRepository.java`, `config/DatabaseConfig.java`.

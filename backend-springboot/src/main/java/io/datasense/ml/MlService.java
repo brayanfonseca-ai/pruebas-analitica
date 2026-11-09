@@ -16,8 +16,8 @@ import static io.datasense.ml.MlMath.*;
 @Service
 public class MlService {
 
-    private static final int MAX_ROWS = 20000;
-    private static final long SEED = 42L;
+    static final int MAX_ROWS = 20000;
+    static final long SEED = 42L;
 
     public Map<String, Object> run(DataFrame df, String algorithm, Map<String, Object> p) {
         if (algorithm == null) throw new IllegalArgumentException("Falta el algoritmo.");
@@ -29,6 +29,8 @@ public class MlService {
             case "anomaly" -> anomaly(df, p);
             case "correlation" -> correlation(df, p);
             case "pca" -> pca(df, p);
+            case "hierarchical", "dbscan", "rules" -> MlUnsupervised.run(df, algorithm, p);
+            case "ridge", "lasso", "poly", "tree", "forest", "gbm", "knn", "bayes", "automl" -> MlSupervised.run(df, algorithm, p);
             default -> throw new IllegalArgumentException("Algoritmo no soportado: " + algorithm);
         };
     }
@@ -37,9 +39,9 @@ public class MlService {
     /* Utilidades de entrada                                                  */
     /* ===================================================================== */
 
-    private record Data(List<String> cols, double[][] x, int[] rowIdx, boolean sampled, int complete) {}
+    record Data(List<String> cols, double[][] x, int[] rowIdx, boolean sampled, int complete) {}
 
-    private static Double parse(String s) {
+    static Double parse(String s) {
         if (s == null) return null;
         String t = s.trim();
         if (t.isEmpty()) return null;
@@ -52,7 +54,7 @@ public class MlService {
         }
     }
 
-    private Data extract(DataFrame df, List<String> cols) {
+    static Data extract(DataFrame df, List<String> cols) {
         int[] ci = new int[cols.size()];
         for (int i = 0; i < ci.length; i++) {
             ci[i] = df.indexOf(cols.get(i));
@@ -90,40 +92,40 @@ public class MlService {
         return new Data(cols, rows.toArray(new double[0][]), ri, sampled, complete);
     }
 
-    private static String str(Map<String, Object> p, String k) {
+    static String str(Map<String, Object> p, String k) {
         Object o = p.get(k);
         return o == null || String.valueOf(o).isBlank() ? null : String.valueOf(o);
     }
 
-    private static List<String> strList(Map<String, Object> p, String k) {
+    static List<String> strList(Map<String, Object> p, String k) {
         Object o = p.get(k);
         List<String> out = new ArrayList<>();
         if (o instanceof List<?> l) for (Object e : l) if (e != null) out.add(String.valueOf(e));
         return out;
     }
 
-    private static int intp(Map<String, Object> p, String k, int def) {
+    static int intp(Map<String, Object> p, String k, int def) {
         Object o = p.get(k);
         if (o instanceof Number n) return n.intValue();
         if (o != null) try { return Integer.parseInt(String.valueOf(o).trim()); } catch (NumberFormatException ignored) {}
         return def;
     }
 
-    private static double dbl(Map<String, Object> p, String k, double def) {
+    static double dbl(Map<String, Object> p, String k, double def) {
         Object o = p.get(k);
         if (o instanceof Number n) return n.doubleValue();
         if (o != null) { Double d = parse(String.valueOf(o)); if (d != null) return d; }
         return def;
     }
 
-    private static boolean bool(Map<String, Object> p, String k, boolean def) {
+    static boolean bool(Map<String, Object> p, String k, boolean def) {
         Object o = p.get(k);
         if (o instanceof Boolean b) return b;
         if (o != null) return "true".equalsIgnoreCase(String.valueOf(o));
         return def;
     }
 
-    private static Map<String, Double> inputMap(Map<String, Object> p) {
+    static Map<String, Double> inputMap(Map<String, Object> p) {
         Object o = p.get("input");
         if (!(o instanceof Map<?, ?> m) || m.isEmpty()) return null;
         Map<String, Double> out = new LinkedHashMap<>();
@@ -134,13 +136,13 @@ public class MlService {
         return out;
     }
 
-    private static Map<String, Object> map(Object... kv) {
+    static Map<String, Object> map(Object... kv) {
         Map<String, Object> m = new LinkedHashMap<>();
         for (int i = 0; i + 1 < kv.length; i += 2) m.put(String.valueOf(kv[i]), kv[i + 1]);
         return m;
     }
 
-    private static String fmt(double v) {
+    static String fmt(double v) {
         double a = Math.abs(v);
         if (a >= 1000) return String.format(Locale.US, "%,.0f", v);
         if (a >= 100) return String.format(Locale.US, "%.1f", v);
@@ -148,9 +150,9 @@ public class MlService {
         return String.format(Locale.US, "%.4f", v);
     }
 
-    private static String pct(double v) { return String.format(Locale.US, "%.1f%%", v * 100); }
+    static String pct(double v) { return String.format(Locale.US, "%.1f%%", v * 100); }
 
-    private static int[] shuffled(int n) {
+    static int[] shuffled(int n) {
         int[] a = new int[n];
         for (int i = 0; i < n; i++) a[i] = i;
         Random rnd = new Random(SEED);
@@ -158,14 +160,14 @@ public class MlService {
         return a;
     }
 
-    private static List<Integer> strideIndexes(int n, int cap) {
+    static List<Integer> strideIndexes(int n, int cap) {
         List<Integer> out = new ArrayList<>();
         double step = Math.max(1.0, n / (double) cap);
         for (double at = 0; at < n && out.size() < cap; at += step) out.add((int) at);
         return out;
     }
 
-    private static void requireRows(int n, int min) {
+    static void requireRows(int n, int min) {
         if (n < min) throw new IllegalArgumentException("Se necesitan al menos " + min + " filas completas y hay " + n + ". Revisa valores vacíos en las variables elegidas.");
     }
 
@@ -173,9 +175,9 @@ public class MlService {
     /* 1) K-MEANS                                                             */
     /* ===================================================================== */
 
-    private static final class KFit { double[][] c; int[] a; double inertia; }
+    static final class KFit { double[][] c; int[] a; double inertia; }
 
-    private static double dist2(double[] a, double[] b) {
+    static double dist2(double[] a, double[] b) {
         double s = 0;
         for (int i = 0; i < a.length; i++) { double d = a[i] - b[i]; s += d * d; }
         return s;
@@ -234,7 +236,7 @@ public class MlService {
         return best;
     }
 
-    private double silhouette(double[][] z, int[] a, int k) {
+    static double silhouette(double[][] z, int[] a, int k) {
         int n = z.length;
         double total = 0; int cntS = 0;
         int step = Math.max(1, n / 400);
@@ -379,7 +381,7 @@ public class MlService {
         return out;
     }
 
-    private static double[][] covariance(double[][] z) {
+    static double[][] covariance(double[][] z) {
         int n = z.length, dim = z[0].length;
         double[] m = new double[dim];
         for (double[] row : z) for (int j = 0; j < dim; j++) m[j] += row[j];
@@ -397,7 +399,7 @@ public class MlService {
     /* 2) REGRESIÓN LINEAL                                                    */
     /* ===================================================================== */
 
-    private static final class Ols { double[] beta; double[][] inv; }
+    static final class Ols { double[] beta; double[][] inv; }
 
     private Ols ols(double[][] x, double[] y) {
         double[][] xt = transpose(x);
@@ -419,7 +421,7 @@ public class MlService {
         return o;
     }
 
-    private static double predictLin(double[] beta, double[] xRow) {
+    static double predictLin(double[] beta, double[] xRow) {
         double s = beta[0];
         for (int j = 0; j < xRow.length; j++) s += beta[j + 1] * xRow[j];
         return s;
@@ -544,7 +546,7 @@ public class MlService {
 
     private interface Forecaster { double[][] fit(double[] y, int h); }
 
-    private static final Forecaster NAIVE = (y, h) -> {
+    static final Forecaster NAIVE = (y, h) -> {
         int n = y.length;
         double[] fitted = new double[n];
         fitted[0] = y[0];
@@ -554,7 +556,7 @@ public class MlService {
         return new double[][]{fitted, fc};
     };
 
-    private static final Forecaster TREND = (y, h) -> {
+    static final Forecaster TREND = (y, h) -> {
         int n = y.length;
         double[][] x = new double[n][2];
         for (int t = 0; t < n; t++) { x[t][0] = 1; x[t][1] = t; }
@@ -574,7 +576,7 @@ public class MlService {
         return new double[][]{fitted, fc};
     };
 
-    private static final Forecaster HOLT = (y, h) -> {
+    static final Forecaster HOLT = (y, h) -> {
         int n = y.length;
         double[] grid = {0.1, 0.3, 0.5, 0.7, 0.9};
         double bestSse = Double.MAX_VALUE;
@@ -602,6 +604,34 @@ public class MlService {
         return new double[][]{bestFitted, bestFc};
     };
 
+    private static final String[][] MONTHS = {
+            {"ene", "enero", "jan", "january"}, {"feb", "febrero", "february"}, {"mar", "marzo", "march"},
+            {"abr", "abril", "apr", "april"}, {"may", "mayo"}, {"jun", "junio", "june"}, {"jul", "julio", "july"},
+            {"ago", "agosto", "aug", "august"}, {"sep", "sept", "septiembre", "setiembre", "september"},
+            {"oct", "octubre", "october"}, {"nov", "noviembre", "november"}, {"dic", "diciembre", "dec", "december"}};
+
+    private static int monthIndex(String s) {
+        String t = s.trim().toLowerCase(Locale.ROOT).replace(".", "");
+        for (int i = 0; i < MONTHS.length; i++) for (String m : MONTHS[i]) if (t.equals(m)) return i;
+        return -1;
+    }
+
+    /** Ordena los periodos cronológicamente si se reconoce el formato; devuelve el criterio usado. */
+    static String sortPeriods(List<String> labels, boolean isDate) {
+        if (labels.isEmpty()) return "appearance";
+        if (labels.stream().allMatch(l -> parse(l) != null)) { labels.sort(Comparator.comparingDouble(l -> parse(l))); return "numeric"; }
+        if (labels.stream().allMatch(l -> monthIndex(l) >= 0)) { labels.sort(Comparator.comparingInt(MlService::monthIndex)); return "month"; }
+        if (isDate || labels.stream().allMatch(l -> l.matches("^\\d{4}([-/.]\\d{1,2})?([-/.]\\d{1,2})?.*"))) {
+            labels.sort(Comparator.comparing(l -> l.replaceAll("(?<=[-/.])(\\d)(?=\\D|$)", "0$1")));
+            return "chronological";
+        }
+        if (labels.stream().allMatch(l -> l.matches("^\\d{1,2}[-/.]\\d{1,2}[-/.]\\d{4}.*"))) {
+            labels.sort(Comparator.comparing(l -> { String[] q = l.split("[-/.\\s]"); return q[2] + String.format("%02d%02d", Integer.parseInt(q[1]), Integer.parseInt(q[0])); }));
+            return "chronological";
+        }
+        return "appearance";
+    }
+
     private Map<String, Object> forecast(DataFrame df, Map<String, Object> p) {
         String measure = str(p, "measure"), period = str(p, "period");
         if (measure == null) throw new IllegalArgumentException("Elige la medida a pronosticar.");
@@ -620,13 +650,14 @@ public class MlService {
             acc[0] += v; acc[1]++;
         }
         List<String> labels = new ArrayList<>(g.keySet());
-        if ("date".equals(df.typeOf(period))) Collections.sort(labels);
+        String order = sortPeriods(labels, "date".equals(df.typeOf(period)));
         int n = labels.size();
         if (n < 3) throw new IllegalArgumentException("Se necesitan al menos 3 periodos distintos y hay " + n + ".");
         double[] y = new double[n];
         for (int i = 0; i < n; i++) { double[] acc = g.get(labels.get(i)); y[i] = avg ? acc[0] / acc[1] : acc[0]; }
 
         List<String> warnings = new ArrayList<>();
+        if ("appearance".equals(order)) warnings.add("No se reconoció un orden cronológico en '" + period + "' (fechas, números o meses); se usó el orden en que aparecen en los datos.");
         if (n < 6) warnings.add("Solo hay " + n + " periodos: el pronóstico es orientativo. Con 12 o más periodos el resultado es mucho más fiable.");
 
         String[] names = {"Ingenuo (último valor)", "Tendencia lineal", "Suavizado de Holt"};
@@ -676,7 +707,7 @@ public class MlService {
         insights.add("Tendencia: " + (Math.abs(slopePct) < 0.01 ? "estable" : slopePct > 0 ? "al alza" : "a la baja") + " (" + String.format(Locale.US, "%+.1f%%", slopePct * 100) + " por periodo).");
         insights.add("Próximo periodo estimado: " + fmt(fin[1][0]) + " (banda " + fmt(fin[1][0] - 1.96 * resSd) + " a " + fmt(fin[1][0] + 1.96 * resSd) + ").");
 
-        return map("algorithm", "forecast", "n", n, "measure", measure, "period", period, "horizon", horizon,
+        return map("algorithm", "forecast", "n", n, "measure", measure, "period", period, "horizon", horizon, "order", order,
                 "best", names[bestIdx], "models", comparison, "history", history, "forecast", fc,
                 "warnings", warnings, "insights", insights);
     }
@@ -928,7 +959,7 @@ public class MlService {
     /* 6) CORRELACIONES                                                       */
     /* ===================================================================== */
 
-    private static String strength(double r) {
+    static String strength(double r) {
         double a = Math.abs(r);
         return a >= 0.8 ? "Muy fuerte" : a >= 0.6 ? "Fuerte" : a >= 0.4 ? "Moderada" : a >= 0.2 ? "Débil" : "Nula";
     }

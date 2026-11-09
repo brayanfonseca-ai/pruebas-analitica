@@ -1,0 +1,2001 @@
+Cliente,Segmento,Region,Canal,Mes,Edad,Ingreso,Gasto,Visitas,Satisfaccion,Abandono,Ventas
+C0001,Joven digital,Sur,Online,Feb,28,1907,384,16,6.2,No,1602
+C0002,Familia,Oriente,Online,Abr,42,4827,930,10,8.8,No,2833
+C0003,Senior,Centro,Tienda,May,58,3442,492,5,5.2,Sí,1658
+C0004,Joven digital,Oriente,Online,Sep,28,2258,403,21,6.7,No,1713
+C0005,Familia,Sur,Online,Ene,33,5461,781,10,10,No,2543
+C0006,Senior,Centro,Tienda,Ene,69,3571,2304,6,4.9,Sí,6465
+C0007,Joven digital,Centro,Online,Mar,37,2523,420,19,8.8,No,1645
+C0008,Familia,Norte,Tienda,Mar,45,5056,830,11,5.5,Sí,2557
+C0009,Senior,Norte,Tienda,Nov,68,3894,582,5,5.8,Sí,1990
+C0010,Joven digital,Oriente,Online,Oct,29,1846,476,19,5.3,No,1852
+C0011,Familia,Oriente,Online,Ago,39,5801,944,10,7.4,No,2812
+C0012,Senior,Centro,Online,May,65,3607,522,5,7.7,No,1962
+C0013,Joven digital,Centro,Online,Ene,25,2391,360,19,5.3,No,1660
+C0014,Familia,Oriente,Tienda,Nov,40,5809,804,9,8.4,No,2494
+C0015,Senior,Centro,Tienda,Nov,61,3902,555,3,4.7,Sí,1830
+C0016,Joven digital,Norte,Online,Nov,26,1838,434,19,6.8,No,1771
+C0017,Familia,Oriente,Tienda,Feb,42,5030,807,7,7.1,No,2451
+C0018,Senior,Sur,Tienda,Dic,64,4009,512,7,6.9,No,1873
+C0019,Joven digital,Oriente,Tienda,Jul,23,2100,508,16,6.4,No,1964
+C0020,Familia,Oriente,Tienda,Ago,44,4730,783,8,5.3,No,2425
+C0021,Senior,Oriente,Online,May,62,3649,567,3,5.3,Sí,1851
+C0022,Joven digital,Oriente,Online,Feb,24,2807,445,18,6.3,No,1829
+C0023,Familia,Centro,Tienda,Nov,39,4897,866,9,6.3,No,2804
+C0024,Senior,Norte,Tienda,Nov,62,3814,505,6,7,Sí,1754
+C0025,Joven digital,Centro,Online,Jul,18,2926,487,21,5,No,2145
+C0026,Familia,Centro,Online,Ene,35,5407,821,10,5.9,Sí,2535
+C0027,Senior,Norte,Tienda,Ago,66,3438,550,4,3.9,Sí,1888
+C0028,Joven digital,Norte,Tienda,Jun,23,3451,470,14,7.1,No,1785
+C0029,Familia,Norte,Tienda,Abr,37,5157,842,9,8.2,No,2557
+C0030,Senior,Oriente,Tienda,Jul,63,4347,459,4,5.9,Sí,1620
+C0031,Joven digital,Oriente,Online,Nov,28,1936,518,16,7.5,No,1843
+C0032,Familia,Oriente,Online,Ago,39,5013,797,8,8,No,2453
+C0033,Senior,Oriente,Online,Mar,61,3323,470,5,5.1,No,1622
+C0034,Joven digital,Sur,Online,Feb,22,2599,373,16,3.3,Sí,1639
+C0035,Familia,Norte,Online,Ene,43,4747,805,6,6.7,No,2335
+C0036,Senior,Centro,Online,Ago,60,3536,500,6,8.5,No,1545
+C0037,Joven digital,Oriente,Online,May,31,2642,392,12,7.2,No,1554
+C0038,Familia,Oriente,Tienda,Jun,38,4883,848,9,9.2,No,2613
+C0039,Senior,Oriente,Tienda,Abr,65,3809,516,7,3.5,Sí,1874
+C0040,Joven digital,Norte,Online,Mar,24,2517,515,18,4.1,Sí,2047
+C0041,Familia,Centro,Tienda,Ago,48,5243,981,8,6.5,Sí,2962
+C0042,Senior,Sur,Tienda,Abr,57,3636,358,4,3.1,Sí,1258
+C0043,Joven digital,Oriente,Online,Nov,29,2372,445,20,4.8,No,1846
+C0044,Familia,Sur,Tienda,Mar,42,4849,911,9,8.9,No,2681
+C0045,Senior,Oriente,Tienda,Sep,60,4057,527,2,4.7,Sí,1627
+C0046,Joven digital,Centro,Online,Dic,29,2756,365,18,5.9,No,1589
+C0047,Familia,Norte,Online,Ago,42,5061,827,9,8.7,No,2561
+C0048,Senior,Centro,Online,Nov,61,3104,464,4,5.2,Sí,1600
+C0049,Joven digital,Oriente,Online,Feb,29,2045,419,17,5.5,No,1630
+C0050,Familia,Norte,Online,Jul,45,4747,874,8,5.4,Sí,2694
+C0051,Senior,Centro,Online,Ago,65,3258,456,4,5.2,Sí,1642
+C0052,Joven digital,Sur,Online,Ene,25,2180,376,15,8.2,No,1601
+C0053,Familia,Centro,Online,Ago,48,5088,813,5,4.4,Sí,2286
+C0054,Senior,Sur,Tienda,Ago,59,4090,594,6,6,Sí,1899
+C0055,Joven digital,Norte,Online,Nov,23,2241,393,20,7.8,No,1736
+C0056,Familia,Sur,Online,Sep,45,4967,768,7,7.8,No,2354
+C0057,Senior,Sur,Tienda,Mar,60,3840,445,4,6.3,Sí,1489
+C0058,Joven digital,Norte,Online,Abr,28,2539,435,21,6.8,No,1872
+C0059,Familia,Oriente,Tienda,May,40,5487,818,10,5.3,Sí,2627
+C0060,Senior,Norte,Tienda,Oct,66,3708,486,3,5.3,Sí,1643
+C0061,Joven digital,Oriente,Online,Ago,30,2129,516,19,6.1,No,2010
+C0062,Familia,Norte,Online,Oct,43,5346,761,11,6,No,2463
+C0063,Senior,Norte,Tienda,Abr,59,4159,474,7,4.5,Sí,1614
+C0064,Joven digital,Norte,Online,Mar,30,2442,368,15,4.6,Sí,1622
+C0065,Familia,Oriente,Online,Feb,42,5747,832,11,9.2,No,2571
+C0066,Senior,Oriente,Online,Dic,61,3218,531,5,6.5,Sí,1812
+C0067,Joven digital,Oriente,Online,Sep,31,2341,537,19,6.2,No,2014
+C0068,Familia,Centro,Online,Ago,38,4945,900,8,6.9,No,2709
+C0069,Senior,Sur,Tienda,Mar,58,3858,414,4,6.5,Sí,1476
+C0070,Joven digital,Norte,Online,Mar,29,2032,244,16,5.4,No,1181
+C0071,Familia,Norte,Online,Jul,42,5317,912,10,5.6,No,2726
+C0072,Senior,Centro,Tienda,Ene,64,4211,431,5,5.5,Sí,1531
+C0073,Joven digital,Sur,Online,Oct,25,2230,505,17,5.5,No,1988
+C0074,Familia,Sur,Tienda,Mar,37,4626,728,8,8.2,No,2294
+C0075,Senior,Sur,Tienda,Nov,66,3687,553,3,2.6,Sí,1956
+C0076,Joven digital,Centro,Tienda,Dic,26,2646,573,19,8.7,No,2075
+C0077,Familia,Centro,Tienda,Oct,39,4960,756,13,4.8,Sí,2303
+C0078,Senior,Norte,Tienda,Feb,62,3484,388,3,9.3,No,1287
+C0079,Joven digital,Norte,Online,Abr,31,2556,334,18,8.3,No,1425
+C0080,Familia,Oriente,Tienda,May,50,5731,1042,8,6.3,No,3042
+C0081,Senior,Centro,Tienda,Jul,72,3627,548,5,6.6,No,2047
+C0082,Joven digital,Oriente,Online,Ago,26,2547,361,17,7.8,No,1615
+C0083,Familia,Sur,Online,Mar,36,5786,790,9,7.2,No,2587
+C0084,Senior,Norte,Tienda,Mar,58,3692,517,6,4.1,Sí,1721
+C0085,Joven digital,Centro,Online,Abr,28,2303,379,17,8.1,No,1652
+C0086,Familia,Oriente,Online,Sep,46,5324,855,10,9.3,No,2592
+C0087,Senior,Centro,Tienda,Ago,67,3453,558,5,3.7,Sí,1920
+C0088,Joven digital,Sur,Online,Mar,33,2543,326,18,3,Sí,1549
+C0089,Familia,Centro,Tienda,May,45,5130,840,12,4.3,Sí,2709
+C0090,Senior,Centro,Tienda,Nov,70,3800,565,7,6,Sí,2023
+C0091,Joven digital,Oriente,Online,Abr,18,2695,426,16,5.3,No,1903
+C0092,Familia,Norte,Online,Feb,42,5091,918,9,7.1,No,2695
+C0093,Senior,Centro,Tienda,Sep,58,4192,538,8,5.5,Sí,1741
+C0094,Joven digital,Sur,Online,Jul,24,1909,375,16,5.9,No,1622
+C0095,Familia,Oriente,Online,Feb,41,4677,915,8,6.7,Sí,2733
+C0096,Senior,Oriente,Online,Dic,60,3531,426,5,5.7,Sí,1513
+C0097,Joven digital,Norte,Tienda,Jun,25,2481,475,21,7.1,No,1977
+C0098,Familia,Norte,Online,Jul,46,5139,919,7,8.6,No,2721
+C0099,Senior,Centro,Tienda,Mar,63,3327,443,4,4.2,Sí,1525
+C0100,Joven digital,Sur,Online,Feb,26,2421,382,18,5.8,No,1632
+C0101,Familia,Oriente,Online,Dic,41,4911,883,8,5.5,Sí,2689
+C0102,Senior,Centro,Tienda,Mar,62,4287,428,4,5.6,Sí,1521
+C0103,Joven digital,Centro,Online,Sep,25,2189,437,16,8.7,No,1741
+C0104,Familia,Norte,Tienda,Jun,34,5025,752,6,9.7,No,2296
+C0105,Senior,Sur,Tienda,Dic,66,3295,482,5,3.1,Sí,1727
+C0106,Joven digital,Centro,Online,May,31,2036,443,15,5.4,No,1691
+C0107,Familia,Sur,Tienda,May,41,4996,973,8,6.6,No,2841
+C0108,Senior,Norte,Tienda,Ene,61,3557,378,5,6,No,1319
+C0109,Joven digital,Oriente,Tienda,Jul,24,1818,355,15,7.8,No,1634
+C0110,Familia,Oriente,Tienda,Oct,34,5204,876,7,6.3,No,2687
+C0111,Senior,Norte,Online,Ene,58,3984,462,2,4.6,Sí,1538
+C0112,Joven digital,Norte,Online,May,21,2481,437,18,5.3,Sí,1888
+C0113,Familia,Norte,Tienda,Ene,40,5131,757,9,4.3,Sí,2389
+C0114,Senior,Sur,Tienda,Mar,61,3667,452,2,8.7,No,1458
+C0115,Joven digital,Centro,Online,Oct,23,2808,454,19,6,No,2023
+C0116,Familia,Sur,Online,Sep,40,5843,908,7,6.1,Sí,2644
+C0117,Senior,Centro,Online,Ene,58,3582,535,2,4.4,Sí,1630
+C0118,Joven digital,Norte,Tienda,Mar,27,2572,381,16,6,No,1571
+C0119,Familia,Sur,Online,Dic,38,4748,811,6,7.2,No,2571
+C0120,Senior,Centro,Tienda,Feb,60,4310,415,3,6.7,No,1467
+C0121,Joven digital,Sur,Online,Abr,22,2481,442,21,8.5,No,1919
+C0122,Familia,Oriente,Online,Ene,49,4866,858,10,6.8,No,2653
+C0123,Senior,Oriente,Online,Mar,69,4723,390,0,7.1,No,1461
+C0124,Joven digital,Centro,Online,Ago,22,2407,439,17,7,No,2007
+C0125,Familia,Sur,Tienda,Jun,46,5100,928,6,8.4,No,2709
+C0126,Senior,Norte,Tienda,May,64,3925,471,5,6.5,No,1577
+C0127,Joven digital,Centro,Online,Oct,29,1952,354,18,4.7,Sí,1539
+C0128,Familia,Oriente,Online,May,40,5449,774,11,6.3,No,2449
+C0129,Senior,Oriente,Online,Dic,58,3381,664,6,8,No,2042
+C0130,Joven digital,Oriente,Online,Dic,28,2166,427,19,6.6,No,1831
+C0131,Familia,Centro,Tienda,Mar,45,6144,828,11,8.4,No,2512
+C0132,Senior,Oriente,Online,Ago,78,4283,441,2,5.3,Sí,1726
+C0133,Joven digital,Centro,Online,Oct,28,3062,411,20,7.7,No,1739
+C0134,Familia,Sur,Online,Jul,37,5086,938,10,7.8,No,2786
+C0135,Senior,Norte,Tienda,Ene,67,4363,479,4,3.2,Sí,1575
+C0136,Joven digital,Oriente,Online,Sep,22,2386,540,20,5.5,No,2111
+C0137,Familia,Norte,Online,May,43,4980,816,10,8.7,No,2456
+C0138,Senior,Oriente,Tienda,May,57,3847,466,2,5.8,Sí,1537
+C0139,Joven digital,Sur,Online,Jul,28,2418,418,18,7.5,No,1713
+C0140,Familia,Sur,Tienda,Nov,37,4845,812,9,8.3,No,2532
+C0141,Senior,Sur,Tienda,Ago,64,4054,417,4,6.7,Sí,1443
+C0142,Joven digital,Sur,Online,Ago,26,2383,565,19,5.6,No,2183
+C0143,Familia,Oriente,Tienda,Dic,42,5196,902,8,9.7,No,2720
+C0144,Senior,Centro,Tienda,Oct,63,3675,524,3,7.3,No,1712
+C0145,Joven digital,Oriente,Online,Jun,19,2472,554,18,4.6,No,2277
+C0146,Familia,Norte,Tienda,Ago,45,5520,982,9,7.1,Sí,2961
+C0147,Senior,Centro,Tienda,Jun,66,4162,457,3,7.8,No,1562
+C0148,Joven digital,Sur,Online,Oct,21,1597,450,18,3.8,Sí,2048
+C0149,Familia,Oriente,Online,Oct,42,5412,799,7,4.9,Sí,2394
+C0150,Senior,Norte,Tienda,Mar,69,4372,471,7,3.8,Sí,1760
+C0151,Joven digital,Norte,Online,Abr,27,2848,411,18,5.1,Sí,1752
+C0152,Familia,Sur,Tienda,Nov,39,4914,812,11,6.1,Sí,2552
+C0153,Senior,Centro,Tienda,Jul,64,3384,446,4,8.4,No,1495
+C0154,Joven digital,Sur,Tienda,Jul,34,2480,471,20,3.6,Sí,1745
+C0155,Familia,Norte,Tienda,Sep,42,4900,866,6,4.6,Sí,2546
+C0156,Senior,Sur,Tienda,Dic,62,3860,528,5,4.3,Sí,1674
+C0157,Joven digital,Norte,Tienda,Oct,26,2733,406,20,5.1,No,1792
+C0158,Familia,Centro,Online,Sep,39,5216,935,7,6.3,Sí,2764
+C0159,Senior,Norte,Tienda,Nov,71,3311,590,8,6,Sí,2018
+C0160,Joven digital,Sur,Online,Feb,26,1953,407,16,7.3,No,1771
+C0161,Familia,Oriente,Online,Jul,42,5090,787,10,5.6,No,2324
+C0162,Senior,Sur,Tienda,Ene,63,4135,505,4,7.3,No,1783
+C0163,Joven digital,Sur,Online,Dic,26,2267,454,15,7.5,No,1750
+C0164,Familia,Oriente,Online,Ago,43,5043,755,9,5.6,No,2308
+C0165,Senior,Oriente,Tienda,Jun,61,3777,477,5,8,No,1601
+C0166,Joven digital,Norte,Tienda,Dic,20,2272,426,19,5.6,No,1986
+C0167,Familia,Sur,Online,May,37,5720,794,6,8.6,No,2305
+C0168,Senior,Oriente,Tienda,Jul,67,3583,509,6,10,No,1845
+C0169,Joven digital,Oriente,Online,Jul,26,2789,355,17,3.2,Sí,1586
+C0170,Familia,Sur,Tienda,Jul,42,5310,993,9,4.3,Sí,3011
+C0171,Senior,Centro,Tienda,Ago,70,3884,483,5,6.6,No,1781
+C0172,Joven digital,Oriente,Online,Nov,26,2593,449,20,3.7,Sí,1954
+C0173,Familia,Sur,Online,Feb,41,5007,5580,11,4.7,Sí,14872
+C0174,Senior,Centro,Tienda,Ago,59,3488,424,7,4.5,Sí,1427
+C0175,Joven digital,Centro,Online,Mar,26,2411,465,20,5.7,No,1838
+C0176,Familia,Norte,Online,Oct,39,5377,825,13,4.6,Sí,2588
+C0177,Senior,Oriente,Tienda,Sep,65,4259,417,0,5,Sí,1514
+C0178,Joven digital,Sur,Online,Dic,27,2945,488,19,5.7,No,2010
+C0179,Familia,Norte,Online,May,46,5539,889,8,3.2,Sí,2719
+C0180,Senior,Sur,Tienda,Nov,66,3414,485,7,6.8,No,1748
+C0181,Joven digital,Norte,Online,Mar,21,1987,291,15,6.4,Sí,1386
+C0182,Familia,Centro,Online,Jun,45,5234,790,12,5.4,Sí,2444
+C0183,Senior,Oriente,Tienda,Ene,67,3225,394,3,7.7,No,1452
+C0184,Joven digital,Oriente,Online,Ene,23,2763,380,17,9.5,No,1703
+C0185,Familia,Norte,Online,Oct,41,5428,866,10,3.9,Sí,2580
+C0186,Senior,Oriente,Tienda,Dic,65,2992,514,3,7.1,Sí,1729
+C0187,Joven digital,Oriente,Tienda,Sep,27,2457,528,19,8.6,No,1942
+C0188,Familia,Norte,Tienda,May,37,5861,936,6,8.6,No,2707
+C0189,Senior,Norte,Tienda,Dic,65,3737,476,9,5.6,Sí,1772
+C0190,Joven digital,Sur,Online,Abr,25,2495,382,20,5.1,Sí,1724
+C0191,Familia,Oriente,Online,May,43,4683,845,6,4.3,Sí,2487
+C0192,Senior,Centro,Tienda,Sep,66,3606,455,4,5.9,Sí,1690
+C0193,Joven digital,Norte,Online,Mar,20,2632,341,19,8.2,No,1648
+C0194,Familia,Centro,Online,Sep,44,5502,906,9,6.4,Sí,2774
+C0195,Senior,Sur,Online,Nov,60,3781,569,4,7,Sí,1858
+C0196,Joven digital,Centro,Online,Abr,23,2319,386,16,3.8,Sí,1683
+C0197,Familia,Oriente,Tienda,Jul,39,6455,928,7,8.7,No,2806
+C0198,Senior,Norte,Tienda,Abr,62,3955,480,9,5.7,Sí,1707
+C0199,Joven digital,Centro,Online,Sep,20,1994,419,17,6.8,No,1837
+C0200,Familia,Centro,Online,Nov,44,4973,831,8,8.4,No,2438
+C0201,Senior,Oriente,Tienda,Sep,60,3438,544,6,6.2,Sí,1815
+C0202,Joven digital,Oriente,Online,May,23,1734,432,18,7.8,No,1878
+C0203,Familia,Centro,Tienda,Nov,45,5520,899,8,8.5,No,2678
+C0204,Senior,Centro,Tienda,Feb,65,3690,485,4,6.7,Sí,1704
+C0205,Joven digital,Norte,Online,Nov,25,2490,507,17,7,No,1902
+C0206,Familia,Centro,Tienda,Ago,45,5790,834,9,8.1,No,2488
+C0207,Senior,Centro,Tienda,Ene,62,4138,514,5,7.9,No,1800
+C0208,Joven digital,Centro,Online,Dic,20,2693,457,17,6.7,No,2008
+C0209,Familia,Centro,Tienda,May,41,5084,778,9,4.8,Sí,2380
+C0210,Senior,Norte,Tienda,May,65,3008,432,7,4.2,Sí,1745
+C0211,Joven digital,Centro,Online,Mar,28,2213,448,18,6.6,No,1777
+C0212,Familia,Oriente,Online,Ago,35,5155,868,6,6.7,No,2624
+C0213,Senior,Norte,Tienda,Feb,69,3228,399,4,6.5,No,1493
+C0214,Joven digital,Sur,Online,Mar,24,2419,414,18,6.4,No,1811
+C0215,Familia,Centro,Tienda,Nov,34,4808,795,6,8.6,No,2488
+C0216,Senior,Centro,Tienda,Dic,62,3855,408,9,8.9,No,1520
+C0217,Joven digital,Sur,Tienda,Sep,20,1934,460,16,7.6,No,2000
+C0218,Familia,Centro,Online,Sep,41,5264,881,8,6.2,Sí,2698
+C0219,Senior,Centro,Tienda,Feb,69,4307,573,3,7.2,No,1978
+C0220,Joven digital,Norte,Tienda,Jun,22,2331,528,13,4.5,Sí,1922
+C0221,Familia,Sur,Tienda,Jul,41,5698,792,13,7.4,No,2428
+C0222,Senior,Oriente,Tienda,Feb,63,2895,401,3,4.3,Sí,1532
+C0223,Joven digital,Sur,Online,Ene,18,2307,432,16,7.6,No,1801
+C0224,Familia,Norte,Online,Dic,39,5188,919,6,7.4,No,2692
+C0225,Senior,Norte,Tienda,Ago,58,3555,544,2,5.4,Sí,1691
+C0226,Joven digital,Centro,Online,Ene,24,3089,309,19,5.8,No,1541
+C0227,Familia,Centro,Tienda,Mar,41,5108,728,11,4.6,Sí,2267
+C0228,Senior,Sur,Tienda,Sep,60,3281,522,3,8.3,No,1660
+C0229,Joven digital,Sur,Tienda,Sep,27,2066,454,15,7.7,No,1755
+C0230,Familia,Sur,Online,Oct,38,5593,815,7,5.5,Sí,2418
+C0231,Senior,Centro,Tienda,Dic,68,3643,499,5,5.5,Sí,1807
+C0232,Joven digital,Centro,Online,Abr,23,2720,321,20,4,Sí,1623
+C0233,Familia,Norte,Online,Mar,37,5382,809,10,7,No,2611
+C0234,Senior,Norte,Tienda,Jul,69,4161,490,4,8.7,No,1804
+C0235,Joven digital,Centro,Online,Sep,20,2784,438,19,5.5,No,1992
+C0236,Familia,Oriente,Online,Ene,48,5261,753,9,8.8,No,2298
+C0237,Senior,Oriente,Tienda,Mar,60,3369,582,3,7.4,No,1814
+C0238,Joven digital,Oriente,Online,Dic,30,2968,437,18,9,No,1813
+C0239,Familia,Centro,Tienda,Mar,49,5296,842,10,6.8,No,2540
+C0240,Senior,Norte,Tienda,May,61,4200,547,4,6.7,Sí,1917
+C0241,Joven digital,Centro,Online,Ene,29,3104,310,21,6.9,No,1407
+C0242,Familia,Oriente,Tienda,Abr,44,5266,847,11,8.8,No,2667
+C0243,Senior,Norte,Online,May,70,3421,456,4,4.5,Sí,1768
+C0244,Joven digital,Norte,Online,Ene,18,2538,368,20,6.1,No,1795
+C0245,Familia,Centro,Online,May,38,5237,793,11,4.7,Sí,2462
+C0246,Senior,Oriente,Tienda,Jul,71,4007,430,4,7.7,No,1643
+C0247,Joven digital,Oriente,Online,Dic,25,1811,449,17,7.8,No,1842
+C0248,Familia,Oriente,Tienda,Jul,44,5203,802,10,7.3,Sí,2460
+C0249,Senior,Oriente,Online,May,62,4223,474,8,4.3,Sí,1737
+C0250,Joven digital,Sur,Online,May,22,3220,410,21,3.3,Sí,1819
+C0251,Familia,Sur,Tienda,Sep,42,5329,839,7,7.7,No,2588
+C0252,Senior,Sur,Tienda,Mar,61,3544,505,5,6.9,Sí,1751
+C0253,Joven digital,Centro,Tienda,Abr,26,2358,421,17,7.7,No,1733
+C0254,Familia,Sur,Tienda,Oct,38,5222,916,9,6.7,Sí,2810
+C0255,Senior,Centro,Tienda,Jun,59,3902,581,6,6.4,Sí,1871
+C0256,Joven digital,Oriente,Online,May,24,2227,440,19,5.7,No,1783
+C0257,Familia,Sur,Online,Ago,36,4825,850,9,5.1,Sí,2573
+C0258,Senior,Oriente,Online,Nov,68,3775,507,5,5.7,Sí,1895
+C0259,Joven digital,Sur,Online,Oct,29,2485,295,19,6.8,No,1382
+C0260,Familia,Oriente,Tienda,Mar,37,5584,732,11,6.7,No,2285
+C0261,Senior,Oriente,Tienda,Dic,67,3885,520,4,5.1,Sí,1784
+C0262,Joven digital,Oriente,Online,Ago,28,2675,412,17,9.5,No,1735
+C0263,Familia,Norte,Online,Nov,42,5062,848,11,6.9,No,2701
+C0264,Senior,Norte,Tienda,Sep,61,2915,590,7,4.1,Sí,1997
+C0265,Joven digital,Sur,Online,Mar,27,2655,427,16,5.2,Sí,1742
+C0266,Familia,Centro,Online,Nov,48,5206,791,8,10,No,2458
+C0267,Senior,Oriente,Online,May,69,4835,429,7,6.9,No,1826
+C0268,Joven digital,Centro,Online,Dic,22,2867,379,18,6.7,No,1717
+C0269,Familia,Oriente,Tienda,Sep,41,4767,823,6,8,No,2594
+C0270,Senior,Oriente,Tienda,Abr,67,3761,458,1,3.3,Sí,1588
+C0271,Joven digital,Norte,Online,Oct,22,2598,441,16,5.6,No,1810
+C0272,Familia,Sur,Online,Jun,37,4674,854,10,6.3,No,2676
+C0273,Senior,Oriente,Tienda,Mar,59,3940,508,6,6.5,Sí,1537
+C0274,Joven digital,Centro,Online,Abr,25,2314,314,20,6.2,No,1480
+C0275,Familia,Norte,Tienda,Ene,39,5873,905,7,5.6,Sí,2742
+C0276,Senior,Centro,Online,Jun,71,3560,449,0,7,No,1641
+C0277,Joven digital,Sur,Online,Ene,20,2830,387,16,7.2,No,1734
+C0278,Familia,Oriente,Tienda,Abr,48,4468,928,10,8.2,No,2751
+C0279,Senior,Centro,Tienda,May,62,3926,481,4,6.2,Sí,1567
+C0280,Joven digital,Sur,Online,Jun,25,1736,404,17,7.3,No,1723
+C0281,Familia,Oriente,Online,Nov,37,5287,1016,10,6.9,No,3102
+C0282,Senior,Centro,Tienda,Ago,59,4084,458,5,7,No,1580
+C0283,Joven digital,Sur,Online,Mar,22,2322,292,17,5.1,No,1433
+C0284,Familia,Sur,Online,Mar,41,4414,1001,9,10,No,2950
+C0285,Senior,Centro,Tienda,Sep,63,3519,467,0,7.8,Sí,1633
+C0286,Joven digital,Norte,Online,Feb,28,2624,409,22,7.2,No,1760
+C0287,Familia,Centro,Tienda,Jun,42,4970,860,10,7.7,No,2490
+C0288,Senior,Sur,Tienda,Ene,58,3523,422,4,7.8,No,1508
+C0289,Joven digital,Centro,Online,Mar,26,2312,336,18,7.5,No,1581
+C0290,Familia,Oriente,Online,Mar,38,4166,982,13,3.2,Sí,2983
+C0291,Senior,Norte,Online,Ene,67,4210,390,3,4.9,Sí,1429
+C0292,Joven digital,Norte,Online,Sep,26,2599,432,18,4.1,Sí,1777
+C0293,Familia,Centro,Tienda,Dic,46,4774,908,8,7.6,No,2704
+C0294,Senior,Oriente,Tienda,Nov,58,3636,556,6,5.3,Sí,1755
+C0295,Joven digital,Centro,Online,Feb,20,2629,453,16,5.3,Sí,1936
+C0296,Familia,Oriente,Online,Feb,45,5418,750,13,7.1,No,2323
+C0297,Senior,Sur,Tienda,Jun,56,4527,737,2,5.9,Sí,2228
+C0298,Joven digital,Centro,Online,Jul,37,2991,475,20,3.7,Sí,1775
+C0299,Familia,Sur,Tienda,Jun,40,5181,922,10,5.9,Sí,2790
+C0300,Senior,Sur,Online,Jun,65,3637,348,0,6.8,No,1253
+C0301,Joven digital,Sur,Tienda,Abr,22,2413,264,13,4.9,Sí,1202
+C0302,Familia,Norte,Tienda,May,45,5487,772,12,8.3,No,2491
+C0303,Senior,Centro,Tienda,Dic,58,4099,461,2,7.6,No,1484
+C0304,Joven digital,Oriente,Online,Ago,31,2600,427,20,6.4,No,1811
+C0305,Familia,Oriente,Tienda,May,37,5758,695,10,6,No,2112
+C0306,Senior,Centro,Tienda,Oct,70,3766,559,4,7.7,Sí,1840
+C0307,Joven digital,Centro,Online,Mar,19,2691,382,20,5.1,No,1825
+C0308,Familia,Sur,Online,Ago,39,5536,885,10,4.4,Sí,2771
+C0309,Senior,Oriente,Tienda,Jul,52,3447,530,5,5.5,Sí,1650
+C0310,Joven digital,Norte,Online,Ago,29,2733,588,14,6.5,No,1918
+C0311,Familia,Norte,Online,Mar,39,5368,826,11,6.8,No,2438
+C0312,Senior,Centro,Online,Jul,67,3898,458,3,4.4,Sí,1598
+C0313,Joven digital,Centro,Online,Sep,29,2670,455,17,3.1,Sí,1855
+C0314,Familia,Oriente,Tienda,Ene,36,5368,790,11,6.7,No,2559
+C0315,Senior,Oriente,Tienda,Jun,67,4250,474,4,8,No,1790
+C0316,Joven digital,Norte,Online,Oct,28,3014,475,18,5.3,Sí,1897
+C0317,Familia,Centro,Online,Oct,45,5090,867,7,5.4,Sí,2698
+C0318,Senior,Centro,Online,Oct,67,3343,471,5,3.5,Sí,1749
+C0319,Joven digital,Oriente,Online,Abr,28,3245,439,21,7.9,No,1821
+C0320,Familia,Oriente,Online,Ene,42,5544,775,7,9.8,No,2197
+C0321,Senior,Centro,Tienda,Sep,58,3673,409,3,6.9,No,1386
+C0322,Joven digital,Norte,Online,Jun,28,2594,417,19,8.6,No,1734
+C0323,Familia,Norte,Online,Sep,47,5583,759,9,7.6,No,2330
+C0324,Senior,Centro,Tienda,Ago,65,4003,469,1,6.8,Sí,1609
+C0325,Joven digital,Centro,Online,Abr,24,2889,334,17,4.2,Sí,1668
+C0326,Familia,Norte,Online,Ene,41,5781,847,9,6,No,2568
+C0327,Senior,Oriente,Tienda,May,61,4096,422,0,5.4,Sí,1374
+C0328,Joven digital,Oriente,Online,Ene,23,3237,372,18,5.2,No,1668
+C0329,Familia,Oriente,Tienda,Feb,42,5445,900,8,7,Sí,2698
+C0330,Senior,Centro,Tienda,Feb,58,3334,493,2,7.2,No,1653
+C0331,Joven digital,Centro,Online,Jun,28,2601,504,16,4.5,Sí,1789
+C0332,Familia,Oriente,Tienda,Oct,42,4471,888,8,10,No,2640
+C0333,Senior,Norte,Tienda,Abr,59,4022,549,1,6.6,No,1760
+C0334,Joven digital,Sur,Online,Feb,29,3256,324,22,9.6,No,1521
+C0335,Familia,Norte,Online,Feb,39,5044,872,9,5.6,Sí,2573
+C0336,Senior,Oriente,Tienda,May,63,3658,425,4,7.4,No,1534
+C0337,Joven digital,Norte,Online,Oct,23,2513,442,19,4.2,No,1783
+C0338,Familia,Norte,Online,Feb,44,5281,866,7,3.8,Sí,2564
+C0339,Senior,Oriente,Tienda,Dic,65,4005,505,5,5.8,Sí,1779
+C0340,Joven digital,Norte,Online,Abr,28,2124,1782,18,6.7,Sí,5303
+C0341,Familia,Norte,Tienda,Ago,50,4760,870,10,8.9,No,2673
+C0342,Senior,Oriente,Online,May,63,4175,399,7,3.7,Sí,1595
+C0343,Joven digital,Sur,Tienda,Abr,28,2484,370,19,5.9,No,1620
+C0344,Familia,Sur,Tienda,Ago,38,5282,740,8,6.9,No,2305
+C0345,Senior,Oriente,Tienda,Dic,70,4047,521,2,8.3,No,1901
+C0346,Joven digital,Norte,Online,Mar,26,2440,362,21,7.2,No,1623
+C0347,Familia,Oriente,Tienda,May,34,4951,792,10,7.5,No,2477
+C0348,Senior,Oriente,Tienda,Feb,58,3864,377,5,5.9,Sí,1421
+C0349,Joven digital,Norte,Online,Abr,31,2906,459,19,4.9,No,1823
+C0350,Familia,Oriente,Online,Mar,44,4759,802,10,9,No,2463
+C0351,Senior,Centro,Tienda,Abr,65,3524,431,5,2.4,Sí,1579
+C0352,Joven digital,Norte,Online,Ago,29,2925,459,19,6.4,No,1894
+C0353,Familia,Norte,Online,May,38,5202,779,9,7.4,No,2261
+C0354,Senior,Sur,Tienda,Ene,58,4057,559,5,5.7,Sí,1913
+C0355,Joven digital,Norte,Tienda,Jul,24,2211,450,19,8,No,1980
+C0356,Familia,Oriente,Online,Abr,41,4638,885,12,8,No,2731
+C0357,Senior,Oriente,Tienda,May,58,3519,444,9,6,No,1635
+C0358,Joven digital,Sur,Tienda,Abr,20,2375,406,19,6.6,No,1799
+C0359,Familia,Sur,Online,Dic,36,5066,898,10,7.4,No,2792
+C0360,Senior,Centro,Tienda,Jun,61,3759,580,0,7.2,No,1735
+C0361,Joven digital,Sur,Online,Oct,24,2576,446,18,9.9,No,1919
+C0362,Familia,Oriente,Tienda,Jun,45,4679,923,8,8.3,No,2738
+C0363,Senior,Norte,Tienda,Abr,60,3927,527,5,7.9,No,1702
+C0364,Joven digital,Norte,Online,Abr,19,2865,511,18,8.3,No,2046
+C0365,Familia,Oriente,Online,Mar,33,5567,704,12,8.5,No,2197
+C0366,Senior,Sur,Online,Jul,57,4366,449,3,8.9,No,1443
+C0367,Joven digital,Norte,Online,Feb,30,1987,355,17,6.5,No,1558
+C0368,Familia,Oriente,Tienda,Ene,41,5315,770,10,6.3,Sí,2375
+C0369,Senior,Norte,Tienda,Oct,63,3369,468,6,9.1,No,1694
+C0370,Joven digital,Oriente,Online,Jul,26,2547,411,17,6.9,No,1754
+C0371,Familia,Oriente,Online,Mar,44,5853,805,10,3.6,Sí,2517
+C0372,Senior,Centro,Tienda,Ago,63,3486,485,4,4.9,Sí,1605
+C0373,Joven digital,Oriente,Online,Nov,26,2428,520,15,4.1,Sí,1969
+C0374,Familia,Norte,Tienda,Jul,37,4851,836,5,6.8,No,2497
+C0375,Senior,Sur,Tienda,Nov,55,3350,528,7,7.9,No,1839
+C0376,Joven digital,Sur,Online,Abr,27,2623,489,16,5.7,No,1865
+C0377,Familia,Norte,Tienda,Abr,45,4756,814,11,6.4,Sí,2474
+C0378,Senior,Oriente,Tienda,Feb,62,4308,465,8,8.3,No,1673
+C0379,Joven digital,Oriente,Online,Jun,23,2332,391,16,6.3,No,1719
+C0380,Familia,Oriente,Tienda,Mar,43,4578,816,13,5.4,Sí,2563
+C0381,Senior,Sur,Tienda,Feb,56,3390,481,2,4.9,Sí,1450
+C0382,Joven digital,Oriente,Online,Feb,24,2364,371,20,4.5,No,1706
+C0383,Familia,Centro,Online,Jun,42,5072,890,6,6.8,No,2794
+C0384,Senior,Sur,Tienda,Oct,57,3948,487,5,4.4,Sí,1562
+C0385,Joven digital,Centro,Online,Mar,24,2824,448,18,7.6,No,1922
+C0386,Familia,Norte,Tienda,May,44,5754,854,8,5.1,Sí,2523
+C0387,Senior,Centro,Tienda,Jul,60,3381,521,4,7.6,No,1739
+C0388,Joven digital,Sur,Online,Mar,37,2726,315,18,7,No,1355
+C0389,Familia,Norte,Online,Sep,41,5026,954,9,4.6,Sí,2756
+C0390,Senior,Centro,Tienda,Oct,60,3603,394,3,7.7,No,1404
+C0391,Joven digital,Norte,Online,Mar,28,1992,377,18,5.6,No,1715
+C0392,Familia,Norte,Tienda,Ago,40,5315,814,8,5.6,Sí,2436
+C0393,Senior,Oriente,Tienda,Abr,65,3281,468,2,5.1,Sí,1639
+C0394,Joven digital,Norte,Online,Jul,25,2461,456,17,8.8,No,1720
+C0395,Familia,Centro,Tienda,Abr,42,5255,942,10,7.7,No,2834
+C0396,Senior,Norte,Tienda,Feb,67,4171,552,4,5.1,Sí,1974
+C0397,Joven digital,Centro,Tienda,Mar,28,3040,322,16,4.3,Sí,1466
+C0398,Familia,Norte,Online,Jul,38,5931,884,13,6.9,No,2765
+C0399,Senior,Centro,Tienda,Sep,58,3303,466,1,8,No,1514
+C0400,Joven digital,Centro,Online,Oct,26,2528,423,17,6.6,No,1705
+C0401,Familia,Centro,Online,Sep,36,5396,873,6,9.3,No,2683
+C0402,Senior,Centro,Online,Nov,60,3519,494,8,8.1,No,1756
+C0403,Joven digital,Sur,Online,Feb,30,2602,421,20,6.2,No,1757
+C0404,Familia,Oriente,Online,Oct,37,4630,867,9,8,No,2585
+C0405,Senior,Sur,Tienda,Mar,57,3164,449,2,8.7,No,1457
+C0406,Joven digital,Oriente,Online,Abr,28,2425,319,21,4.9,No,1414
+C0407,Familia,Sur,Online,May,46,5271,740,8,9.5,No,2321
+C0408,Senior,Norte,Online,Oct,60,3708,555,3,6.5,Sí,1824
+C0409,Joven digital,Oriente,Online,Ene,21,2732,443,18,9.7,No,1881
+C0410,Familia,Sur,Tienda,Jul,40,5653,908,10,8.6,No,2776
+C0411,Senior,Norte,Tienda,Jul,62,3490,369,3,4.9,Sí,1358
+C0412,Joven digital,Norte,Online,Jul,28,2766,363,17,9.4,No,1555
+C0413,Familia,Norte,Tienda,Ago,44,5739,931,7,5.6,Sí,2843
+C0414,Senior,Centro,Tienda,Mar,60,3398,454,3,5.3,Sí,1536
+C0415,Joven digital,Oriente,Online,May,31,1853,385,19,4.2,Sí,1663
+C0416,Familia,Norte,Online,Dic,41,5921,814,5,5.4,Sí,2434
+C0417,Senior,Sur,Online,Dic,60,4065,435,5,6.6,Sí,1525
+C0418,Joven digital,Norte,Tienda,Nov,28,2215,533,18,7,No,2012
+C0419,Familia,Sur,Online,May,41,4788,823,6,4.7,Sí,2361
+C0420,Senior,Centro,Tienda,Sep,68,3674,515,4,5.9,Sí,1734
+C0421,Joven digital,Centro,Online,Nov,21,2813,567,15,6.6,No,2143
+C0422,Familia,Centro,Tienda,May,45,5052,884,8,9.1,No,2586
+C0423,Senior,Norte,Tienda,Dic,56,3936,519,1,6.1,Sí,1604
+C0424,Joven digital,Centro,Online,Sep,26,2547,369,20,5,Sí,1619
+C0425,Familia,Oriente,Online,Jun,38,5347,956,7,7.2,Sí,2829
+C0426,Senior,Norte,Online,May,66,3373,549,4,8.4,No,1926
+C0427,Joven digital,Oriente,Online,Feb,23,2080,287,19,6,No,1470
+C0428,Familia,Norte,Online,Nov,34,5218,801,12,8.1,No,2479
+C0429,Senior,Sur,Online,Ago,58,3703,460,4,8.4,No,1422
+C0430,Joven digital,Centro,Online,Jun,27,2565,400,22,7.1,No,1774
+C0431,Familia,Sur,Online,Sep,42,4909,860,7,7.1,No,2646
+C0432,Senior,Sur,Tienda,Jun,66,3702,545,3,7.7,No,1802
+C0433,Joven digital,Norte,Online,Dic,28,2629,503,18,6.8,No,2031
+C0434,Familia,Sur,Tienda,Ene,38,5238,829,6,6.3,Sí,2383
+C0435,Senior,Norte,Tienda,Abr,61,3642,451,3,5.7,Sí,1573
+C0436,Joven digital,Norte,Online,Nov,24,2975,406,22,7.5,No,1824
+C0437,Familia,Sur,Online,Sep,42,5085,842,8,7.5,Sí,2583
+C0438,Senior,Norte,Tienda,Oct,64,3312,501,4,8.8,No,1617
+C0439,Joven digital,Oriente,Tienda,May,25,2318,400,19,5.3,No,1748
+C0440,Familia,Oriente,Tienda,Feb,40,4194,891,10,9.7,No,2660
+C0441,Senior,Oriente,Tienda,Nov,68,3910,512,7,5.4,Sí,1949
+C0442,Joven digital,Sur,Online,May,28,2423,335,17,4.2,Sí,1548
+C0443,Familia,Sur,Tienda,Jul,46,5986,855,11,6.6,Sí,2553
+C0444,Senior,Sur,Tienda,Feb,67,3857,548,6,3.7,Sí,1987
+C0445,Joven digital,Sur,Online,Ene,21,3131,427,22,4.1,No,1854
+C0446,Familia,Norte,Online,Nov,44,4944,791,10,9.3,No,2511
+C0447,Senior,Norte,Online,May,67,4305,438,7,4,Sí,1707
+C0448,Joven digital,Sur,Online,Feb,29,2448,378,20,3.7,Sí,1623
+C0449,Familia,Oriente,Tienda,Mar,38,5089,687,10,7.4,No,2106
+C0450,Senior,Oriente,Tienda,May,63,3780,459,6,9.8,No,1635
+C0451,Joven digital,Centro,Online,Mar,26,2397,442,23,5.6,No,1910
+C0452,Familia,Sur,Tienda,Jun,44,5071,901,10,6.9,No,2746
+C0453,Senior,Sur,Tienda,Mar,65,3459,409,2,7.6,No,1391
+C0454,Joven digital,Centro,Online,Abr,27,2010,401,19,6.7,No,1640
+C0455,Familia,Sur,Online,Jul,38,4919,850,10,8.8,No,2648
+C0456,Senior,Oriente,Online,Feb,64,3415,408,6,5.2,Sí,1521
+C0457,Joven digital,Sur,Online,Oct,29,2558,417,18,4.4,Sí,1741
+C0458,Familia,Oriente,Online,Oct,41,5522,935,5,7.2,No,2783
+C0459,Senior,Norte,Tienda,Feb,69,3957,442,6,3.3,Sí,1669
+C0460,Joven digital,Oriente,Online,Oct,32,2544,405,17,6.8,No,1708
+C0461,Familia,Centro,Tienda,Ene,37,5652,843,7,9.1,No,2522
+C0462,Senior,Oriente,Tienda,Jun,65,4169,506,0,4.8,Sí,1720
+C0463,Joven digital,Norte,Tienda,Nov,29,2571,454,14,5.7,Sí,1730
+C0464,Familia,Centro,Tienda,Abr,33,5619,924,13,9.6,No,2868
+C0465,Senior,Oriente,Tienda,Jun,70,3839,569,3,4.8,Sí,1995
+C0466,Joven digital,Sur,Online,Feb,21,2552,401,19,3.5,Sí,1777
+C0467,Familia,Centro,Tienda,Dic,39,5197,810,10,4.7,Sí,2438
+C0468,Senior,Norte,Tienda,Ene,66,3313,479,4,3.6,Sí,1621
+C0469,Joven digital,Oriente,Online,Nov,31,2487,467,17,7.2,No,1786
+C0470,Familia,Centro,Tienda,Jun,46,5521,823,12,5.9,Sí,2537
+C0471,Senior,Centro,Tienda,Abr,64,3833,422,5,5,Sí,1492
+C0472,Joven digital,Oriente,Online,Abr,27,2419,481,18,6.7,No,1923
+C0473,Familia,Oriente,Online,Abr,38,5573,878,10,7.5,No,2636
+C0474,Senior,Oriente,Tienda,Jun,57,3878,448,3,5.4,Sí,1448
+C0475,Joven digital,Sur,Online,Ago,22,1751,453,16,4.8,Sí,1806
+C0476,Familia,Norte,Tienda,Ago,41,4256,835,10,7.1,No,2518
+C0477,Senior,Sur,Tienda,Jun,62,4104,482,6,6.2,Sí,1756
+C0478,Joven digital,Oriente,Online,Jul,27,2747,455,16,7.5,No,1736
+C0479,Familia,Oriente,Online,Feb,41,4958,777,10,5.4,Sí,2510
+C0480,Senior,Sur,Tienda,Nov,71,3468,545,2,6.6,No,1894
+C0481,Joven digital,Centro,Online,Feb,30,2814,463,15,7.6,No,1857
+C0482,Familia,Oriente,Tienda,Abr,34,5290,922,9,4.9,Sí,2847
+C0483,Senior,Centro,Tienda,Mar,64,3902,552,3,3.7,Sí,1866
+C0484,Joven digital,Centro,Online,Ago,21,2440,376,19,4.6,Sí,1806
+C0485,Familia,Oriente,Online,Feb,36,5294,871,8,5.2,Sí,2638
+C0486,Senior,Centro,Tienda,Ago,68,4047,460,5,8.7,No,1631
+C0487,Joven digital,Oriente,Online,Mar,21,2652,252,18,6,No,1441
+C0488,Familia,Norte,Online,Abr,41,4434,827,8,5.8,Sí,2507
+C0489,Senior,Norte,Tienda,Oct,65,4167,536,8,7.6,No,1901
+C0490,Joven digital,Centro,Tienda,Ene,32,2592,420,18,7.5,No,1775
+C0491,Familia,Sur,Online,Dic,32,5193,836,6,6.7,Sí,2578
+C0492,Senior,Centro,Tienda,Ene,62,3653,550,7,6.2,Sí,1982
+C0493,Joven digital,Norte,Online,Dic,26,2648,457,18,6,No,1773
+C0494,Familia,Sur,Tienda,Ago,37,5389,924,8,8.1,No,2724
+C0495,Senior,Norte,Online,Ene,61,3860,478,4,7.5,No,1560
+C0496,Joven digital,Centro,Online,Oct,28,1819,418,21,6,No,1674
+C0497,Familia,Oriente,Online,Mar,42,4642,721,8,5.6,Sí,2252
+C0498,Senior,Norte,Online,Ene,59,4092,477,0,6.2,Sí,1517
+C0499,Joven digital,Oriente,Online,Sep,31,2163,525,20,6.9,No,1871
+C0500,Familia,Sur,Online,Feb,41,5344,904,10,6,Sí,2718
+C0501,Senior,Oriente,Online,Jun,61,3740,467,5,6.6,No,1560
+C0502,Joven digital,Sur,Tienda,Sep,18,2384,454,16,7.8,No,1935
+C0503,Familia,Sur,Online,Ene,45,5103,906,10,6.1,No,2699
+C0504,Senior,Norte,Tienda,Feb,62,3600,433,4,6.7,No,1445
+C0505,Joven digital,Norte,Online,Jun,25,3261,531,17,5.4,No,2045
+C0506,Familia,Norte,Tienda,Ene,39,4549,839,6,8.9,No,2484
+C0507,Senior,Sur,Online,Feb,56,3972,2562,4,7.2,Sí,7067
+C0508,Joven digital,Oriente,Online,Mar,28,2259,457,21,4,Sí,1851
+C0509,Familia,Oriente,Online,Abr,45,4218,934,11,5.7,No,2809
+C0510,Senior,Sur,Tienda,May,64,4079,417,3,4.7,Sí,1481
+C0511,Joven digital,Sur,Online,Ago,28,2259,431,21,8.3,No,1738
+C0512,Familia,Sur,Online,Nov,50,5864,852,10,9.8,No,2650
+C0513,Senior,Oriente,Tienda,Sep,65,3616,593,4,7.7,Sí,1987
+C0514,Joven digital,Sur,Online,Feb,25,2451,433,17,5,No,1760
+C0515,Familia,Norte,Tienda,May,34,4661,869,7,7.5,No,2679
+C0516,Senior,Centro,Tienda,Jul,63,3157,511,2,6.8,Sí,1710
+C0517,Joven digital,Centro,Online,Ago,24,2205,473,18,6,No,1965
+C0518,Familia,Norte,Tienda,Ene,44,5909,868,11,7.8,No,2782
+C0519,Senior,Oriente,Online,Ago,53,3734,409,4,6.8,No,1349
+C0520,Joven digital,Sur,Online,Jul,19,2231,425,20,7.6,No,1973
+C0521,Familia,Norte,Online,Feb,41,6052,800,8,7.2,No,2425
+C0522,Senior,Oriente,Online,Feb,61,3503,488,3,5.1,Sí,1626
+C0523,Joven digital,Sur,Online,Jun,26,1823,490,17,4,Sí,1976
+C0524,Familia,Norte,Online,Abr,40,4727,988,13,8.7,No,3049
+C0525,Senior,Sur,Tienda,Abr,68,4269,527,2,7.1,No,1730
+C0526,Joven digital,Sur,Tienda,Ago,33,2063,422,18,6.8,No,1665
+C0527,Familia,Sur,Online,Feb,35,4815,799,9,7.1,No,2427
+C0528,Senior,Oriente,Tienda,Ago,59,3593,526,7,3.6,Sí,1813
+C0529,Joven digital,Norte,Online,Ago,16,2790,321,17,6,No,1623
+C0530,Familia,Oriente,Online,Ene,47,5146,796,5,7.4,Sí,2342
+C0531,Senior,Centro,Tienda,Mar,62,3317,522,3,5.5,Sí,1789
+C0532,Joven digital,Oriente,Tienda,Dic,21,2733,399,16,8.5,No,1773
+C0533,Familia,Norte,Online,Ene,39,4971,798,10,7.9,No,2482
+C0534,Senior,Sur,Tienda,Ene,66,3631,291,3,6.5,Sí,1127
+C0535,Joven digital,Norte,Online,Mar,27,2829,341,18,4.8,Sí,1650
+C0536,Familia,Norte,Tienda,Abr,47,5306,832,12,6.2,Sí,2565
+C0537,Senior,Sur,Online,Jul,62,3310,521,2,6.5,Sí,1788
+C0538,Joven digital,Sur,Online,Mar,21,2784,426,15,6.9,No,1759
+C0539,Familia,Norte,Online,Mar,46,4822,783,8,8.4,No,2349
+C0540,Senior,Oriente,Tienda,Abr,56,3644,446,8,3.4,Sí,1580
+C0541,Joven digital,Oriente,Online,Ene,29,2603,346,20,5.9,No,1598
+C0542,Familia,Centro,Online,Ago,43,5115,764,15,5,Sí,2417
+C0543,Senior,Norte,Tienda,Feb,60,3525,454,4,6.5,Sí,1499
+C0544,Joven digital,Sur,Online,May,26,1921,417,17,9.8,No,1707
+C0545,Familia,Oriente,Online,Abr,39,5346,816,7,4.5,Sí,2346
+C0546,Senior,Oriente,Tienda,Jun,66,3716,517,4,6.9,No,1857
+C0547,Joven digital,Oriente,Online,May,29,2743,410,18,7.2,No,1628
+C0548,Familia,Oriente,Online,Feb,43,4624,977,10,5.3,Sí,2890
+C0549,Senior,Centro,Tienda,Mar,65,3763,418,2,4.1,Sí,1386
+C0550,Joven digital,Oriente,Online,Ene,23,1628,412,19,5.1,No,1861
+C0551,Familia,Centro,Tienda,Dic,46,4853,897,10,5.3,No,2659
+C0552,Senior,Centro,Online,Oct,66,3390,522,3,7.7,No,1686
+C0553,Joven digital,Sur,Online,Sep,26,1778,545,14,5.4,Sí,2029
+C0554,Familia,Sur,Tienda,May,48,5157,903,9,5.1,Sí,2723
+C0555,Senior,Sur,Online,Ene,62,4096,454,3,5.8,Sí,1573
+C0556,Joven digital,Norte,Online,Jul,29,1956,376,17,7.8,No,1586
+C0557,Familia,Sur,Tienda,Jul,33,6014,843,7,7.5,No,2620
+C0558,Senior,Norte,Tienda,Jul,59,3232,443,2,3.5,Sí,1456
+C0559,Joven digital,Sur,Online,Sep,37,1679,421,17,5.4,Sí,1652
+C0560,Familia,Sur,Tienda,Abr,38,5033,867,9,6.9,No,2692
+C0561,Senior,Norte,Tienda,Jun,65,4146,522,5,6.6,Sí,1827
+C0562,Joven digital,Centro,Tienda,Jul,26,2196,511,22,5.2,No,2034
+C0563,Familia,Oriente,Tienda,Dic,43,5228,683,13,8.3,No,2233
+C0564,Senior,Oriente,Tienda,Abr,64,3908,515,2,4,Sí,1755
+C0565,Joven digital,Norte,Online,Ene,27,2520,339,21,5.4,No,1602
+C0566,Familia,Norte,Online,May,44,5133,905,11,7.9,No,2790
+C0567,Senior,Norte,Tienda,Nov,59,3299,406,1,5.7,Sí,1366
+C0568,Joven digital,Centro,Online,Oct,29,1892,474,19,7.6,No,1842
+C0569,Familia,Centro,Tienda,May,46,4856,810,12,6.6,No,2532
+C0570,Senior,Centro,Online,Jun,60,3911,489,3,7.1,No,1631
+C0571,Joven digital,Norte,Online,Ago,24,3011,526,18,6.3,No,2038
+C0572,Familia,Centro,Online,Ago,47,5627,772,8,6.9,No,2297
+C0573,Senior,Sur,Tienda,Jun,54,3484,502,5,3.2,Sí,1620
+C0574,Joven digital,Centro,Online,Mar,24,2049,299,19,6.3,No,1513
+C0575,Familia,Sur,Tienda,Ago,48,5325,1026,7,6.8,No,2938
+C0576,Senior,Sur,Tienda,Jul,63,4016,495,2,5.7,Sí,1796
+C0577,Joven digital,Centro,Online,Ago,25,2842,407,21,5.8,No,1728
+C0578,Familia,Oriente,Online,Oct,45,5415,856,11,4.8,Sí,2698
+C0579,Senior,Norte,Tienda,Jul,72,3877,456,9,8.6,No,1779
+C0580,Joven digital,Norte,Online,Jul,32,2722,365,19,4.6,No,1572
+C0581,Familia,Centro,Tienda,Jun,43,5222,767,9,4.4,Sí,2362
+C0582,Senior,Centro,Tienda,Mar,62,4126,533,4,5.4,Sí,1689
+C0583,Joven digital,Centro,Online,Ago,30,3088,376,14,8.4,No,1596
+C0584,Familia,Oriente,Tienda,Oct,39,4927,865,10,5.7,Sí,2580
+C0585,Senior,Sur,Tienda,Dic,69,3361,466,3,6.9,No,1691
+C0586,Joven digital,Sur,Online,Jun,27,2304,363,18,7,No,1504
+C0587,Familia,Norte,Online,Oct,43,5183,927,9,7,Sí,2682
+C0588,Senior,Sur,Online,Ago,68,3772,508,2,5.7,Sí,1689
+C0589,Joven digital,Norte,Tienda,Dic,28,1950,475,19,5.2,No,1886
+C0590,Familia,Oriente,Online,Ago,36,5267,872,6,7.4,No,2633
+C0591,Senior,Norte,Tienda,Abr,61,4146,449,3,6.7,Sí,1549
+C0592,Joven digital,Sur,Online,Nov,26,2244,440,20,7.5,No,1865
+C0593,Familia,Centro,Tienda,Mar,42,5142,834,12,7.8,No,2666
+C0594,Senior,Norte,Tienda,Oct,60,3978,590,1,5.3,Sí,1844
+C0595,Joven digital,Oriente,Online,Nov,27,1888,419,15,6.7,Sí,1772
+C0596,Familia,Centro,Tienda,Oct,38,5008,801,8,8.7,No,2455
+C0597,Senior,Norte,Tienda,Dic,65,4247,547,6,4,Sí,2003
+C0598,Joven digital,Sur,Online,Dic,24,2954,441,17,6.7,No,1722
+C0599,Familia,Oriente,Online,Abr,38,5131,996,9,5.7,Sí,2865
+C0600,Senior,Norte,Tienda,Ene,60,4075,458,3,5,Sí,1650
+C0601,Joven digital,Norte,Online,Abr,28,3108,417,18,6.1,No,1767
+C0602,Familia,Sur,Online,May,41,4384,850,13,7.3,No,2612
+C0603,Senior,Sur,Tienda,Ago,52,3294,510,4,5.9,Sí,1525
+C0604,Joven digital,Oriente,Online,Feb,31,2845,416,20,7.4,No,1773
+C0605,Familia,Oriente,Online,Oct,44,5349,759,10,8.4,No,2250
+C0606,Senior,Sur,Tienda,Ene,58,4114,452,3,6.1,No,1606
+C0607,Joven digital,Oriente,Online,Dic,24,2229,402,21,4.2,No,1741
+C0608,Familia,Oriente,Tienda,Nov,44,5051,946,6,6.2,Sí,2836
+C0609,Senior,Norte,Tienda,Oct,70,4097,458,5,5.7,Sí,1696
+C0610,Joven digital,Oriente,Online,Nov,23,2746,527,20,6.5,No,2201
+C0611,Familia,Sur,Tienda,Jun,36,5674,755,9,6,Sí,2303
+C0612,Senior,Sur,Tienda,Jul,58,3521,477,2,6.2,Sí,1639
+C0613,Joven digital,Centro,Tienda,Sep,22,2132,489,19,7.9,No,2020
+C0614,Familia,Centro,Online,Jun,37,4933,772,11,9.2,No,2439
+C0615,Senior,Centro,Tienda,Ene,55,3389,563,5,7.5,No,1837
+C0616,Joven digital,Sur,Online,Oct,22,3206,440,19,5.5,No,1973
+C0617,Familia,Centro,Tienda,May,45,5540,866,10,6.1,Sí,2588
+C0618,Senior,Oriente,Tienda,Ago,65,3992,494,5,2.8,Sí,1677
+C0619,Joven digital,Norte,Online,Jul,26,3082,451,20,3,Sí,1953
+C0620,Familia,Norte,Online,Ago,40,5008,833,6,7.2,No,2587
+C0621,Senior,Oriente,Online,Jun,64,3903,435,3,6.2,Sí,1687
+C0622,Joven digital,Oriente,Online,Feb,34,2391,430,17,3.2,Sí,1739
+C0623,Familia,Oriente,Online,Jun,37,4902,847,9,6.7,No,2475
+C0624,Senior,Oriente,Tienda,Dic,61,4179,441,4,7.2,No,1534
+C0625,Joven digital,Centro,Online,Abr,22,2689,288,20,5.2,No,1667
+C0626,Familia,Oriente,Online,Ago,30,5055,983,15,6.7,No,3151
+C0627,Senior,Norte,Online,Feb,63,3772,605,3,6.6,Sí,2004
+C0628,Joven digital,Sur,Online,Sep,24,2778,484,21,6.1,No,2096
+C0629,Familia,Oriente,Tienda,May,38,4813,773,10,8.3,No,2416
+C0630,Senior,Centro,Tienda,Abr,63,3801,570,5,4.7,Sí,1834
+C0631,Joven digital,Sur,Online,May,27,2122,362,18,6.3,No,1604
+C0632,Familia,Sur,Online,Feb,43,4868,919,11,8.5,No,2914
+C0633,Senior,Oriente,Tienda,Mar,65,3231,482,6,7.6,No,1728
+C0634,Joven digital,Sur,Online,Dic,30,3246,416,19,6.3,No,1700
+C0635,Familia,Centro,Online,Dic,47,4824,919,5,4,Sí,2669
+C0636,Senior,Sur,Online,Oct,64,3984,533,5,7.4,No,1880
+C0637,Joven digital,Centro,Tienda,Ene,25,2410,328,20,5.5,No,1538
+C0638,Familia,Oriente,Tienda,Sep,40,4995,925,12,7.6,No,2679
+C0639,Senior,Norte,Tienda,Jun,57,3778,444,9,4.8,Sí,1612
+C0640,Joven digital,Norte,Online,Dic,23,2262,435,19,7.6,No,1851
+C0641,Familia,Centro,Online,Sep,38,5443,902,6,8.6,No,2709
+C0642,Senior,Sur,Tienda,Dic,59,3779,499,3,6.7,Sí,1726
+C0643,Joven digital,Centro,Online,Feb,20,1977,470,18,6.2,Sí,1951
+C0644,Familia,Oriente,Online,Ene,33,5479,813,7,7.8,No,2433
+C0645,Senior,Norte,Tienda,Oct,63,4103,491,6,7.3,Sí,1712
+C0646,Joven digital,Sur,Tienda,Sep,27,2485,510,14,6.9,No,1941
+C0647,Familia,Sur,Tienda,Dic,38,5575,935,10,8.3,No,2802
+C0648,Senior,Centro,Tienda,Ago,62,4048,592,5,6.1,No,1915
+C0649,Joven digital,Oriente,Online,Mar,28,2269,412,22,6.7,No,1727
+C0650,Familia,Oriente,Online,Abr,37,4509,773,6,4.3,Sí,2368
+C0651,Senior,Oriente,Tienda,Jun,56,3718,405,3,6.2,Sí,1314
+C0652,Joven digital,Sur,Online,Oct,31,3137,457,16,6,No,1832
+C0653,Familia,Norte,Online,Sep,29,5492,887,14,8.1,No,2818
+C0654,Senior,Centro,Tienda,Sep,62,4348,503,0,8.6,No,1657
+C0655,Joven digital,Norte,Online,Dic,33,1861,430,16,8.6,No,1640
+C0656,Familia,Norte,Tienda,Ene,40,4710,811,9,8,No,2580
+C0657,Senior,Norte,Tienda,Ene,62,3680,423,5,4,Sí,1415
+C0658,Joven digital,Oriente,Online,Jul,25,1762,414,15,6,No,1745
+C0659,Familia,Norte,Online,Oct,45,4888,907,9,8.6,No,2735
+C0660,Senior,Oriente,Tienda,Oct,64,4289,441,5,4.7,Sí,1540
+C0661,Joven digital,Sur,Tienda,Feb,23,2163,330,17,8.3,No,1597
+C0662,Familia,Oriente,Tienda,Jul,42,5174,924,8,4.6,Sí,2772
+C0663,Senior,Sur,Online,Jul,63,4224,485,2,6.6,No,1594
+C0664,Joven digital,Centro,Online,May,25,2297,409,18,4.7,No,1787
+C0665,Familia,Oriente,Tienda,Nov,40,5072,741,10,7.5,No,2381
+C0666,Senior,Oriente,Tienda,Ene,60,3383,354,5,6.4,No,1329
+C0667,Joven digital,Oriente,Online,Jul,26,2287,431,20,5,No,1804
+C0668,Familia,Centro,Tienda,Abr,36,5756,905,7,6.7,No,2816
+C0669,Senior,Norte,Tienda,Jun,54,3147,563,4,6,Sí,1701
+C0670,Joven digital,Centro,Tienda,Dic,29,2499,332,15,5.4,No,1395
+C0671,Familia,Norte,Tienda,Jul,44,5651,870,7,8,No,2641
+C0672,Senior,Oriente,Tienda,Ago,59,4002,467,4,2.7,Sí,1521
+C0673,Joven digital,Oriente,Online,Ago,25,2566,413,20,5.5,No,1831
+C0674,Familia,Oriente,Online,Ene,48,5404,5466,6,7.8,Sí,14502
+C0675,Senior,Centro,Online,May,65,3372,496,11,6.1,No,1886
+C0676,Joven digital,Norte,Online,Sep,24,2321,427,16,6.6,No,1836
+C0677,Familia,Norte,Tienda,Feb,43,5216,870,12,7.8,No,2714
+C0678,Senior,Sur,Tienda,Jul,68,3559,561,8,6.9,Sí,1957
+C0679,Joven digital,Oriente,Online,Oct,31,2121,426,19,8.4,No,1781
+C0680,Familia,Centro,Online,Jul,35,4838,876,9,9.9,No,2691
+C0681,Senior,Oriente,Online,Mar,67,4369,538,3,7,No,1809
+C0682,Joven digital,Norte,Online,Ene,28,2619,388,19,6.8,No,1735
+C0683,Familia,Sur,Tienda,Dic,43,5239,959,11,7.2,No,2843
+C0684,Senior,Centro,Tienda,Oct,61,3783,550,3,4.4,Sí,1705
+C0685,Joven digital,Norte,Online,Jun,27,2635,364,23,4.8,No,1739
+C0686,Familia,Centro,Tienda,Jul,36,5059,830,7,8,No,2532
+C0687,Senior,Oriente,Tienda,Dic,66,3443,566,6,7,Sí,1976
+C0688,Joven digital,Sur,Online,Ago,28,2371,460,15,5.7,No,1769
+C0689,Familia,Norte,Online,Ene,40,5076,818,6,6.9,No,2391
+C0690,Senior,Centro,Online,Jul,61,4096,516,0,5,Sí,1696
+C0691,Joven digital,Norte,Tienda,Nov,24,1649,530,17,3,Sí,2055
+C0692,Familia,Norte,Tienda,Ene,43,5885,831,10,6.5,No,2509
+C0693,Senior,Centro,Tienda,May,71,3248,498,5,4.2,Sí,1840
+C0694,Joven digital,Centro,Online,Jul,24,3338,420,18,9,No,1860
+C0695,Familia,Norte,Online,Jun,42,5789,844,8,7.2,Sí,2683
+C0696,Senior,Sur,Tienda,Dic,61,3627,532,3,7.3,No,1871
+C0697,Joven digital,Centro,Online,Feb,27,2658,395,17,5.9,No,1657
+C0698,Familia,Norte,Online,Jun,39,5650,889,10,7.6,No,2628
+C0699,Senior,Sur,Tienda,Sep,63,3839,575,4,5.4,Sí,1824
+C0700,Joven digital,Centro,Online,Nov,29,2029,539,18,7.6,No,2052
+C0701,Familia,Oriente,Tienda,Abr,40,5742,791,9,5.6,Sí,2499
+C0702,Senior,Sur,Tienda,Abr,66,4376,542,6,7.1,No,1949
+C0703,Joven digital,Sur,Online,Ene,29,1923,467,21,4.8,No,1997
+C0704,Familia,Centro,Online,Ago,41,4440,902,13,6.3,No,2851
+C0705,Senior,Sur,Online,Sep,68,3113,507,0,5.3,Sí,1841
+C0706,Joven digital,Oriente,Online,Feb,33,2507,438,18,5,Sí,1604
+C0707,Familia,Sur,Online,Nov,36,5015,830,10,8.4,No,2589
+C0708,Senior,Norte,Tienda,Ene,64,3827,408,4,6.5,Sí,1409
+C0709,Joven digital,Oriente,Online,Oct,35,2377,311,19,4.1,No,1365
+C0710,Familia,Norte,Online,Jun,37,5182,849,10,5.3,Sí,2614
+C0711,Senior,Norte,Online,Feb,61,3711,509,5,7.8,No,1673
+C0712,Joven digital,Centro,Online,Ago,27,2426,411,17,6.9,No,1684
+C0713,Familia,Centro,Tienda,Ene,48,5476,826,8,7.6,No,2576
+C0714,Senior,Sur,Tienda,Ene,59,4216,316,5,6.6,No,1188
+C0715,Joven digital,Centro,Online,Abr,26,2039,362,15,4.2,Sí,1559
+C0716,Familia,Oriente,Tienda,Sep,42,5151,944,10,6.8,No,2842
+C0717,Senior,Centro,Tienda,Abr,60,3427,477,3,6.2,Sí,1569
+C0718,Joven digital,Oriente,Online,May,27,2395,485,17,5,No,1885
+C0719,Familia,Norte,Online,Nov,36,5881,869,7,6,Sí,2507
+C0720,Senior,Sur,Online,Jul,56,4474,490,7,6.7,No,1690
+C0721,Joven digital,Sur,Online,Sep,28,1773,416,16,3.9,Sí,1754
+C0722,Familia,Norte,Online,Nov,35,5043,931,8,6.1,Sí,2800
+C0723,Senior,Sur,Tienda,Dic,61,3693,532,6,4.4,Sí,1763
+C0724,Joven digital,Norte,Online,Jul,28,2501,362,18,7.1,No,1558
+C0725,Familia,Norte,Tienda,May,34,5667,834,8,8.9,No,2451
+C0726,Senior,Sur,Tienda,Mar,60,3622,514,6,6.1,Sí,1662
+C0727,Joven digital,Oriente,Online,Mar,22,2152,365,21,6.7,No,1670
+C0728,Familia,Centro,Online,Feb,42,5031,883,8,8.4,No,2624
+C0729,Senior,Norte,Tienda,Jun,64,3120,450,3,8,No,1544
+C0730,Joven digital,Centro,Online,Sep,22,3186,283,20,3.9,Sí,1469
+C0731,Familia,Norte,Tienda,Mar,44,5188,875,10,7,Sí,2640
+C0732,Senior,Norte,Tienda,Mar,59,3568,513,3,5.6,Sí,1597
+C0733,Joven digital,Oriente,Online,Feb,22,2093,400,18,4.8,Sí,1796
+C0734,Familia,Norte,Tienda,Ago,37,5206,846,10,7,No,2562
+C0735,Senior,Oriente,Tienda,Ago,57,3842,620,4,4.9,Sí,1901
+C0736,Joven digital,Centro,Online,Jul,25,2680,414,17,5.3,No,1676
+C0737,Familia,Oriente,Online,Nov,47,5840,958,12,5.6,No,3033
+C0738,Senior,Sur,Tienda,Ene,65,3755,478,5,6.4,Sí,1781
+C0739,Joven digital,Centro,Online,Jun,16,2771,442,19,7.3,No,1975
+C0740,Familia,Norte,Online,Mar,40,5465,910,4,5.8,Sí,2727
+C0741,Senior,Oriente,Tienda,Feb,58,4152,504,3,5.3,Sí,1649
+C0742,Joven digital,Sur,Online,Sep,29,2622,437,21,8.1,No,1857
+C0743,Familia,Sur,Online,Jun,41,4869,836,8,2.6,Sí,2510
+C0744,Senior,Norte,Online,May,68,3632,450,5,8.5,No,1596
+C0745,Joven digital,Oriente,Tienda,Ene,29,3002,385,19,7.8,No,1673
+C0746,Familia,Sur,Online,Jul,44,5359,782,9,9.3,No,2450
+C0747,Senior,Norte,Tienda,Sep,68,4160,530,2,5.2,Sí,2053
+C0748,Joven digital,Centro,Online,Abr,22,2321,406,19,7.4,No,1833
+C0749,Familia,Sur,Tienda,Sep,44,5622,905,7,6.2,Sí,2616
+C0750,Senior,Oriente,Tienda,Dic,65,4003,585,6,5.4,Sí,2049
+C0751,Joven digital,Norte,Online,Feb,26,1788,485,15,8.3,No,1814
+C0752,Familia,Oriente,Online,Dic,46,5070,836,7,7.5,No,2533
+C0753,Senior,Oriente,Tienda,Jun,65,4227,494,2,6.8,Sí,1592
+C0754,Joven digital,Oriente,Online,Abr,23,2452,432,19,8.6,No,1885
+C0755,Familia,Sur,Tienda,Mar,42,5592,821,11,6.3,No,2473
+C0756,Senior,Sur,Tienda,Jun,62,4126,484,5,5.5,Sí,1686
+C0757,Joven digital,Norte,Online,Jul,26,2684,364,20,4,Sí,1657
+C0758,Familia,Oriente,Tienda,Dic,44,5089,916,9,5.6,Sí,2755
+C0759,Senior,Oriente,Tienda,Mar,61,4473,470,3,9.9,No,1581
+C0760,Joven digital,Norte,Online,Nov,24,2826,390,19,4.6,Sí,1634
+C0761,Familia,Norte,Tienda,Ene,40,4833,767,8,7,Sí,2402
+C0762,Senior,Norte,Tienda,Dic,64,3825,502,5,6,Sí,1782
+C0763,Joven digital,Sur,Online,Abr,24,2956,331,17,4.6,No,1473
+C0764,Familia,Sur,Tienda,Mar,42,4653,904,5,6.9,Sí,2655
+C0765,Senior,Sur,Tienda,Jul,60,3276,410,1,6.6,Sí,1470
+C0766,Joven digital,Oriente,Online,Mar,32,1946,429,15,7.2,No,1674
+C0767,Familia,Centro,Tienda,Ene,42,4961,872,11,8,No,2639
+C0768,Senior,Sur,Tienda,Jul,68,3560,462,5,5,Sí,1720
+C0769,Joven digital,Sur,Online,Abr,26,3105,379,20,4.3,Sí,1805
+C0770,Familia,Oriente,Tienda,Feb,46,4592,824,11,6.8,No,2549
+C0771,Senior,Oriente,Online,Sep,57,3180,553,2,6.8,Sí,1717
+C0772,Joven digital,Sur,Online,Nov,27,2076,477,19,4.4,Sí,1915
+C0773,Familia,Norte,Tienda,Abr,45,4974,846,6,7.1,No,2480
+C0774,Senior,Sur,Online,Nov,59,3617,536,7,4.4,Sí,1913
+C0775,Joven digital,Oriente,Online,Dic,33,2498,507,20,6.9,No,1937
+C0776,Familia,Sur,Tienda,Feb,38,5523,769,9,5.5,Sí,2396
+C0777,Senior,Centro,Tienda,Jul,66,3450,575,6,7.9,No,1982
+C0778,Joven digital,Oriente,Tienda,Ene,25,2827,244,21,5.8,No,1369
+C0779,Familia,Norte,Tienda,Nov,35,5582,882,10,6.3,No,2736
+C0780,Senior,Centro,Tienda,Ago,62,3447,398,2,7.8,No,1350
+C0781,Joven digital,Oriente,Tienda,Sep,28,3019,483,21,7.6,No,1862
+C0782,Familia,Centro,Online,Ago,43,5098,870,10,9.7,No,2591
+C0783,Senior,Oriente,Tienda,Jun,58,4203,450,6,5.1,Sí,1609
+C0784,Joven digital,Sur,Online,Nov,31,3560,418,17,7,No,1667
+C0785,Familia,Norte,Tienda,Ago,39,4502,835,12,7.2,No,2611
+C0786,Senior,Sur,Tienda,Feb,64,3114,390,8,5.2,Sí,1614
+C0787,Joven digital,Centro,Online,Sep,27,2649,458,17,4.4,Sí,1819
+C0788,Familia,Norte,Online,Mar,45,4615,816,5,9.4,No,2416
+C0789,Senior,Sur,Tienda,Nov,66,3219,449,7,3.9,Sí,1614
+C0790,Joven digital,Norte,Online,Ago,31,2118,337,20,4.4,No,1511
+C0791,Familia,Centro,Tienda,Mar,45,5123,746,8,6.5,Sí,2253
+C0792,Senior,Sur,Tienda,Jun,70,3189,428,1,6.2,Sí,1605
+C0793,Joven digital,Oriente,Tienda,Jun,17,2252,350,18,6.4,No,1760
+C0794,Familia,Centro,Online,Ene,44,5132,775,8,4.7,Sí,2428
+C0795,Senior,Centro,Online,Dic,60,2826,439,1,6.9,No,1491
+C0796,Joven digital,Norte,Online,Abr,32,2690,402,17,3.6,Sí,1548
+C0797,Familia,Sur,Online,Jul,35,5304,777,11,10,No,2512
+C0798,Senior,Norte,Tienda,Ago,70,3390,423,5,6,No,1698
+C0799,Joven digital,Oriente,Online,May,23,2934,285,16,7.6,No,1375
+C0800,Familia,Oriente,Tienda,Mar,38,6076,798,10,7.3,No,2469
+C0801,Senior,Sur,Online,Abr,65,3027,413,6,6.3,No,1573
+C0802,Joven digital,Norte,Online,Abr,24,2788,514,20,6.7,No,2089
+C0803,Familia,Sur,Online,Dic,43,5856,898,10,7.7,No,2664
+C0804,Senior,Oriente,Online,Dic,58,4212,475,1,6.4,Sí,1547
+C0805,Joven digital,Oriente,Online,Jun,36,2403,438,17,6.5,No,1665
+C0806,Familia,Oriente,Online,Jul,45,4966,868,8,6.7,No,2629
+C0807,Senior,Centro,Tienda,Oct,56,3126,423,7,6.5,No,1523
+C0808,Joven digital,Norte,Online,May,26,2465,351,19,5,No,1510
+C0809,Familia,Sur,Tienda,Abr,43,5760,765,8,8.9,No,2378
+C0810,Senior,Norte,Online,Mar,63,3647,487,3,5.2,Sí,1609
+C0811,Joven digital,Norte,Online,Nov,26,2744,415,17,5.9,No,1689
+C0812,Familia,Sur,Tienda,Abr,37,4634,792,11,3.6,Sí,2458
+C0813,Senior,Norte,Tienda,Ene,59,4239,419,4,6.5,Sí,1418
+C0814,Joven digital,Centro,Online,Oct,35,2414,375,19,6.2,No,1474
+C0815,Familia,Norte,Tienda,Abr,39,5405,767,9,6.8,No,2420
+C0816,Senior,Sur,Tienda,Sep,61,4164,451,6,3.8,Sí,1536
+C0817,Joven digital,Oriente,Online,Nov,29,2547,370,17,9.9,No,1527
+C0818,Familia,Oriente,Tienda,Nov,40,5667,839,8,8.1,No,2590
+C0819,Senior,Oriente,Tienda,Nov,62,4175,478,7,4.1,Sí,1707
+C0820,Joven digital,Centro,Tienda,Feb,25,2683,457,15,4.8,Sí,1808
+C0821,Familia,Oriente,Tienda,Dic,40,5464,798,11,8.4,No,2538
+C0822,Senior,Sur,Tienda,Ago,62,4084,501,6,5.5,Sí,1717
+C0823,Joven digital,Oriente,Tienda,Feb,28,2979,338,20,5.4,No,1467
+C0824,Familia,Sur,Online,Oct,39,5378,788,8,4.2,Sí,2409
+C0825,Senior,Oriente,Tienda,May,64,3235,444,6,5.8,No,1636
+C0826,Joven digital,Centro,Online,Jun,32,2040,490,19,6.5,No,1907
+C0827,Familia,Centro,Tienda,Ene,41,5348,836,10,6.2,No,2476
+C0828,Senior,Centro,Tienda,Oct,56,3722,541,1,6.5,No,1764
+C0829,Joven digital,Sur,Online,Jun,27,2628,442,19,6.6,No,1790
+C0830,Familia,Norte,Tienda,Oct,41,5294,862,9,5.6,Sí,2500
+C0831,Senior,Norte,Online,Ago,57,4200,431,4,5.3,Sí,1438
+C0832,Joven digital,Centro,Online,Jun,35,3224,496,19,4.6,No,1785
+C0833,Familia,Oriente,Tienda,Feb,37,5616,808,10,6.1,Sí,2513
+C0834,Senior,Norte,Tienda,Nov,62,3607,442,3,5.9,Sí,1603
+C0835,Joven digital,Norte,Online,Dic,25,2802,470,18,4.6,No,1848
+C0836,Familia,Sur,Tienda,Nov,32,4815,880,7,7.6,No,2678
+C0837,Senior,Norte,Tienda,Jun,72,3899,440,6,5.9,No,1739
+C0838,Joven digital,Centro,Online,Ago,23,2081,457,18,8,No,1780
+C0839,Familia,Oriente,Tienda,Ene,38,5617,847,10,3.2,Sí,2573
+C0840,Senior,Centro,Tienda,Feb,56,3889,376,3,6.4,No,1210
+C0841,Joven digital,Sur,Online,Ene,22,2353,2268,18,7.5,No,6602
+C0842,Familia,Norte,Online,Jul,43,5145,935,14,3.9,Sí,2877
+C0843,Senior,Centro,Tienda,May,66,3200,467,4,5.5,Sí,1618
+C0844,Joven digital,Oriente,Online,Mar,24,3079,325,18,5,No,1562
+C0845,Familia,Sur,Tienda,Nov,36,5632,869,9,5.7,Sí,2611
+C0846,Senior,Sur,Online,May,58,3428,392,2,4.3,Sí,1399
+C0847,Joven digital,Sur,Online,Abr,27,2366,442,13,3.9,Sí,1669
+C0848,Familia,Norte,Online,Jul,44,4701,848,5,5.4,Sí,2434
+C0849,Senior,Oriente,Tienda,Abr,64,3798,537,0,6.5,Sí,1827
+C0850,Joven digital,Oriente,Online,Oct,26,3191,374,19,8.5,No,1562
+C0851,Familia,Centro,Online,Mar,42,5080,758,10,6.2,Sí,2461
+C0852,Senior,Norte,Tienda,Jun,64,4246,342,2,9.1,No,1221
+C0853,Joven digital,Oriente,Tienda,Ene,24,2864,383,17,8.4,No,1733
+C0854,Familia,Oriente,Online,Sep,42,5954,822,15,8.1,No,2725
+C0855,Senior,Sur,Tienda,Mar,65,3748,466,1,4,Sí,1560
+C0856,Joven digital,Sur,Online,Ene,26,2676,407,18,6,No,1768
+C0857,Familia,Oriente,Online,Ago,47,5434,796,7,5.5,Sí,2444
+C0858,Senior,Oriente,Tienda,Oct,67,4267,482,9,6.7,No,1919
+C0859,Joven digital,Centro,Online,May,26,2112,376,19,9.5,No,1538
+C0860,Familia,Centro,Online,Abr,44,5227,927,8,8,No,2712
+C0861,Senior,Norte,Tienda,Jul,67,3215,421,4,5.3,Sí,1680
+C0862,Joven digital,Oriente,Tienda,Abr,27,2943,451,16,6.1,No,1777
+C0863,Familia,Sur,Tienda,Mar,38,5666,949,13,9.5,No,2967
+C0864,Senior,Centro,Tienda,Ago,65,3887,444,6,6,Sí,1613
+C0865,Joven digital,Oriente,Online,Abr,34,2064,387,19,6.5,No,1537
+C0866,Familia,Oriente,Tienda,Oct,46,4517,829,10,5.7,Sí,2545
+C0867,Senior,Centro,Tienda,Ago,59,3983,450,2,2.8,Sí,1455
+C0868,Joven digital,Oriente,Online,Ene,28,2731,382,18,4.7,No,1628
+C0869,Familia,Centro,Tienda,Ene,40,5638,826,11,7,No,2516
+C0870,Senior,Norte,Tienda,Feb,63,3730,395,0,5.7,Sí,1302
+C0871,Joven digital,Norte,Online,Ene,29,2596,333,21,4.8,No,1522
+C0872,Familia,Norte,Tienda,Mar,44,5121,725,8,7.4,No,2147
+C0873,Senior,Norte,Online,Abr,63,3322,463,5,4.3,Sí,1694
+C0874,Joven digital,Norte,Online,Abr,29,2426,383,18,9.4,No,1663
+C0875,Familia,Norte,Online,May,43,5398,831,11,5.1,Sí,2500
+C0876,Senior,Centro,Online,May,67,3729,475,7,6.3,Sí,1810
+C0877,Joven digital,Centro,Online,Mar,26,2264,452,20,8.6,No,1914
+C0878,Familia,Oriente,Tienda,Sep,39,6093,750,9,8,No,2335
+C0879,Senior,Sur,Tienda,Jun,66,3771,500,0,6.6,No,1642
+C0880,Joven digital,Oriente,Online,Ene,31,2026,338,22,6.2,No,1569
+C0881,Familia,Sur,Tienda,Dic,38,4992,981,8,6.1,Sí,3012
+C0882,Senior,Centro,Tienda,Jun,62,4784,386,6,5.3,Sí,1516
+C0883,Joven digital,Sur,Tienda,Ago,33,2733,454,21,8,No,1761
+C0884,Familia,Sur,Tienda,Jul,40,5369,847,8,4.8,Sí,2551
+C0885,Senior,Oriente,Tienda,Ago,57,4050,532,4,6.9,No,1766
+C0886,Joven digital,Centro,Online,Abr,20,1809,487,20,6.5,No,2018
+C0887,Familia,Oriente,Online,Oct,37,5092,925,10,8.6,No,2748
+C0888,Senior,Centro,Tienda,Oct,66,3628,429,6,5.9,Sí,1536
+C0889,Joven digital,Sur,Online,Dic,31,2639,517,19,8.3,No,1953
+C0890,Familia,Norte,Online,Jul,45,5250,813,9,6.4,Sí,2450
+C0891,Senior,Sur,Tienda,Feb,59,3444,399,5,7.2,No,1525
+C0892,Joven digital,Oriente,Online,Abr,18,2766,388,21,5.5,No,1784
+C0893,Familia,Sur,Online,Nov,37,5503,1001,11,5.8,No,3126
+C0894,Senior,Oriente,Tienda,Ene,65,4103,440,5,6.9,No,1578
+C0895,Joven digital,Oriente,Online,Oct,25,2541,561,20,2.5,Sí,2158
+C0896,Familia,Norte,Tienda,Abr,38,5539,943,10,5.9,Sí,2794
+C0897,Senior,Oriente,Tienda,Dic,65,3777,468,7,7,No,1636
+C0898,Joven digital,Norte,Online,Ago,27,2765,490,18,4.7,No,1864
+C0899,Familia,Norte,Online,Jul,39,4976,829,9,6,No,2539
+C0900,Senior,Oriente,Tienda,Ene,63,4652,353,6,5.7,Sí,1358
+C0901,Joven digital,Oriente,Online,May,19,2968,380,23,1.5,Sí,1900
+C0902,Familia,Oriente,Online,Nov,50,5496,832,12,7.5,No,2610
+C0903,Senior,Oriente,Tienda,Oct,64,3981,520,6,5.7,Sí,1727
+C0904,Joven digital,Sur,Online,Jun,26,2955,336,13,5.9,No,1452
+C0905,Familia,Norte,Online,Ago,41,5587,877,8,4.7,Sí,2589
+C0906,Senior,Sur,Tienda,Ene,72,2833,538,6,6.2,Sí,2063
+C0907,Joven digital,Oriente,Online,May,24,2230,401,19,6.4,No,1762
+C0908,Familia,Centro,Tienda,Mar,41,4715,984,11,7.8,No,3040
+C0909,Senior,Norte,Online,Oct,62,3965,539,4,4.2,Sí,1714
+C0910,Joven digital,Sur,Online,Oct,30,2314,388,17,9,No,1512
+C0911,Familia,Sur,Online,Dic,37,5016,962,9,6.2,Sí,2948
+C0912,Senior,Norte,Tienda,May,71,3831,419,4,6.7,Sí,1527
+C0913,Joven digital,Centro,Online,Ene,22,2487,342,18,5.2,Sí,1792
+C0914,Familia,Sur,Online,Dic,46,4614,836,9,6.2,Sí,2528
+C0915,Senior,Norte,Tienda,Ene,66,3522,437,5,4.6,Sí,1629
+C0916,Joven digital,Norte,Online,Jun,19,2708,448,16,6,No,1864
+C0917,Familia,Sur,Online,Jul,30,4926,876,9,6.1,Sí,2787
+C0918,Senior,Norte,Online,Ago,69,4120,543,5,7.5,No,1861
+C0919,Joven digital,Oriente,Online,Ago,22,2911,446,16,4.1,Sí,1932
+C0920,Familia,Norte,Online,Oct,45,5293,772,9,8.5,No,2313
+C0921,Senior,Sur,Online,Jul,66,3542,537,2,6.4,Sí,1921
+C0922,Joven digital,Oriente,Online,Nov,26,2942,588,18,6,No,2088
+C0923,Familia,Centro,Tienda,Abr,46,4966,788,11,6,Sí,2422
+C0924,Senior,Centro,Tienda,Oct,64,3149,349,3,4.8,Sí,1140
+C0925,Joven digital,Norte,Online,Dic,29,2363,505,16,6.7,No,1952
+C0926,Familia,Oriente,Online,Dic,34,5329,943,11,9.1,No,2862
+C0927,Senior,Norte,Tienda,Sep,67,3744,579,5,6.5,Sí,2056
+C0928,Joven digital,Norte,Online,Sep,23,2085,394,19,5.4,No,1807
+C0929,Familia,Oriente,Online,Oct,39,4474,839,9,6.8,No,2478
+C0930,Senior,Centro,Tienda,Jul,66,3721,434,4,6.4,Sí,1636
+C0931,Joven digital,Oriente,Online,Abr,26,3003,386,17,6.8,No,1681
+C0932,Familia,Sur,Tienda,Ene,41,5022,740,9,7.6,No,2359
+C0933,Senior,Centro,Online,Sep,60,3394,619,4,4,Sí,2028
+C0934,Joven digital,Norte,Online,Ago,28,1873,393,16,2.8,Sí,1660
+C0935,Familia,Sur,Online,Oct,46,5687,837,9,7.2,No,2561
+C0936,Senior,Sur,Tienda,Abr,58,4517,602,4,6.8,No,1822
+C0937,Joven digital,Oriente,Online,Jun,24,2726,458,15,4.9,Sí,1870
+C0938,Familia,Norte,Tienda,Oct,43,5868,938,10,7.1,No,2910
+C0939,Senior,Oriente,Tienda,May,62,3953,591,6,7,No,1994
+C0940,Joven digital,Centro,Online,Ago,20,2694,506,19,4.9,Sí,2072
+C0941,Familia,Oriente,Online,Jul,38,4753,887,5,5.5,Sí,2609
+C0942,Senior,Centro,Tienda,Ene,62,3546,416,4,7.7,No,1444
+C0943,Joven digital,Oriente,Online,Jul,18,2350,454,20,6.2,No,1993
+C0944,Familia,Sur,Online,Jun,40,4990,779,9,9.1,No,2409
+C0945,Senior,Oriente,Tienda,Ene,62,3802,454,8,6.7,No,1558
+C0946,Joven digital,Norte,Online,Ene,23,2813,326,13,4.6,Sí,1508
+C0947,Familia,Sur,Tienda,Ene,37,4812,933,11,6.2,No,2865
+C0948,Senior,Norte,Tienda,Mar,61,4655,480,6,7.4,No,1605
+C0949,Joven digital,Sur,Online,Nov,19,2642,395,19,7.2,No,1888
+C0950,Familia,Centro,Online,May,49,6124,801,8,5.5,Sí,2409
+C0951,Senior,Centro,Tienda,Feb,62,3439,372,4,6.6,No,1350
+C0952,Joven digital,Centro,Online,Jul,25,2862,388,17,6.7,No,1636
+C0953,Familia,Centro,Online,Mar,43,4738,882,8,7.9,No,2678
+C0954,Senior,Oriente,Online,Nov,58,2991,510,2,6.4,Sí,1664
+C0955,Joven digital,Norte,Online,Abr,29,2443,501,17,6.1,No,1938
+C0956,Familia,Oriente,Tienda,May,41,5374,869,8,7.7,No,2748
+C0957,Senior,Sur,Tienda,Oct,65,4279,528,7,7.9,No,1857
+C0958,Joven digital,Oriente,Online,Ago,32,1927,436,18,7,No,1757
+C0959,Familia,Norte,Tienda,Ago,43,5168,888,10,4.9,Sí,2641
+C0960,Senior,Oriente,Online,May,62,3784,524,5,4.7,Sí,1875
+C0961,Joven digital,Oriente,Online,Oct,23,3076,548,19,6.9,No,2165
+C0962,Familia,Centro,Online,Jul,46,5501,863,10,9.6,No,2518
+C0963,Senior,Sur,Tienda,Jun,65,3919,472,1,6.2,Sí,1536
+C0964,Joven digital,Sur,Online,Jul,28,2483,472,18,6.4,No,1939
+C0965,Familia,Sur,Online,Feb,44,4910,907,8,7.8,No,2745
+C0966,Senior,Sur,Tienda,Sep,66,4300,611,5,7.9,No,2091
+C0967,Joven digital,Oriente,Online,Sep,28,1582,495,20,4,Sí,2011
+C0968,Familia,Centro,Online,Feb,44,5296,782,7,8.4,No,2319
+C0969,Senior,Norte,Tienda,Jun,62,3902,578,7,6.3,Sí,1864
+C0970,Joven digital,Oriente,Online,Ene,28,2412,441,20,4.7,No,1792
+C0971,Familia,Centro,Online,Ene,43,5706,831,10,7.6,No,2541
+C0972,Senior,Sur,Tienda,Nov,68,4042,440,7,6.9,No,1613
+C0973,Joven digital,Norte,Online,Sep,36,2494,333,16,8,No,1297
+C0974,Familia,Oriente,Tienda,Oct,42,5354,901,6,4.8,Sí,2585
+C0975,Senior,Norte,Tienda,Oct,66,3901,442,3,5.2,Sí,1549
+C0976,Joven digital,Oriente,Online,Ene,16,2807,319,16,5,Sí,1616
+C0977,Familia,Sur,Online,Dic,40,6177,916,7,4.3,Sí,2775
+C0978,Senior,Sur,Tienda,Ene,60,4122,432,5,7.3,No,1465
+C0979,Joven digital,Norte,Online,Nov,28,2988,331,20,6.9,No,1437
+C0980,Familia,Norte,Online,Feb,40,5792,842,7,7.8,No,2407
+C0981,Senior,Centro,Tienda,Jun,69,4184,536,4,7.8,No,1800
+C0982,Joven digital,Oriente,Online,May,24,3227,391,19,4,No,1788
+C0983,Familia,Norte,Online,Jun,40,5327,824,9,8,No,2515
+C0984,Senior,Oriente,Online,Sep,66,3622,494,4,6.5,No,1739
+C0985,Joven digital,Centro,Online,Jul,30,3286,418,18,6.1,No,1694
+C0986,Familia,Sur,Online,Sep,39,5423,730,10,7.1,Sí,2340
+C0987,Senior,Oriente,Tienda,Abr,65,2941,447,0,6.4,Sí,1524
+C0988,Joven digital,Sur,Tienda,Abr,25,2217,295,18,4.3,Sí,1448
+C0989,Familia,Oriente,Tienda,Ene,36,4718,767,9,7.2,No,2332
+C0990,Senior,Centro,Online,Jun,54,3744,476,5,7.3,No,1440
+C0991,Joven digital,Norte,Online,Oct,32,2985,495,22,5.4,No,1973
+C0992,Familia,Oriente,Online,Feb,37,5129,742,12,5.6,No,2428
+C0993,Senior,Centro,Tienda,Jun,66,3651,449,6,8.7,No,1633
+C0994,Joven digital,Centro,Online,Mar,33,3076,343,17,7.7,No,1417
+C0995,Familia,Oriente,Online,Sep,37,5275,837,9,8.5,No,2586
+C0996,Senior,Centro,Tienda,Sep,72,3405,519,5,9.7,No,1826
+C0997,Joven digital,Oriente,Online,Nov,22,2220,535,15,5.2,No,2036
+C0998,Familia,Sur,Online,May,45,4831,877,8,7.6,No,2642
+C0999,Senior,Oriente,Online,Nov,57,3761,626,4,5.2,Sí,1873
+C1000,Joven digital,Sur,Online,Jun,29,2088,383,17,5.7,No,1575
+C1001,Familia,Norte,Online,Feb,41,5601,756,14,4.9,Sí,2474
+C1002,Senior,Centro,Tienda,Oct,60,3311,508,3,7.4,No,1625
+C1003,Joven digital,Sur,Online,Feb,26,2915,377,14,5.2,Sí,1737
+C1004,Familia,Sur,Tienda,Jul,40,5450,902,8,5.3,Sí,2704
+C1005,Senior,Norte,Online,Ene,63,3194,483,5,7.8,No,1629
+C1006,Joven digital,Centro,Online,May,23,2919,459,20,6,No,1983
+C1007,Familia,Centro,Tienda,Abr,41,5092,833,13,10,No,2587
+C1008,Senior,Oriente,Tienda,Ago,61,3440,3000,2,6.6,Sí,8164
+C1009,Joven digital,Sur,Online,Oct,23,2285,340,21,8.1,No,1634
+C1010,Familia,Norte,Online,Mar,39,5918,875,7,7.3,No,2635
+C1011,Senior,Norte,Tienda,Feb,65,3979,480,6,5.9,Sí,1775
+C1012,Joven digital,Sur,Online,Ene,26,2263,447,17,7.4,No,1836
+C1013,Familia,Norte,Tienda,Jun,37,4758,860,6,3.5,Sí,2519
+C1014,Senior,Sur,Tienda,Oct,71,3775,566,5,7.7,No,1960
+C1015,Joven digital,Oriente,Online,Sep,20,2997,515,18,4.8,Sí,2111
+C1016,Familia,Sur,Tienda,Abr,39,5364,776,7,6.2,Sí,2287
+C1017,Senior,Centro,Online,Oct,58,4371,430,4,4.7,Sí,1418
+C1018,Joven digital,Oriente,Online,Sep,33,3031,416,19,4.3,Sí,1737
+C1019,Familia,Oriente,Tienda,Dic,46,5250,834,6,5.1,Sí,2419
+C1020,Senior,Sur,Tienda,Jul,64,4056,359,4,8.5,No,1259
+C1021,Joven digital,Sur,Online,Abr,23,3172,509,18,5.7,No,2068
+C1022,Familia,Norte,Online,Jul,46,4930,957,10,9,No,2939
+C1023,Senior,Centro,Online,May,60,4426,436,0,5,Sí,1374
+C1024,Joven digital,Centro,Online,Nov,24,2635,444,15,6.2,No,1721
+C1025,Familia,Centro,Tienda,Ene,41,6142,903,11,8.7,No,2744
+C1026,Senior,Norte,Tienda,Ene,65,4197,457,3,4,Sí,1588
+C1027,Joven digital,Norte,Online,Jul,24,2227,403,21,6.1,No,1836
+C1028,Familia,Sur,Tienda,Sep,39,6062,882,10,10,No,2739
+C1029,Senior,Centro,Tienda,Nov,59,3438,578,3,6.9,No,1793
+C1030,Joven digital,Oriente,Online,Abr,25,2312,493,18,3.3,Sí,2040
+C1031,Familia,Sur,Tienda,Ago,42,4744,801,10,9.8,No,2460
+C1032,Senior,Sur,Online,Jul,55,3388,405,6,8.1,No,1355
+C1033,Joven digital,Norte,Tienda,Jul,28,2650,394,17,5.5,No,1673
+C1034,Familia,Centro,Online,Nov,41,5445,904,12,9.5,No,2779
+C1035,Senior,Centro,Tienda,Sep,57,3221,586,4,5.3,Sí,1926
+C1036,Joven digital,Norte,Tienda,Oct,26,2478,376,18,2.8,Sí,1576
+C1037,Familia,Oriente,Online,Ene,35,5342,800,9,5,Sí,2548
+C1038,Senior,Sur,Online,Dic,61,4321,481,4,3,Sí,1525
+C1039,Joven digital,Centro,Online,Oct,21,2517,343,15,6.9,No,1590
+C1040,Familia,Norte,Online,Jun,46,4940,777,12,5.2,Sí,2394
+C1041,Senior,Norte,Tienda,Dic,60,3839,473,1,8.6,No,1586
+C1042,Joven digital,Norte,Online,Feb,25,3116,364,16,6.3,No,1551
+C1043,Familia,Sur,Tienda,Jul,43,5191,885,7,7.1,No,2519
+C1044,Senior,Sur,Tienda,Jun,69,4087,406,2,6.7,Sí,1454
+C1045,Joven digital,Oriente,Online,Sep,25,3106,446,16,5.8,No,1821
+C1046,Familia,Oriente,Tienda,Ago,48,5469,825,9,6.9,No,2528
+C1047,Senior,Centro,Tienda,Sep,59,3819,583,5,4.5,Sí,1936
+C1048,Joven digital,Sur,Tienda,Ene,24,2926,332,20,5.3,No,1629
+C1049,Familia,Sur,Online,Feb,40,5392,863,10,8.5,No,2586
+C1050,Senior,Oriente,Tienda,Oct,58,3635,533,2,5.4,Sí,1659
+C1051,Joven digital,Oriente,Tienda,Jun,25,2431,422,12,6.3,Sí,1648
+C1052,Familia,Sur,Tienda,May,50,5577,783,8,10,No,2407
+C1053,Senior,Centro,Online,Sep,60,3928,409,8,5.6,No,1515
+C1054,Joven digital,Oriente,Online,Sep,26,3200,451,19,7.6,No,1850
+C1055,Familia,Norte,Online,Abr,42,5019,837,6,7.1,No,2475
+C1056,Senior,Oriente,Online,Nov,65,4490,490,2,8.4,No,1739
+C1057,Joven digital,Sur,Online,Oct,32,2345,403,18,6.1,No,1675
+C1058,Familia,Oriente,Tienda,Jul,39,4745,769,9,5.7,Sí,2449
+C1059,Senior,Norte,Tienda,Abr,67,3709,487,2,5.9,Sí,1758
+C1060,Joven digital,Centro,Online,Nov,30,1918,365,22,5.1,Sí,1567
+C1061,Familia,Sur,Tienda,Nov,49,4710,811,7,6.3,No,2493
+C1062,Senior,Oriente,Tienda,Jun,65,4391,389,4,6.1,Sí,1510
+C1063,Joven digital,Centro,Online,Jul,31,2005,411,17,7.8,No,1704
+C1064,Familia,Norte,Online,Sep,46,4630,776,7,6.7,No,2296
+C1065,Senior,Centro,Tienda,Jul,64,3902,526,6,6.2,Sí,1825
+C1066,Joven digital,Centro,Online,Abr,31,3464,478,14,8.5,No,1773
+C1067,Familia,Centro,Online,Ene,50,5092,902,10,3.5,Sí,2781
+C1068,Senior,Centro,Tienda,Nov,65,3768,487,4,4.1,Sí,1725
+C1069,Joven digital,Norte,Online,Jun,22,2902,401,19,4.9,No,1815
+C1070,Familia,Norte,Tienda,Mar,43,5371,831,11,6,No,2521
+C1071,Senior,Centro,Tienda,Sep,65,4249,452,7,5.9,No,1680
+C1072,Joven digital,Sur,Online,Jul,30,2291,412,20,7.6,No,1761
+C1073,Familia,Centro,Tienda,Sep,41,4782,769,12,3.8,Sí,2418
+C1074,Senior,Sur,Tienda,Ene,55,3862,383,4,7,No,1399
+C1075,Joven digital,Oriente,Online,Abr,30,1828,469,18,8.2,No,1918
+C1076,Familia,Oriente,Online,Ago,39,5410,753,9,7.9,No,2277
+C1077,Senior,Sur,Tienda,Ene,60,4330,407,5,3.7,Sí,1467
+C1078,Joven digital,Oriente,Tienda,Oct,17,2192,429,16,6.3,No,1965
+C1079,Familia,Sur,Online,Feb,34,5130,824,6,7.9,No,2377
+C1080,Senior,Norte,Tienda,Ene,71,4467,416,5,4.3,Sí,1750
+C1081,Joven digital,Centro,Online,Feb,23,2202,444,19,6.7,No,1816
+C1082,Familia,Norte,Tienda,Oct,42,4556,881,6,4.2,Sí,2565
+C1083,Senior,Sur,Tienda,May,64,3213,499,4,4.1,Sí,1756
+C1084,Joven digital,Sur,Online,Oct,25,1892,355,16,8,No,1639
+C1085,Familia,Centro,Online,Oct,38,5514,939,10,7.5,No,2913
+C1086,Senior,Centro,Tienda,May,69,3511,486,5,2.8,Sí,1806
+C1087,Joven digital,Norte,Online,May,29,2244,418,15,5.8,No,1676
+C1088,Familia,Sur,Online,Feb,40,5369,867,5,7.1,Sí,2505
+C1089,Senior,Oriente,Tienda,Feb,65,3933,439,3,6.9,Sí,1470
+C1090,Joven digital,Norte,Online,Jun,24,2344,442,20,6.1,No,1832
+C1091,Familia,Norte,Tienda,Oct,37,4906,923,11,5.9,No,2830
+C1092,Senior,Centro,Tienda,Abr,66,3826,469,2,7.2,Sí,1612
+C1093,Joven digital,Sur,Online,Mar,29,2550,350,18,5.3,No,1545
+C1094,Familia,Centro,Online,Mar,37,5572,823,11,7.2,No,2570
+C1095,Senior,Oriente,Online,Jun,64,3389,554,6,6.9,No,2015
+C1096,Joven digital,Sur,Online,Ene,23,2650,284,17,5.6,No,1505
+C1097,Familia,Norte,Online,Nov,34,5616,827,7,5.4,Sí,2425
+C1098,Senior,Norte,Tienda,Nov,63,3272,482,2,8.1,No,1638
+C1099,Joven digital,Centro,Online,Feb,24,1928,430,22,4.4,No,1820
+C1100,Familia,Sur,Online,Ago,43,4858,807,10,6.4,No,2404
+C1101,Senior,Centro,Tienda,Nov,62,3338,470,4,6.3,Sí,1680
+C1102,Joven digital,Norte,Online,Ago,27,3181,342,20,4.4,Sí,1511
+C1103,Familia,Oriente,Online,Jul,41,5192,881,9,10,No,2662
+C1104,Senior,Oriente,Tienda,Abr,62,3492,613,7,8,No,2071
+C1105,Joven digital,Norte,Online,Dic,34,2907,501,19,6.8,No,1976
+C1106,Familia,Norte,Tienda,Mar,41,5580,832,13,6.3,No,2463
+C1107,Senior,Norte,Tienda,Abr,56,3711,527,5,5.1,Sí,1687
+C1108,Joven digital,Oriente,Tienda,Ene,32,2547,403,18,5.7,No,1643
+C1109,Familia,Sur,Tienda,Feb,40,5207,766,9,7.5,No,2305
+C1110,Senior,Centro,Tienda,Nov,62,4081,502,6,5.2,Sí,1703
+C1111,Joven digital,Oriente,Online,Feb,26,2876,360,19,9.1,No,1659
+C1112,Familia,Norte,Online,Sep,47,5197,893,9,5.8,No,2707
+C1113,Senior,Oriente,Tienda,Jul,60,3434,548,3,8,No,1709
+C1114,Joven digital,Sur,Online,Feb,19,2543,376,16,6,No,1812
+C1115,Familia,Norte,Online,Dic,45,5418,993,8,7.3,No,2932
+C1116,Senior,Oriente,Tienda,Feb,64,3536,336,5,5.9,Sí,1279
+C1117,Joven digital,Oriente,Online,Sep,29,2660,419,20,7.5,No,1624
+C1118,Familia,Sur,Online,Feb,37,5663,834,9,6.1,Sí,2615
+C1119,Senior,Oriente,Tienda,Dic,65,3561,468,5,4.6,Sí,1655
+C1120,Joven digital,Norte,Online,Jun,26,2687,324,20,7.6,No,1529
+C1121,Familia,Oriente,Online,Dic,40,5041,773,8,7.2,No,2338
+C1122,Senior,Centro,Tienda,Dic,56,4277,507,2,6.2,Sí,1494
+C1123,Joven digital,Norte,Online,Abr,27,2812,379,18,4.1,Sí,1676
+C1124,Familia,Norte,Online,Feb,47,4700,786,10,9.2,No,2488
+C1125,Senior,Centro,Tienda,Dic,68,3483,516,2,7.5,Sí,1809
+C1126,Joven digital,Sur,Online,Jul,23,2166,360,21,4.5,No,1745
+C1127,Familia,Oriente,Tienda,Mar,46,5771,749,9,6.8,Sí,2442
+C1128,Senior,Sur,Tienda,Jul,65,4516,436,4,5.6,Sí,1592
+C1129,Joven digital,Centro,Online,Dic,26,2921,480,21,7.2,No,1951
+C1130,Familia,Centro,Online,Nov,40,4950,839,6,5.9,No,2401
+C1131,Senior,Oriente,Tienda,Oct,59,3920,479,0,6.5,No,1529
+C1132,Joven digital,Norte,Online,Feb,22,2701,375,19,5.5,No,1700
+C1133,Familia,Centro,Online,Nov,41,5205,865,8,6.1,Sí,2642
+C1134,Senior,Sur,Tienda,Dic,67,4007,568,4,7.3,No,1797
+C1135,Joven digital,Oriente,Online,Jun,26,2696,431,16,6.1,No,1643
+C1136,Familia,Centro,Online,Dic,45,5609,885,10,6.1,Sí,2676
+C1137,Senior,Centro,Tienda,Abr,60,3843,424,7,8,No,1490
+C1138,Joven digital,Sur,Online,Mar,25,2283,378,17,8.2,No,1642
+C1139,Familia,Norte,Online,Ene,39,4684,800,2,4.7,Sí,2310
+C1140,Senior,Sur,Tienda,Ene,71,4227,428,1,7.8,Sí,1678
+C1141,Joven digital,Oriente,Online,Nov,21,2785,509,17,3.5,Sí,2169
+C1142,Familia,Centro,Online,Abr,41,5395,846,8,6.1,No,2455
+C1143,Senior,Sur,Tienda,Ago,64,3816,447,6,5.5,Sí,1550
+C1144,Joven digital,Norte,Online,Mar,32,1895,271,20,6.6,No,1188
+C1145,Familia,Oriente,Online,May,40,5197,795,10,7.7,No,2544
+C1146,Senior,Sur,Tienda,May,55,3893,539,7,8.2,No,1748
+C1147,Joven digital,Sur,Tienda,Nov,24,2374,381,22,5.5,No,1687
+C1148,Familia,Sur,Online,Ago,37,5843,885,9,8.7,No,2654
+C1149,Senior,Norte,Tienda,Sep,65,4016,604,3,6.5,Sí,2030
+C1150,Joven digital,Centro,Online,Jun,24,2615,309,20,5.4,No,1554
+C1151,Familia,Centro,Online,Jun,41,4897,874,4,7.8,No,2638
+C1152,Senior,Oriente,Tienda,Abr,70,3597,495,1,6.4,No,1736
+C1153,Joven digital,Norte,Online,Nov,21,2619,452,18,5.2,Sí,1851
+C1154,Familia,Norte,Online,Mar,35,5427,807,10,4.8,Sí,2595
+C1155,Senior,Oriente,Tienda,Abr,62,4147,508,6,6.4,No,1646
+C1156,Joven digital,Oriente,Online,Abr,35,1829,419,15,7.5,No,1646
+C1157,Familia,Sur,Tienda,Jul,44,5165,795,8,8,No,2447
+C1158,Senior,Centro,Tienda,Jul,74,3291,375,3,5.7,Sí,1519
+C1159,Joven digital,Centro,Online,Abr,26,2634,389,16,7.6,No,1648
+C1160,Familia,Sur,Online,Oct,39,6155,833,9,6.7,No,2509
+C1161,Senior,Sur,Tienda,Abr,58,3156,525,3,6.9,No,1727
+C1162,Joven digital,Oriente,Online,Oct,26,2719,389,13,7.1,No,1630
+C1163,Familia,Norte,Online,Feb,42,5515,758,8,8,No,2343
+C1164,Senior,Centro,Tienda,Dic,66,3359,602,5,6.5,Sí,2059
+C1165,Joven digital,Oriente,Online,May,22,2027,413,18,4.3,No,1760
+C1166,Familia,Norte,Tienda,Feb,43,4972,925,8,9,No,2829
+C1167,Senior,Sur,Tienda,Oct,64,3370,491,6,4.2,Sí,1767
+C1168,Joven digital,Norte,Online,Oct,23,2939,440,20,4.2,No,1890
+C1169,Familia,Norte,Online,Ene,34,5055,907,10,6.6,No,2895
+C1170,Senior,Oriente,Tienda,Oct,63,3319,546,7,5.7,Sí,1864
+C1171,Joven digital,Oriente,Online,Oct,24,2445,401,17,5.9,No,1769
+C1172,Familia,Oriente,Tienda,Jun,40,5650,935,6,7,Sí,2623
+C1173,Senior,Oriente,Tienda,May,58,3923,453,6,5.4,Sí,1498
+C1174,Joven digital,Oriente,Online,Jul,23,1859,504,20,8.5,No,2234
+C1175,Familia,Sur,Online,May,39,5038,5280,8,6.7,Sí,14039
+C1176,Senior,Oriente,Tienda,Mar,63,3778,422,1,4.1,Sí,1475
+C1177,Joven digital,Norte,Online,Dic,28,2661,334,15,6.2,No,1459
+C1178,Familia,Norte,Tienda,Feb,49,5009,836,7,6.2,Sí,2537
+C1179,Senior,Sur,Tienda,Jun,71,4139,412,2,6.2,Sí,1599
+C1180,Joven digital,Centro,Online,Feb,22,2004,446,14,6.1,No,1837
+C1181,Familia,Sur,Online,Ago,47,5042,876,6,8.6,No,2629
+C1182,Senior,Norte,Online,Nov,66,4018,476,3,6.9,No,1601
+C1183,Joven digital,Sur,Online,Jul,20,2435,434,20,6.1,No,1977
+C1184,Familia,Oriente,Online,Mar,43,5609,774,7,6.6,No,2414
+C1185,Senior,Norte,Tienda,May,69,3703,436,1,3.8,Sí,1543
+C1186,Joven digital,Norte,Online,Oct,24,2768,469,15,4.8,Sí,1833
+C1187,Familia,Sur,Tienda,Ene,40,5264,845,8,8.4,No,2637
+C1188,Senior,Sur,Tienda,Jul,61,3764,433,6,4,Sí,1407
+C1189,Joven digital,Sur,Online,Oct,29,1790,448,18,4.6,No,1756
+C1190,Familia,Norte,Tienda,Jul,43,5277,867,8,5.7,Sí,2698
+C1191,Senior,Oriente,Tienda,Dic,60,3745,483,1,4.4,Sí,1560
+C1192,Joven digital,Centro,Online,Dic,22,2431,498,17,4.3,Sí,2002
+C1193,Familia,Sur,Tienda,Sep,47,5141,792,9,6.3,Sí,2487
+C1194,Senior,Centro,Tienda,Sep,66,3233,513,3,6.9,Sí,1898
+C1195,Joven digital,Norte,Online,May,36,3160,302,18,6,No,1432
+C1196,Familia,Sur,Online,Sep,43,4849,787,8,8.3,No,2415
+C1197,Senior,Sur,Tienda,Ago,63,3137,471,7,5.5,Sí,1669
+C1198,Joven digital,Centro,Online,Dic,26,2352,425,20,5.9,No,1876
+C1199,Familia,Norte,Tienda,Jul,33,5797,837,9,5.1,Sí,2571
+C1200,Senior,Norte,Online,Sep,66,3464,460,5,6.2,No,1750
+C1201,Joven digital,Centro,Online,Sep,24,2732,522,16,5.4,No,2037
+C1202,Familia,Norte,Tienda,Ago,41,5455,856,8,6.9,No,2611
+C1203,Senior,Oriente,Tienda,Mar,64,3803,552,1,9.3,No,1867
+C1204,Joven digital,Centro,Tienda,Ene,23,2434,409,20,5.5,No,1846
+C1205,Familia,Oriente,Tienda,Nov,42,4995,909,6,8.4,No,2607
+C1206,Senior,Centro,Tienda,Mar,57,3903,428,3,7.2,Sí,1389
+C1207,Joven digital,Centro,Tienda,Abr,25,2680,371,19,8.3,No,1662
+C1208,Familia,Oriente,Online,Mar,45,5589,941,8,6.5,Sí,2804
+C1209,Senior,Norte,Tienda,Oct,68,3995,454,2,5.7,Sí,1580
+C1210,Joven digital,Oriente,Tienda,Nov,20,2327,389,18,6.3,No,1803
+C1211,Familia,Sur,Tienda,Ago,35,5372,852,13,7,No,2643
+C1212,Senior,Oriente,Online,Jun,61,4238,527,0,5.9,Sí,1698
+C1213,Joven digital,Centro,Tienda,Nov,29,2005,515,21,7.7,No,1986
+C1214,Familia,Norte,Online,Sep,39,5372,889,11,5.7,Sí,2679
+C1215,Senior,Norte,Tienda,Ene,63,3464,472,3,6.2,Sí,1570
+C1216,Joven digital,Centro,Online,Oct,23,2237,497,18,6.1,No,2042
+C1217,Familia,Oriente,Online,Mar,42,5216,787,8,7.6,No,2389
+C1218,Senior,Oriente,Tienda,Mar,70,3882,479,2,3.6,Sí,1564
+C1219,Joven digital,Oriente,Online,Nov,27,2476,540,16,3.3,Sí,2103
+C1220,Familia,Norte,Tienda,Dic,44,5544,835,4,7,Sí,2495
+C1221,Senior,Oriente,Tienda,Jul,64,4163,518,5,7.5,No,1703
+C1222,Joven digital,Sur,Tienda,Ene,24,2533,428,23,5.4,No,1867
+C1223,Familia,Sur,Tienda,May,46,4749,819,11,7.5,No,2577
+C1224,Senior,Norte,Online,Ene,57,3593,439,3,6.2,Sí,1552
+C1225,Joven digital,Sur,Online,Sep,29,2429,365,16,7.9,No,1495
+C1226,Familia,Norte,Online,Dic,46,5318,958,8,7.2,Sí,2758
+C1227,Senior,Oriente,Tienda,Jul,62,3550,517,7,5.5,Sí,1717
+C1228,Joven digital,Centro,Online,Abr,21,2545,382,18,6,No,1682
+C1229,Familia,Sur,Online,Dic,42,5683,904,9,6.4,No,2659
+C1230,Senior,Norte,Tienda,Jul,67,4348,485,1,5.6,Sí,1560
+C1231,Joven digital,Norte,Online,Ene,27,2886,313,18,3.8,Sí,1408
+C1232,Familia,Centro,Online,Mar,43,5065,744,9,5.9,Sí,2361
+C1233,Senior,Oriente,Tienda,Mar,65,3583,401,4,5.3,Sí,1501
+C1234,Joven digital,Oriente,Online,Oct,27,1698,377,21,8,No,1693
+C1235,Familia,Centro,Tienda,Dic,45,4437,788,9,8.5,No,2398
+C1236,Senior,Centro,Tienda,Sep,57,3847,612,7,7.1,No,1994
+C1237,Joven digital,Sur,Online,May,23,2539,425,17,6.8,No,1918
+C1238,Familia,Oriente,Online,Nov,38,4479,911,9,7.1,No,2691
+C1239,Senior,Norte,Online,Sep,64,3714,554,2,7.7,Sí,1785
+C1240,Joven digital,Norte,Online,May,27,2803,544,18,7.3,No,2013
+C1241,Familia,Norte,Tienda,Jun,44,4986,899,9,4.6,Sí,2541
+C1242,Senior,Norte,Tienda,Feb,75,3722,508,12,7.2,No,2102
+C1243,Joven digital,Centro,Online,Dic,24,2659,464,17,8.3,No,1865
+C1244,Familia,Sur,Online,Ene,47,5224,919,10,4.9,Sí,2731
+C1245,Senior,Norte,Tienda,Jun,66,4122,453,7,7.4,No,1682
+C1246,Joven digital,Centro,Online,Feb,27,2169,306,17,5.1,No,1445
+C1247,Familia,Norte,Online,Ago,42,5279,923,9,6.4,No,2798
+C1248,Senior,Centro,Tienda,Ene,67,4182,511,10,4.1,Sí,1935
+C1249,Joven digital,Centro,Tienda,Mar,30,2894,459,17,6.1,Sí,1845
+C1250,Familia,Centro,Tienda,May,43,5265,740,12,5.4,No,2424
+C1251,Senior,Oriente,Tienda,Feb,55,3047,670,5,5.5,Sí,2092
+C1252,Joven digital,Norte,Online,Ene,27,2850,378,21,5.1,No,1669
+C1253,Familia,Norte,Tienda,Abr,44,5086,847,8,7,No,2535
+C1254,Senior,Oriente,Tienda,Feb,68,3964,500,5,7.8,No,1709
+C1255,Joven digital,Oriente,Tienda,Jul,35,2188,462,14,6.1,No,1653
+C1256,Familia,Centro,Tienda,Sep,43,5612,787,11,8.5,No,2397
+C1257,Senior,Oriente,Online,Feb,56,4193,393,8,4.9,Sí,1355
+C1258,Joven digital,Sur,Online,Ago,23,2672,499,19,4.7,No,1950
+C1259,Familia,Oriente,Online,Dic,41,5242,959,12,6.6,No,2798
+C1260,Senior,Centro,Tienda,May,60,3991,461,7,7.5,No,1612
+C1261,Joven digital,Norte,Online,Sep,30,2837,431,16,6.1,No,1713
+C1262,Familia,Norte,Tienda,Nov,32,5438,855,12,5.2,Sí,2658
+C1263,Senior,Norte,Tienda,Mar,65,4135,467,6,5.9,Sí,1663
+C1264,Joven digital,Oriente,Online,Dic,27,2523,522,19,4.7,No,2066
+C1265,Familia,Sur,Online,Nov,48,5375,851,9,7.6,No,2524
+C1266,Senior,Sur,Tienda,May,57,3115,367,0,7.8,No,1109
+C1267,Joven digital,Oriente,Online,Jul,25,2549,428,20,7.1,No,1901
+C1268,Familia,Sur,Tienda,Ene,37,5189,820,8,6.3,Sí,2323
+C1269,Senior,Oriente,Tienda,Oct,73,4078,514,3,7.4,Sí,1892
+C1270,Joven digital,Sur,Tienda,Nov,18,3167,501,18,5.6,No,2221
+C1271,Familia,Sur,Online,Sep,36,5865,937,7,8.8,No,2784
+C1272,Senior,Oriente,Tienda,Abr,64,4058,470,4,6.7,No,1617
+C1273,Joven digital,Centro,Online,Jun,27,1989,393,19,7,No,1685
+C1274,Familia,Oriente,Tienda,Sep,34,5196,901,6,9.3,No,2762
+C1275,Senior,Centro,Online,Nov,64,4203,545,5,7.3,Sí,1860
+C1276,Joven digital,Norte,Online,Jun,27,2171,399,19,7.2,No,1662
+C1277,Familia,Centro,Tienda,Abr,39,5792,841,8,5.5,Sí,2556
+C1278,Senior,Sur,Tienda,Dic,62,3184,570,7,6.5,Sí,1922
+C1279,Joven digital,Oriente,Online,Sep,21,2641,419,19,4.4,No,1849
+C1280,Familia,Norte,Tienda,Mar,40,4882,872,9,6.2,No,2621
+C1281,Senior,Norte,Tienda,Jun,64,3915,543,5,7.2,No,1805
+C1282,Joven digital,Oriente,Online,May,27,2604,434,17,6.8,No,1758
+C1283,Familia,Centro,Online,Nov,45,4946,1007,9,8.2,No,2905
+C1284,Senior,Sur,Tienda,Dic,60,3736,536,8,5.3,No,1699
+C1285,Joven digital,Norte,Tienda,Ene,26,2494,341,16,6.9,No,1566
+C1286,Familia,Centro,Tienda,Jun,36,5051,851,9,6.9,Sí,2656
+C1287,Senior,Norte,Tienda,Oct,60,4060,465,5,7.6,No,1535
+C1288,Joven digital,Centro,Online,Abr,26,1670,368,20,8.6,No,1647
+C1289,Familia,Norte,Online,Sep,44,5077,803,10,7.7,No,2572
+C1290,Senior,Centro,Tienda,Feb,56,3991,394,2,6.2,No,1345
+C1291,Joven digital,Sur,Online,Mar,40,2531,407,17,5.9,No,1545
+C1292,Familia,Centro,Online,Abr,37,5361,787,14,8.3,No,2555
+C1293,Senior,Sur,Tienda,Feb,70,4004,452,5,7.2,No,1785
+C1294,Joven digital,Centro,Online,Ene,33,2733,286,16,2.4,Sí,1367
+C1295,Familia,Sur,Tienda,Sep,44,5801,769,5,8,No,2203
+C1296,Senior,Sur,Tienda,Mar,63,4532,545,2,1,Sí,1841
+C1297,Joven digital,Oriente,Online,Dic,24,2750,438,18,7.6,No,1870
+C1298,Familia,Sur,Tienda,Oct,42,5393,822,14,7.9,No,2616
+C1299,Senior,Sur,Online,Nov,67,3858,472,4,4.5,Sí,1655
+C1300,Joven digital,Centro,Online,Nov,24,2093,376,20,5.6,No,1728
+C1301,Familia,Centro,Tienda,Jul,51,4890,751,9,8.4,No,2258
+C1302,Senior,Norte,Online,May,59,4052,538,3,4.2,Sí,1776
+C1303,Joven digital,Centro,Online,Oct,29,2743,577,14,9.2,No,2078
+C1304,Familia,Sur,Online,Nov,35,5123,923,9,5.3,Sí,2783
+C1305,Senior,Centro,Tienda,Sep,56,3763,508,3,6.3,Sí,1587
+C1306,Joven digital,Norte,Tienda,Nov,18,2236,414,19,4.7,No,1879
+C1307,Familia,Oriente,Online,Feb,40,4441,816,12,7.5,No,2573
+C1308,Senior,Oriente,Tienda,Mar,66,3670,434,2,8.2,No,1653
+C1309,Joven digital,Centro,Online,Feb,29,2046,488,17,4.5,Sí,1847
+C1310,Familia,Norte,Online,Mar,41,5950,754,13,6.4,Sí,2412
+C1311,Senior,Oriente,Online,Sep,60,3861,575,1,6.4,Sí,1769
+C1312,Joven digital,Sur,Online,Mar,25,2826,453,19,4.7,Sí,1898
+C1313,Familia,Centro,Online,Oct,40,5186,923,8,4.9,Sí,2722
+C1314,Senior,Sur,Tienda,Nov,65,3952,457,4,7.8,No,1615
+C1315,Joven digital,Sur,Tienda,Ene,25,2361,328,15,5.7,No,1533
+C1316,Familia,Centro,Online,Dic,42,5618,966,6,5.7,Sí,2802
+C1317,Senior,Sur,Tienda,Ago,63,3443,456,7,8.3,No,1684
+C1318,Joven digital,Norte,Online,Dic,30,2771,423,15,4.5,No,1702
+C1319,Familia,Oriente,Tienda,Nov,47,4886,896,12,4.5,Sí,2744
+C1320,Senior,Oriente,Tienda,Ene,70,3626,519,5,5.9,No,1970
+C1321,Joven digital,Centro,Online,Mar,17,2316,418,15,4.9,Sí,1973
+C1322,Familia,Norte,Tienda,Dic,41,4957,966,9,7.2,No,2809
+C1323,Senior,Sur,Tienda,Sep,64,4143,517,5,5.2,Sí,1787
+C1324,Joven digital,Norte,Online,May,27,2634,354,19,6.5,No,1727
+C1325,Familia,Oriente,Online,Jul,42,4731,912,8,7.2,No,2665
+C1326,Senior,Norte,Tienda,Sep,64,3360,622,4,6.5,Sí,2009
+C1327,Joven digital,Oriente,Online,Mar,28,2951,384,17,6.8,No,1639
+C1328,Familia,Oriente,Online,Jul,38,5420,783,11,4.8,Sí,2553
+C1329,Senior,Norte,Tienda,Nov,61,3959,466,4,3.7,Sí,1528
+C1330,Joven digital,Oriente,Online,Jun,29,2655,511,16,4.3,Sí,1912
+C1331,Familia,Norte,Tienda,Ago,35,4739,798,12,6.2,No,2539
+C1332,Senior,Sur,Tienda,Nov,64,3757,519,3,8.1,No,1710
+C1333,Joven digital,Sur,Online,Mar,23,2543,497,18,5.3,No,2024
+C1334,Familia,Centro,Tienda,Ene,38,4956,858,11,9.2,No,2576
+C1335,Senior,Oriente,Tienda,Sep,58,3547,567,5,6.8,Sí,1731
+C1336,Joven digital,Norte,Online,Mar,31,2674,382,22,5,No,1702
+C1337,Familia,Centro,Tienda,Sep,38,4667,803,7,5,Sí,2349
+C1338,Senior,Oriente,Online,Feb,62,3565,543,6,7.5,No,1800
+C1339,Joven digital,Sur,Online,Feb,30,2085,460,17,3.9,Sí,1822
+C1340,Familia,Oriente,Online,Ago,40,5469,886,11,8.2,No,2613
+C1341,Senior,Centro,Tienda,May,62,4272,508,5,6.6,No,1676
+C1342,Joven digital,Oriente,Online,Ene,30,2520,3120,20,1.4,Sí,8709
+C1343,Familia,Sur,Online,May,47,5371,764,9,7.2,No,2361
+C1344,Senior,Oriente,Tienda,Feb,60,4147,306,5,3.8,Sí,1189
+C1345,Joven digital,Norte,Online,Ago,24,3007,425,19,6.2,No,1758
+C1346,Familia,Centro,Online,Jul,45,4676,822,8,4.8,Sí,2521
+C1347,Senior,Sur,Tienda,Ene,65,3794,478,5,6.2,No,1628
+C1348,Joven digital,Oriente,Online,Feb,24,2409,285,16,8.1,No,1350
+C1349,Familia,Oriente,Tienda,Feb,42,4886,797,8,9.5,No,2355
+C1350,Senior,Norte,Tienda,Jul,65,3801,483,2,7.6,No,1564
+C1351,Joven digital,Oriente,Online,Ene,26,2212,261,18,6.2,No,1327
+C1352,Familia,Norte,Tienda,Sep,40,5031,772,11,5.3,Sí,2502
+C1353,Senior,Sur,Tienda,Nov,69,3450,637,5,7,No,2204
+C1354,Joven digital,Oriente,Online,Oct,27,2600,373,24,2.6,Sí,1589
+C1355,Familia,Sur,Online,Nov,43,5518,843,8,5.6,Sí,2521
+C1356,Senior,Centro,Tienda,Ene,53,3488,413,0,7.7,Sí,1221
+C1357,Joven digital,Centro,Online,Nov,23,2325,513,19,7.1,No,2110
+C1358,Familia,Sur,Online,Mar,46,5743,795,8,5.8,Sí,2410
+C1359,Senior,Norte,Tienda,Abr,62,2682,521,4,5.7,Sí,1810
+C1360,Joven digital,Oriente,Online,Sep,27,3130,421,15,7.8,No,1746
+C1361,Familia,Sur,Tienda,Mar,43,5663,816,6,8.5,No,2470
+C1362,Senior,Centro,Tienda,May,63,4386,364,5,5.9,Sí,1436
+C1363,Joven digital,Oriente,Online,Feb,22,2305,443,18,6.7,No,1835
+C1364,Familia,Oriente,Tienda,Feb,44,5547,863,9,6.6,Sí,2655
+C1365,Senior,Sur,Online,Dic,59,3610,457,5,4.3,Sí,1582
+C1366,Joven digital,Norte,Online,Ene,29,2349,264,15,8.6,No,1260
+C1367,Familia,Centro,Tienda,Ene,36,5788,845,12,7.9,No,2713
+C1368,Senior,Norte,Tienda,May,58,3934,475,0,7.5,Sí,1533
+C1369,Joven digital,Centro,Online,Mar,22,2696,352,18,8.2,No,1604
+C1370,Familia,Norte,Online,Nov,44,5867,909,9,7.6,No,2734
+C1371,Senior,Centro,Tienda,Sep,68,3619,469,6,3.8,Sí,1725
+C1372,Joven digital,Centro,Online,Oct,28,2374,421,14,3.7,Sí,1661
+C1373,Familia,Oriente,Tienda,Jul,45,4698,860,9,9.2,No,2639
+C1374,Senior,Centro,Tienda,Nov,63,3434,524,2,6.5,Sí,1700
+C1375,Joven digital,Centro,Tienda,Oct,24,3478,399,15,8.1,No,1652
+C1376,Familia,Norte,Online,Jun,43,4850,854,11,9.4,No,2609
+C1377,Senior,Oriente,Online,Sep,62,3808,456,3,8.5,No,1570
+C1378,Joven digital,Centro,Online,Sep,27,2502,377,16,6.4,No,1567
+C1379,Familia,Sur,Online,Jul,38,4856,898,11,5.7,No,2762
+C1380,Senior,Norte,Tienda,Feb,55,3768,475,4,3.8,Sí,1496
+C1381,Joven digital,Sur,Online,May,20,2656,409,18,5.6,No,1928
+C1382,Familia,Norte,Online,Mar,35,5495,920,4,7.5,No,2713
+C1383,Senior,Oriente,Tienda,Oct,67,4059,482,3,4.5,Sí,1770
+C1384,Joven digital,Oriente,Online,Jul,27,2240,439,18,5.2,Sí,1798
+C1385,Familia,Oriente,Online,Abr,46,4759,875,3,5.6,Sí,2601
+C1386,Senior,Centro,Tienda,Abr,66,3749,456,7,7.9,No,1604
+C1387,Joven digital,Centro,Tienda,Ene,23,2694,366,20,6.7,No,1723
+C1388,Familia,Oriente,Online,Feb,44,4807,863,9,4.8,Sí,2671
+C1389,Senior,Norte,Online,Oct,57,3821,538,1,7.1,No,1610
+C1390,Joven digital,Sur,Tienda,Mar,32,2095,409,18,4.9,No,1760
+C1391,Familia,Sur,Online,Feb,44,5432,941,12,7.7,No,2815
+C1392,Senior,Sur,Tienda,May,64,3430,537,5,4.2,Sí,1869
+C1393,Joven digital,Norte,Online,Ene,29,2972,519,15,3,Sí,1909
+C1394,Familia,Centro,Tienda,Jun,47,5159,860,6,9.2,No,2458
+C1395,Senior,Norte,Tienda,Oct,66,3614,532,3,7.2,No,1801
+C1396,Joven digital,Norte,Online,Jul,23,2965,466,20,3.7,Sí,1991
+C1397,Familia,Oriente,Tienda,Nov,46,5615,902,10,7.7,No,2755
+C1398,Senior,Norte,Tienda,Mar,65,4475,382,3,5.8,Sí,1329
+C1399,Joven digital,Centro,Online,Abr,30,2273,331,23,6.3,No,1632
+C1400,Familia,Sur,Tienda,Sep,39,5451,845,8,6.3,No,2518
+C1401,Senior,Centro,Tienda,Sep,69,3863,563,4,6.9,No,1981
+C1402,Joven digital,Centro,Online,Jun,35,2285,450,23,5.9,No,1841
+C1403,Familia,Oriente,Online,Nov,38,4798,850,10,6.2,No,2670
+C1404,Senior,Sur,Online,Abr,54,4404,362,4,7.5,No,1295
+C1405,Joven digital,Norte,Online,May,32,1974,361,20,4.8,No,1645
+C1406,Familia,Norte,Online,May,46,4797,943,10,8.3,No,2890
+C1407,Senior,Sur,Tienda,May,61,3661,500,3,5.5,Sí,1767
+C1408,Joven digital,Centro,Online,May,19,2546,376,21,4.3,No,1684
+C1409,Familia,Sur,Online,Jun,40,5290,848,9,7.5,No,2616
+C1410,Senior,Sur,Online,May,62,3228,494,3,5.1,Sí,1611
+C1411,Joven digital,Centro,Online,Jul,20,2722,399,14,4.4,Sí,1829
+C1412,Familia,Sur,Tienda,Oct,39,4603,977,10,7.4,No,2852
+C1413,Senior,Sur,Tienda,Jun,66,4832,410,5,3.4,Sí,1635
+C1414,Joven digital,Norte,Online,Ago,29,2490,559,19,6.6,No,2058
+C1415,Familia,Oriente,Online,Ago,38,5617,788,7,7.5,Sí,2353
+C1416,Senior,Sur,Tienda,Jul,65,3882,527,3,6.6,No,1807
+C1417,Joven digital,Norte,Online,Ago,29,2585,427,22,5.6,No,1776
+C1418,Familia,Oriente,Tienda,Ene,44,5365,773,8,7.2,Sí,2385
+C1419,Senior,Centro,Online,Mar,66,3965,386,5,4.3,Sí,1391
+C1420,Joven digital,Sur,Online,May,21,2593,413,22,6.2,No,2049
+C1421,Familia,Norte,Tienda,Oct,39,5322,782,10,9.4,No,2481
+C1422,Senior,Sur,Tienda,Mar,61,3732,397,6,6.9,No,1342
+C1423,Joven digital,Centro,Online,May,32,2634,355,17,4.9,No,1500
+C1424,Familia,Norte,Online,May,42,4948,794,11,7.7,No,2502
+C1425,Senior,Norte,Tienda,Ago,60,4275,471,3,5.3,Sí,1562
+C1426,Joven digital,Oriente,Online,Mar,25,2297,362,17,6.5,No,1605
+C1427,Familia,Centro,Online,May,39,5186,851,11,8.4,No,2568
+C1428,Senior,Centro,Tienda,Jun,66,2929,412,7,2.6,Sí,1516
+C1429,Joven digital,Norte,Online,Sep,25,2631,491,20,6.4,No,2132
+C1430,Familia,Sur,Online,Sep,43,5256,906,8,5.2,Sí,2667
+C1431,Senior,Norte,Tienda,May,62,3751,463,0,7.3,Sí,1485
+C1432,Joven digital,Norte,Online,Abr,30,1931,391,19,4.5,Sí,1694
+C1433,Familia,Sur,Tienda,Sep,39,6181,868,11,7.8,No,2657
+C1434,Senior,Oriente,Online,May,61,4082,455,4,8.8,No,1539
+C1435,Joven digital,Sur,Online,Jul,32,2019,538,19,6.7,No,2000
+C1436,Familia,Norte,Tienda,Dic,35,4899,863,11,5.8,Sí,2659
+C1437,Senior,Centro,Tienda,May,67,4161,430,5,7.7,No,1591
+C1438,Joven digital,Centro,Online,Oct,30,2375,380,16,3.6,Sí,1593
+C1439,Familia,Sur,Tienda,Jun,44,5045,843,8,7.7,No,2499
+C1440,Senior,Centro,Tienda,Jul,61,3095,515,3,4.6,Sí,1707
+C1441,Joven digital,Sur,Online,Ago,29,2458,366,19,6.2,No,1686
+C1442,Familia,Centro,Online,Ene,42,5329,895,9,5.9,Sí,2694
+C1443,Senior,Sur,Tienda,Mar,65,3591,420,6,5.3,Sí,1457
+C1444,Joven digital,Centro,Online,Nov,19,2618,555,17,4.5,Sí,2233
+C1445,Familia,Oriente,Tienda,Feb,43,5342,722,12,5.3,Sí,2287
+C1446,Senior,Centro,Tienda,Sep,62,3433,521,2,6.4,Sí,1616
+C1447,Joven digital,Sur,Online,Jul,26,2314,433,16,6.8,No,1894
+C1448,Familia,Oriente,Online,Dic,43,4857,855,8,5.8,Sí,2515
+C1449,Senior,Sur,Online,May,65,3581,426,3,7,No,1505
+C1450,Joven digital,Oriente,Tienda,Jul,25,2478,520,16,8.6,No,1981
+C1451,Familia,Oriente,Tienda,Nov,41,4834,810,10,9,No,2355
+C1452,Senior,Oriente,Tienda,Mar,59,3962,439,3,2.7,Sí,1602
+C1453,Joven digital,Norte,Online,Jun,31,2468,491,21,6.2,No,1895
+C1454,Familia,Norte,Online,Mar,41,5714,971,10,6,Sí,2863
+C1455,Senior,Norte,Tienda,Mar,65,2846,444,3,6.1,Sí,1469
+C1456,Joven digital,Centro,Online,May,23,2613,406,18,4.5,Sí,1707
+C1457,Familia,Sur,Tienda,Sep,41,5577,980,8,2.9,Sí,2931
+C1458,Senior,Oriente,Tienda,Dic,74,3010,556,7,7.5,No,2159
+C1459,Joven digital,Centro,Online,Sep,25,2363,452,17,5.4,Sí,1807
+C1460,Familia,Oriente,Tienda,Jul,41,4937,907,9,8,No,2648
+C1461,Senior,Sur,Tienda,Abr,63,3477,453,1,5.5,Sí,1451
+C1462,Joven digital,Oriente,Online,Jul,21,2073,437,18,3.8,Sí,1909
+C1463,Familia,Centro,Tienda,Dic,32,4663,793,9,6.5,No,2538
+C1464,Senior,Sur,Tienda,Sep,55,3399,402,5,6.4,Sí,1393
+C1465,Joven digital,Centro,Online,Ene,18,2621,357,15,10,No,1693
+C1466,Familia,Norte,Online,May,42,5828,876,9,10,No,2659
+C1467,Senior,Norte,Tienda,May,64,3605,627,5,5,Sí,2073
+C1468,Joven digital,Centro,Online,Jun,21,3290,466,15,7.1,No,1876
+C1469,Familia,Centro,Tienda,Oct,40,5818,851,5,7,Sí,2523
+C1470,Senior,Oriente,Tienda,Jul,75,4081,539,1,7,Sí,2007
+C1471,Joven digital,Oriente,Online,Oct,21,1994,348,15,2.5,Sí,1608
+C1472,Familia,Sur,Tienda,Feb,41,5205,815,10,5.1,Sí,2590
+C1473,Senior,Oriente,Tienda,May,58,3421,445,4,6.6,Sí,1554
+C1474,Joven digital,Oriente,Online,Jul,36,2689,476,14,7.4,No,1724
+C1475,Familia,Sur,Online,Jul,42,6095,982,11,6.5,No,3005
+C1476,Senior,Sur,Tienda,Ene,60,4061,370,6,5.9,No,1417
+C1477,Joven digital,Centro,Online,Ago,26,2331,469,23,7.7,No,1991
+C1478,Familia,Norte,Online,Dic,37,5231,886,11,8.5,No,2685
+C1479,Senior,Centro,Tienda,Dic,71,4433,489,4,4.9,Sí,1842
+C1480,Joven digital,Oriente,Online,Jul,31,2503,498,16,5.3,No,1987
+C1481,Familia,Centro,Tienda,May,43,5315,757,11,8.3,No,2448
+C1482,Senior,Centro,Tienda,May,65,3462,431,1,7,Sí,1444
+C1483,Joven digital,Norte,Online,May,23,1702,301,16,5.7,No,1492
+C1484,Familia,Oriente,Online,Oct,41,4875,949,7,9.1,No,2785
+C1485,Senior,Centro,Tienda,Nov,66,3789,520,2,3.6,Sí,1771
+C1486,Joven digital,Norte,Online,Jun,18,2419,401,17,6.2,No,1886
+C1487,Familia,Norte,Online,Sep,47,4886,856,8,7.1,No,2615
+C1488,Senior,Norte,Tienda,May,61,3912,449,2,6.8,No,1500
+C1489,Joven digital,Oriente,Online,Abr,27,2078,369,18,6.4,No,1652
+C1490,Familia,Norte,Online,Jun,42,6054,812,10,8.2,No,2530
+C1491,Senior,Oriente,Tienda,Sep,67,3310,414,2,6.5,Sí,1561
+C1492,Joven digital,Norte,Online,Oct,31,2568,423,22,4.9,No,1772
+C1493,Familia,Norte,Tienda,Oct,45,5860,903,4,6.3,Sí,2592
+C1494,Senior,Sur,Tienda,Jul,62,4059,509,5,7.3,No,1781
+C1495,Joven digital,Centro,Online,Mar,17,2646,364,20,5.4,No,1897
+C1496,Familia,Norte,Tienda,Jul,48,5259,947,12,8.4,No,2830
+C1497,Senior,Norte,Tienda,Nov,61,3571,534,4,5.5,Sí,1744
+C1498,Joven digital,Oriente,Online,Ago,30,2311,379,24,5.5,No,1812
+C1499,Familia,Oriente,Tienda,Ene,47,5717,804,9,6.2,Sí,2439
+C1500,Senior,Oriente,Tienda,Sep,60,3237,529,3,4,Sí,1632
+C1501,Joven digital,Sur,Online,Ene,27,2738,354,19,7.7,No,1503
+C1502,Familia,Centro,Tienda,Dic,46,5317,852,11,6.5,No,2559
+C1503,Senior,Sur,Tienda,Ene,66,4196,380,3,7.9,No,1463
+C1504,Joven digital,Sur,Tienda,Jun,30,2465,315,16,5.7,No,1471
+C1505,Familia,Centro,Tienda,Ene,43,5778,742,10,6,Sí,2364
+C1506,Senior,Centro,Tienda,Ago,63,3637,606,5,6.3,No,1934
+C1507,Joven digital,Oriente,Online,Jul,27,2811,483,18,5,Sí,1783
+C1508,Familia,Norte,Tienda,Sep,47,5083,948,11,9.7,No,2811
+C1509,Senior,Centro,Tienda,Nov,67,3498,3150,7,5.5,Sí,8741
+C1510,Joven digital,Norte,Online,Sep,29,2722,358,19,6,No,1561
+C1511,Familia,Norte,Online,Ene,44,4319,846,11,8.7,No,2555
+C1512,Senior,Sur,Online,Dic,65,3533,512,3,6.9,No,1776
+C1513,Joven digital,Sur,Online,Ago,32,2748,366,18,7.7,No,1564
+C1514,Familia,Centro,Tienda,Nov,42,4869,805,10,7.1,No,2453
+C1515,Senior,Sur,Tienda,Sep,63,3542,600,5,7.5,Sí,1974
+C1516,Joven digital,Centro,Online,Jul,29,2422,467,18,6.7,No,1731
+C1517,Familia,Centro,Tienda,Abr,51,4051,860,9,7.5,No,2741
+C1518,Senior,Oriente,Tienda,May,69,3937,542,6,6.7,Sí,1965
+C1519,Joven digital,Sur,Online,Ene,31,2425,279,16,7.1,No,1287
+C1520,Familia,Oriente,Tienda,Jun,32,5164,860,11,6,Sí,2695
+C1521,Senior,Norte,Tienda,Mar,60,3229,365,7,7.6,No,1493
+C1522,Joven digital,Oriente,Online,Nov,29,2544,454,19,3.2,Sí,1801
+C1523,Familia,Norte,Online,Sep,42,5299,921,7,9.2,No,2730
+C1524,Senior,Oriente,Online,Dic,67,3996,539,7,4.8,Sí,1899
+C1525,Joven digital,Centro,Online,Dic,25,2047,417,19,7.8,No,1846
+C1526,Familia,Sur,Tienda,Jun,38,5955,943,11,6.3,No,2806
+C1527,Senior,Sur,Tienda,Dic,63,3606,625,0,5.6,Sí,2073
+C1528,Joven digital,Centro,Online,May,27,2674,456,21,6.7,No,1839
+C1529,Familia,Centro,Tienda,May,40,4986,909,9,4.5,Sí,2810
+C1530,Senior,Centro,Tienda,Ago,62,3585,559,7,3.7,Sí,1938
+C1531,Joven digital,Oriente,Online,Sep,28,2153,359,17,7.1,No,1445
+C1532,Familia,Oriente,Tienda,Dic,37,5195,794,6,9.2,No,2237
+C1533,Senior,Centro,Tienda,Ene,64,3583,370,5,4.7,Sí,1487
+C1534,Joven digital,Sur,Online,Feb,29,2890,388,16,6.5,No,1534
+C1535,Familia,Norte,Tienda,Oct,37,4708,842,10,10,No,2659
+C1536,Senior,Centro,Tienda,May,63,4192,420,3,6.2,Sí,1520
+C1537,Joven digital,Norte,Tienda,Ene,22,2614,407,19,4.7,Sí,1818
+C1538,Familia,Sur,Online,Ene,40,5188,865,7,7.8,No,2659
+C1539,Senior,Norte,Online,Ago,66,3541,433,3,5.9,No,1576
+C1540,Joven digital,Norte,Tienda,Jun,25,2195,477,17,5.7,No,1948
+C1541,Familia,Centro,Tienda,Oct,37,5371,835,9,8,No,2450
+C1542,Senior,Norte,Tienda,Ene,67,4324,408,5,6.3,Sí,1606
+C1543,Joven digital,Oriente,Online,Feb,29,2617,323,19,6.8,No,1444
+C1544,Familia,Oriente,Tienda,Jul,43,5041,809,9,9.6,No,2437
+C1545,Senior,Centro,Tienda,Jul,63,3757,494,4,7.7,No,1737
+C1546,Joven digital,Norte,Online,Jun,26,2592,381,16,3.9,Sí,1620
+C1547,Familia,Norte,Online,Abr,40,5410,822,10,7.5,No,2520
+C1548,Senior,Norte,Tienda,Ago,62,3963,452,4,5.4,Sí,1511
+C1549,Joven digital,Oriente,Online,Ene,26,1995,355,12,5.4,No,1514
+C1550,Familia,Oriente,Tienda,Ago,36,4386,765,10,7.1,No,2480
+C1551,Senior,Norte,Tienda,Jun,63,3840,636,4,5.9,Sí,1982
+C1552,Joven digital,Centro,Online,Ene,26,2706,348,20,5,No,1575
+C1553,Familia,Sur,Tienda,Dic,34,4924,814,7,9.1,No,2516
+C1554,Senior,Norte,Tienda,Nov,65,3818,511,0,8.5,No,1679
+C1555,Joven digital,Sur,Online,Dic,29,2760,448,18,6.6,No,1704
+C1556,Familia,Oriente,Tienda,Dic,43,4909,805,9,4.2,Sí,2416
+C1557,Senior,Sur,Tienda,Feb,55,3410,610,4,6.3,Sí,1884
+C1558,Joven digital,Norte,Online,Sep,26,2940,511,16,4.6,Sí,1847
+C1559,Familia,Sur,Online,Mar,45,5247,880,11,10,No,2672
+C1560,Senior,Oriente,Tienda,Jun,62,4343,586,3,5.2,Sí,1878
+C1561,Joven digital,Centro,Online,Dic,34,2672,351,19,6.6,No,1454
+C1562,Familia,Norte,Online,Jul,31,4858,864,10,7.7,No,2648
+C1563,Senior,Oriente,Tienda,Ene,67,3602,441,6,4.2,Sí,1625
+C1564,Joven digital,Sur,Tienda,Feb,31,2862,453,19,6.2,No,1698
+C1565,Familia,Norte,Online,Ago,43,5503,809,12,3.6,Sí,2637
+C1566,Senior,Sur,Tienda,Abr,61,3409,363,5,4.5,Sí,1326
+C1567,Joven digital,Oriente,Online,Jun,25,2655,487,19,5.1,Sí,1961
+C1568,Familia,Centro,Online,Ago,39,5381,876,10,5.2,Sí,2705
+C1569,Senior,Sur,Online,Ene,60,4024,495,4,5.3,Sí,1579
+C1570,Joven digital,Norte,Online,Mar,23,2603,392,19,6.2,No,1798
+C1571,Familia,Oriente,Online,Nov,39,5225,944,5,9,No,2751
+C1572,Senior,Centro,Tienda,Feb,61,3983,511,4,7.1,Sí,1728
+C1573,Joven digital,Oriente,Online,Mar,33,2986,451,18,4.4,No,1848
+C1574,Familia,Oriente,Tienda,Ene,41,5462,876,10,8,No,2695
+C1575,Senior,Centro,Tienda,Dic,65,3275,475,7,8.7,No,1700
+C1576,Joven digital,Norte,Online,Dic,28,2176,452,13,9,No,1674
+C1577,Familia,Centro,Tienda,Feb,43,5425,936,9,8.7,No,2874
+C1578,Senior,Oriente,Tienda,Oct,66,4463,537,6,5.6,Sí,1915
+C1579,Joven digital,Sur,Online,Sep,21,2559,316,21,3.4,Sí,1655
+C1580,Familia,Norte,Online,Feb,42,5298,738,10,6.1,No,2343
+C1581,Senior,Norte,Tienda,Nov,61,4008,439,3,4.6,Sí,1538
+C1582,Joven digital,Centro,Online,Dic,28,2971,427,18,4.2,No,1784
+C1583,Familia,Sur,Online,Dic,46,4698,858,10,7,No,2656
+C1584,Senior,Sur,Tienda,Abr,59,4157,417,2,3.7,Sí,1385
+C1585,Joven digital,Centro,Online,Ene,31,2577,435,18,8.8,No,1760
+C1586,Familia,Oriente,Online,Ene,45,4883,861,9,8,No,2638
+C1587,Senior,Sur,Online,Feb,64,3941,546,4,4.1,Sí,1914
+C1588,Joven digital,Sur,Online,Jul,33,2720,331,15,4.7,Sí,1536
+C1589,Familia,Oriente,Tienda,Jul,37,5708,935,11,8.8,No,2875
+C1590,Senior,Sur,Tienda,Feb,57,3233,441,6,6.6,Sí,1550
+C1591,Joven digital,Centro,Online,May,24,2302,465,19,6.6,No,1774
+C1592,Familia,Centro,Tienda,Jun,37,4936,858,8,9.6,No,2586
+C1593,Senior,Oriente,Tienda,Mar,59,3106,410,0,4.5,Sí,1300
+C1594,Joven digital,Norte,Tienda,Jul,28,2834,452,16,5.2,Sí,1805
+C1595,Familia,Centro,Online,Jun,44,5430,854,7,10,No,2532
+C1596,Senior,Norte,Tienda,Mar,60,4003,552,5,6.7,Sí,1899
+C1597,Joven digital,Oriente,Online,Feb,25,2954,449,17,2.9,Sí,1807
+C1598,Familia,Oriente,Online,May,43,4691,783,5,8,No,2305
+C1599,Senior,Oriente,Tienda,Ago,62,4063,625,5,7.1,No,2073
+C1600,Joven digital,Centro,Online,Sep,26,2624,467,18,6.4,No,1938
+C1601,Familia,Norte,Tienda,Oct,40,5227,814,8,4.5,Sí,2447
+C1602,Senior,Norte,Tienda,Jun,65,3822,379,5,6,No,1466
+C1603,Joven digital,Norte,Online,Sep,17,2594,484,16,7.2,No,2047
+C1604,Familia,Sur,Online,Jun,41,4760,827,8,5,Sí,2422
+C1605,Senior,Oriente,Tienda,May,64,3842,420,2,7.6,No,1339
+C1606,Joven digital,Sur,Online,Sep,27,2826,455,15,5.7,Sí,1870
+C1607,Familia,Norte,Online,Feb,49,5040,870,8,9.3,No,2552
+C1608,Senior,Centro,Tienda,May,69,3435,484,3,7.7,No,1789
+C1609,Joven digital,Centro,Online,Ago,30,3175,473,16,5.6,Sí,1916
+C1610,Familia,Sur,Tienda,Jun,40,5619,870,8,5.1,Sí,2555
+C1611,Senior,Centro,Tienda,Sep,62,4170,389,4,6.4,No,1532
+C1612,Joven digital,Norte,Online,Oct,28,3433,471,16,5.9,No,1762
+C1613,Familia,Centro,Online,Feb,36,4992,762,11,8.8,No,2477
+C1614,Senior,Norte,Online,Nov,62,3950,488,1,4.8,Sí,1520
+C1615,Joven digital,Centro,Online,Ene,26,2310,371,16,8.6,No,1641
+C1616,Familia,Sur,Online,Ago,39,5136,881,8,3.5,Sí,2645
+C1617,Senior,Centro,Tienda,Ago,72,3262,574,3,6.4,No,1999
+C1618,Joven digital,Centro,Online,Oct,23,2847,398,16,5.9,No,1712
+C1619,Familia,Centro,Tienda,Abr,34,5001,950,8,4.5,Sí,2853
+C1620,Senior,Sur,Tienda,Dic,60,3362,563,5,5.3,Sí,1846
+C1621,Joven digital,Norte,Online,Mar,27,2949,388,16,7.2,No,1583
+C1622,Familia,Oriente,Online,Oct,45,5190,779,8,5.1,Sí,2370
+C1623,Senior,Oriente,Tienda,Abr,71,4706,490,5,5.5,Sí,1801
+C1624,Joven digital,Norte,Online,Oct,22,2664,512,18,7.5,No,2021
+C1625,Familia,Oriente,Online,May,47,5726,797,12,6.4,Sí,2454
+C1626,Senior,Oriente,Tienda,Ene,59,3886,541,5,7.8,No,1806
+C1627,Joven digital,Sur,Online,Dic,31,2470,319,15,6,No,1373
+C1628,Familia,Oriente,Online,Feb,40,5559,759,7,7,No,2252
+C1629,Senior,Sur,Tienda,Ene,58,2909,408,5,8.5,No,1535
+C1630,Joven digital,Sur,Online,Feb,29,2927,344,17,5.6,Sí,1407
+C1631,Familia,Norte,Online,Dic,42,4899,864,8,9.1,No,2561
+C1632,Senior,Sur,Tienda,Abr,60,3606,428,4,5.4,Sí,1394
+C1633,Joven digital,Oriente,Online,Jun,26,2171,393,16,5.3,Sí,1761
+C1634,Familia,Centro,Tienda,Sep,43,4770,752,9,7.9,No,2388
+C1635,Senior,Norte,Tienda,Jun,57,3323,443,3,7.8,No,1473
+C1636,Joven digital,Norte,Online,Jul,26,3143,434,19,4.4,Sí,1769
+C1637,Familia,Norte,Tienda,Dic,41,5114,865,10,5.3,Sí,2718
+C1638,Senior,Sur,Tienda,Ene,64,4318,374,3,6.7,Sí,1330
+C1639,Joven digital,Oriente,Tienda,Sep,15,2249,394,20,4.7,Sí,1915
+C1640,Familia,Norte,Online,Oct,35,5245,884,9,6.4,Sí,2693
+C1641,Senior,Centro,Tienda,Nov,67,4237,576,1,4.2,Sí,1932
+C1642,Joven digital,Centro,Online,Oct,25,1992,428,15,6.9,No,1720
+C1643,Familia,Centro,Tienda,Sep,46,5235,851,8,9.6,No,2532
+C1644,Senior,Centro,Online,Oct,64,4910,454,3,2.2,Sí,1522
+C1645,Joven digital,Sur,Online,Ene,25,2719,382,15,5.2,No,1601
+C1646,Familia,Sur,Tienda,Dic,40,4527,807,13,8.7,No,2559
+C1647,Senior,Sur,Tienda,Ago,65,4516,498,5,2.2,Sí,1629
+C1648,Joven digital,Oriente,Online,May,29,3044,398,17,3.3,Sí,1669
+C1649,Familia,Oriente,Tienda,May,39,5061,854,7,7.5,No,2557
+C1650,Senior,Norte,Tienda,Dic,69,4446,459,3,6,No,1588
+C1651,Joven digital,Norte,Online,Feb,26,2328,344,19,4.8,No,1585
+C1652,Familia,Centro,Online,Abr,42,4381,852,7,7.8,No,2449
+C1653,Senior,Centro,Online,Sep,64,3286,489,5,6.4,Sí,1680
+C1654,Joven digital,Norte,Online,May,26,1750,413,17,3.6,Sí,1644
+C1655,Familia,Sur,Online,Ago,35,5435,908,9,5.9,Sí,2831
+C1656,Senior,Sur,Online,Jul,68,3341,444,2,6.5,Sí,1552
+C1657,Joven digital,Oriente,Online,Abr,21,3166,373,16,6.7,No,1680
+C1658,Familia,Norte,Tienda,Ago,37,5264,797,11,7.1,No,2523
+C1659,Senior,Sur,Tienda,Mar,60,3814,478,2,4.5,Sí,1651
+C1660,Joven digital,Oriente,Online,Jul,21,2681,360,20,4.5,Sí,1713
+C1661,Familia,Sur,Tienda,Feb,37,5153,898,9,10,No,2832
+C1662,Senior,Norte,Tienda,Sep,62,3774,457,4,7.2,No,1510
+C1663,Joven digital,Centro,Online,Feb,27,2124,329,22,4,Sí,1556
+C1664,Familia,Centro,Online,Jul,45,5019,851,13,6.5,No,2634
+C1665,Senior,Centro,Tienda,Feb,65,4176,390,2,5.1,Sí,1331
+C1666,Joven digital,Norte,Online,Feb,22,2340,426,17,7.2,No,1809
+C1667,Familia,Sur,Online,Oct,29,5271,874,6,7.3,Sí,2812
+C1668,Senior,Sur,Tienda,May,60,4820,523,3,4.9,Sí,1666
+C1669,Joven digital,Centro,Online,Jun,34,2393,397,19,5.1,Sí,1624
+C1670,Familia,Oriente,Online,Mar,44,5597,887,7,8.3,No,2651
+C1671,Senior,Oriente,Online,May,56,3816,589,7,7.2,Sí,1940
+C1672,Joven digital,Centro,Online,Sep,22,3101,406,19,7.3,No,1904
+C1673,Familia,Sur,Tienda,Abr,41,5214,764,10,4.7,Sí,2344
+C1674,Senior,Oriente,Tienda,Jul,63,3461,420,4,9.5,No,1555
+C1675,Joven digital,Sur,Tienda,Ene,22,2464,415,19,8.1,No,1889
+C1676,Familia,Sur,Tienda,Jun,48,4981,3372,11,6.5,Sí,9285
+C1677,Senior,Sur,Tienda,May,58,3624,460,4,5.6,Sí,1561
+C1678,Joven digital,Oriente,Online,Jun,26,2534,329,14,6.1,No,1528
+C1679,Familia,Sur,Tienda,Sep,40,5659,753,9,6.4,No,2404
+C1680,Senior,Centro,Tienda,Jun,60,3732,379,3,7.2,No,1347
+C1681,Joven digital,Sur,Online,Feb,30,2553,379,15,4.4,Sí,1613
+C1682,Familia,Sur,Online,Dic,34,5828,983,6,5.8,Sí,3054
+C1683,Senior,Centro,Online,Dic,65,2917,465,4,3.7,Sí,1670
+C1684,Joven digital,Oriente,Online,Sep,26,2028,515,13,5.1,Sí,1854
+C1685,Familia,Centro,Online,Abr,44,4926,756,7,8.3,No,2328
+C1686,Senior,Sur,Tienda,Abr,66,3535,405,2,7.3,Sí,1494
+C1687,Joven digital,Oriente,Online,Ago,31,2467,435,17,5.5,No,1770
+C1688,Familia,Norte,Tienda,Sep,44,5605,845,13,6.8,No,2635
+C1689,Senior,Sur,Tienda,Ago,69,2978,526,1,3.2,Sí,1697
+C1690,Joven digital,Sur,Online,May,26,2761,498,19,5.3,No,2042
+C1691,Familia,Norte,Tienda,Dic,41,5745,928,13,7.4,No,2822
+C1692,Senior,Centro,Tienda,May,63,4030,371,4,8.8,No,1320
+C1693,Joven digital,Centro,Online,May,29,1912,462,14,4.6,Sí,1627
+C1694,Familia,Oriente,Online,Sep,37,5276,860,14,10,No,2605
+C1695,Senior,Centro,Tienda,Sep,57,4019,564,2,5.6,Sí,1877
+C1696,Joven digital,Centro,Online,Ago,29,2065,479,19,8.7,No,1852
+C1697,Familia,Oriente,Tienda,Dic,43,5387,983,10,5.1,Sí,2957
+C1698,Senior,Oriente,Tienda,Oct,58,3098,481,7,6.3,No,1662
+C1699,Joven digital,Sur,Online,Ene,27,2027,562,15,5.6,No,2046
+C1700,Familia,Norte,Tienda,Jun,36,5710,823,13,5.8,Sí,2565
+C1701,Senior,Oriente,Tienda,Oct,64,3936,428,4,5.6,Sí,1620
+C1702,Joven digital,Sur,Online,Feb,27,1693,469,22,3.3,Sí,1985
+C1703,Familia,Sur,Online,Mar,35,5145,918,13,7.6,No,2852
+C1704,Senior,Norte,Tienda,Oct,56,3834,411,5,5.2,Sí,1438
+C1705,Joven digital,Oriente,Online,Sep,23,2718,418,16,7.8,No,1734
+C1706,Familia,Centro,Tienda,Nov,45,5232,910,11,7.9,No,2707
+C1707,Senior,Centro,Tienda,Feb,67,3517,472,5,7.7,No,1750
+C1708,Joven digital,Centro,Online,Oct,23,2801,442,15,5.3,Sí,1863
+C1709,Familia,Centro,Online,May,41,5033,786,9,6.5,Sí,2346
+C1710,Senior,Sur,Tienda,Abr,67,3860,580,2,5.4,Sí,1956
+C1711,Joven digital,Norte,Online,Ene,30,2717,403,18,6.9,No,1616
+C1712,Familia,Norte,Tienda,Jul,39,5093,734,8,5.5,Sí,2168
+C1713,Senior,Centro,Online,Abr,60,3395,468,6,6,No,1618
+C1714,Joven digital,Centro,Online,Ago,22,3020,501,14,6.2,No,1931
+C1715,Familia,Centro,Tienda,Nov,50,4793,920,12,5.8,No,2845
+C1716,Senior,Sur,Online,Jun,64,3654,422,7,5.6,No,1552
+C1717,Joven digital,Norte,Online,Sep,27,2580,477,18,5.2,Sí,1913
+C1718,Familia,Sur,Tienda,May,45,4803,738,8,8,No,2258
+C1719,Senior,Norte,Tienda,Oct,62,4557,442,5,7.3,No,1535
+C1720,Joven digital,Centro,Tienda,Dic,32,3016,450,17,8.1,No,1870
+C1721,Familia,Oriente,Online,Dic,44,5413,912,13,8.8,No,2799
+C1722,Senior,Norte,Tienda,Mar,70,3633,480,5,8.4,No,1685
+C1723,Joven digital,Centro,Online,Oct,28,2280,475,20,6,No,1999
+C1724,Familia,Sur,Online,Mar,40,5114,851,10,10,No,2594
+C1725,Senior,Oriente,Online,May,63,3939,485,2,5.4,Sí,1611
+C1726,Joven digital,Oriente,Online,Sep,30,2297,248,16,6,No,1219
+C1727,Familia,Sur,Tienda,Jul,44,5985,840,10,7.1,No,2650
+C1728,Senior,Sur,Tienda,Mar,63,3485,565,4,6.8,No,1832
+C1729,Joven digital,Oriente,Online,Nov,25,3005,566,16,7.9,No,2014
+C1730,Familia,Norte,Tienda,Abr,37,5211,800,9,6.8,No,2525
+C1731,Senior,Norte,Tienda,Ene,61,3875,562,5,6.2,Sí,1872
+C1732,Joven digital,Oriente,Online,May,28,2470,362,20,7.1,No,1658
+C1733,Familia,Oriente,Online,Sep,44,5590,918,8,7.5,No,2669
+C1734,Senior,Sur,Online,Nov,63,3560,385,5,5.2,Sí,1450
+C1735,Joven digital,Sur,Online,Ago,28,2142,536,19,7.4,No,2055
+C1736,Familia,Norte,Tienda,Jun,45,5615,781,11,7.3,No,2412
+C1737,Senior,Oriente,Online,Jun,61,3839,602,6,7.3,Sí,1875
+C1738,Joven digital,Oriente,Online,Sep,22,2562,478,19,3,Sí,2007
+C1739,Familia,Norte,Online,May,42,4713,823,10,7.8,No,2620
+C1740,Senior,Sur,Online,Sep,65,4365,418,10,6.1,No,1699
+C1741,Joven digital,Centro,Online,Abr,23,2884,416,19,4.2,No,1774
+C1742,Familia,Sur,Online,May,46,4809,871,9,5.2,Sí,2709
+C1743,Senior,Norte,Tienda,May,63,3739,502,4,9.1,No,1730
+C1744,Joven digital,Sur,Tienda,Sep,26,2411,394,17,5.9,No,1669
+C1745,Familia,Centro,Tienda,Oct,48,5496,958,11,6.3,No,2877
+C1746,Senior,Oriente,Online,May,57,3518,474,3,4.3,Sí,1485
+C1747,Joven digital,Centro,Online,May,18,2630,447,19,7,No,1942
+C1748,Familia,Norte,Tienda,Sep,43,5064,819,9,7.1,No,2493
+C1749,Senior,Centro,Online,Sep,60,3584,368,5,5.9,Sí,1395
+C1750,Joven digital,Oriente,Online,Ene,26,2830,441,16,5.3,Sí,1772
+C1751,Familia,Norte,Tienda,Nov,38,5236,905,7,9.2,No,2755
+C1752,Senior,Norte,Tienda,Sep,64,3560,566,5,5.6,Sí,1862
+C1753,Joven digital,Oriente,Online,Abr,32,3013,286,15,4,Sí,1263
+C1754,Familia,Centro,Online,Ago,39,5767,787,9,5.6,No,2399
+C1755,Senior,Sur,Tienda,Sep,50,3229,583,4,7.5,Sí,1921
+C1756,Joven digital,Sur,Tienda,Sep,20,2965,339,22,3.1,Sí,1652
+C1757,Familia,Oriente,Online,Feb,38,4577,871,9,7.9,No,2644
+C1758,Senior,Norte,Tienda,Ene,62,3575,464,5,5.6,Sí,1622
+C1759,Joven digital,Norte,Online,Sep,30,2370,476,16,3.8,Sí,1911
+C1760,Familia,Centro,Online,May,45,5348,896,7,7.8,No,2635
+C1761,Senior,Sur,Tienda,Jul,65,3973,522,3,6.4,Sí,1657
+C1762,Joven digital,Centro,Tienda,Nov,31,3056,524,18,4.2,Sí,1929
+C1763,Familia,Oriente,Tienda,Jul,49,5080,869,8,4.2,Sí,2554
+C1764,Senior,Norte,Tienda,Dic,64,4222,660,1,4.1,Sí,2113
+C1765,Joven digital,Norte,Online,Dic,25,2632,397,16,7.3,No,1656
+C1766,Familia,Centro,Online,Ago,46,5043,758,8,6.9,No,2314
+C1767,Senior,Centro,Tienda,Mar,53,3999,431,0,3.4,Sí,1447
+C1768,Joven digital,Oriente,Tienda,Feb,20,2592,444,16,6.3,No,1823
+C1769,Familia,Norte,Online,Feb,41,4986,763,7,8.6,No,2227
+C1770,Senior,Sur,Tienda,Sep,65,3251,406,4,7,Sí,1469
+C1771,Joven digital,Sur,Online,Oct,29,2591,427,19,6.1,No,1885
+C1772,Familia,Sur,Tienda,Oct,35,5573,1045,8,7.5,No,3146
+C1773,Senior,Norte,Tienda,Ago,62,4042,453,5,5.9,No,1748
+C1774,Joven digital,Sur,Online,Jun,25,2412,487,18,5.3,No,1957
+C1775,Familia,Centro,Tienda,Sep,38,5602,911,10,6.2,Sí,2740
+C1776,Senior,Sur,Tienda,May,64,3735,451,6,4.8,Sí,1557
+C1777,Joven digital,Centro,Online,Feb,24,2728,342,17,5.5,No,1575
+C1778,Familia,Centro,Online,Jul,32,5480,871,11,7.4,No,2745
+C1779,Senior,Norte,Online,Jul,61,4058,588,4,7.4,No,1946
+C1780,Joven digital,Sur,Online,Nov,27,2616,468,18,5.4,No,1804
+C1781,Familia,Sur,Online,Mar,41,4777,749,11,7.5,No,2384
+C1782,Senior,Oriente,Tienda,Ene,62,4304,442,0,7.8,No,1486
+C1783,Joven digital,Oriente,Online,Sep,31,2041,446,13,4.4,Sí,1634
+C1784,Familia,Sur,Online,Mar,45,4753,878,10,8.1,No,2555
+C1785,Senior,Centro,Online,Dic,64,3710,577,3,8,No,1900
+C1786,Joven digital,Oriente,Online,Nov,32,2419,583,18,6.4,No,2076
+C1787,Familia,Norte,Online,Jun,39,5186,914,12,7.3,No,2786
+C1788,Senior,Oriente,Tienda,Feb,58,3810,517,6,6.4,Sí,1646
+C1789,Joven digital,Norte,Online,Jul,31,2342,351,17,6.2,No,1450
+C1790,Familia,Sur,Online,Nov,45,5833,932,14,8.8,No,2839
+C1791,Senior,Oriente,Tienda,Mar,61,3724,447,6,5.3,Sí,1579
+C1792,Joven digital,Norte,Tienda,Jul,20,2007,361,20,6.1,No,1777
+C1793,Familia,Oriente,Online,Jun,35,5259,794,6,9,No,2538
+C1794,Senior,Centro,Tienda,Oct,60,3608,498,3,8.5,No,1765
+C1795,Joven digital,Norte,Online,Jul,22,2556,337,15,5.7,No,1497
+C1796,Familia,Centro,Tienda,Oct,34,5236,912,9,6.7,No,2875
+C1797,Senior,Norte,Online,Oct,56,4203,509,4,5.4,Sí,1691
+C1798,Joven digital,Norte,Online,Abr,25,2730,370,17,7.2,No,1536
+C1799,Familia,Norte,Online,Mar,44,5228,799,9,6.1,Sí,2463
+C1800,Senior,Centro,Tienda,Sep,59,3688,422,4,6.6,No,1534
+C1801,Joven digital,Oriente,Online,Ago,19,1934,447,20,7,No,1962
+C1802,Familia,Sur,Online,Ene,35,4904,808,7,7.1,No,2457
+C1803,Senior,Sur,Tienda,Oct,61,4147,543,3,4.6,Sí,1733
+C1804,Joven digital,Oriente,Online,Ago,31,2006,500,16,4.7,No,1904
+C1805,Familia,Norte,Tienda,Mar,40,4856,871,6,6.5,Sí,2619
+C1806,Senior,Centro,Online,Mar,62,3461,467,3,8.7,No,1535
+C1807,Joven digital,Centro,Tienda,May,20,2098,337,19,6.1,No,1613
+C1808,Familia,Sur,Tienda,Ene,40,4763,841,10,6.3,No,2662
+C1809,Senior,Sur,Tienda,Jun,63,3612,442,4,5,Sí,1600
+C1810,Joven digital,Norte,Online,Mar,25,2726,460,19,5.8,Sí,2047
+C1811,Familia,Sur,Tienda,Jul,41,5213,826,9,8.7,No,2551
+C1812,Senior,Oriente,Tienda,Jun,61,4123,411,7,5.6,No,1495
+C1813,Joven digital,Sur,Tienda,Ago,32,2373,420,17,1.9,Sí,1672
+C1814,Familia,Oriente,Tienda,Abr,44,5165,783,9,6.9,Sí,2274
+C1815,Senior,Oriente,Tienda,Abr,63,3314,478,4,8,No,1689
+C1816,Joven digital,Norte,Online,Jul,28,2549,411,18,6.9,No,1671
+C1817,Familia,Oriente,Tienda,Dic,38,5051,859,11,6,Sí,2656
+C1818,Senior,Sur,Tienda,Abr,60,3769,459,5,7.1,No,1584
+C1819,Joven digital,Oriente,Online,Ene,20,3329,320,18,8.4,No,1557
+C1820,Familia,Oriente,Tienda,Ene,45,5080,833,9,6.2,No,2547
+C1821,Senior,Sur,Tienda,Dic,58,4156,495,5,7.1,No,1559
+C1822,Joven digital,Oriente,Online,Abr,23,2808,424,16,3.4,Sí,1766
+C1823,Familia,Norte,Online,Ago,43,5779,894,9,6.9,Sí,2743
+C1824,Senior,Centro,Tienda,Nov,61,3667,575,5,8.1,No,1965
+C1825,Joven digital,Sur,Tienda,May,22,2436,398,20,6.2,No,1723
+C1826,Familia,Norte,Tienda,Ago,41,5280,862,10,8.4,No,2538
+C1827,Senior,Centro,Tienda,Abr,71,3806,450,2,4.8,Sí,1648
+C1828,Joven digital,Norte,Tienda,Nov,19,2473,456,17,6.3,No,2011
+C1829,Familia,Sur,Tienda,Feb,47,5634,830,7,5.9,Sí,2462
+C1830,Senior,Sur,Tienda,Mar,68,3468,494,7,7.5,No,1820
+C1831,Joven digital,Sur,Online,Mar,24,2560,266,19,8.7,No,1370
+C1832,Familia,Centro,Online,Feb,41,5217,745,9,3,Sí,2316
+C1833,Senior,Sur,Tienda,Jul,61,3956,404,6,7.3,No,1566
+C1834,Joven digital,Norte,Tienda,Oct,22,1880,490,16,7.4,No,1984
+C1835,Familia,Sur,Tienda,Feb,37,4513,865,6,9.6,No,2628
+C1836,Senior,Sur,Tienda,Ago,54,3802,463,3,6.8,Sí,1511
+C1837,Joven digital,Sur,Online,Mar,28,2891,259,19,8.8,No,1303
+C1838,Familia,Oriente,Online,Feb,50,5058,829,7,5.8,Sí,2573
+C1839,Senior,Oriente,Tienda,May,66,3918,464,7,4.6,Sí,1621
+C1840,Joven digital,Sur,Online,May,24,2539,413,18,6.1,No,1814
+C1841,Familia,Sur,Tienda,Ago,37,5675,828,7,6.9,No,2576
+C1842,Senior,Centro,Tienda,Ene,62,3842,511,1,6.1,Sí,1652
+C1843,Joven digital,Sur,Online,Mar,31,2381,1968,18,7.6,No,5650
+C1844,Familia,Oriente,Tienda,Abr,42,5190,792,6,5,Sí,2392
+C1845,Senior,Sur,Tienda,Nov,62,3654,583,4,5.2,Sí,1963
+C1846,Joven digital,Sur,Online,Sep,20,2402,532,19,6.7,No,2194
+C1847,Familia,Sur,Online,Ago,41,4633,844,10,7.2,No,2612
+C1848,Senior,Centro,Tienda,Jun,63,3512,392,2,5.8,Sí,1418
+C1849,Joven digital,Sur,Online,Jul,26,2328,380,18,6.4,No,1673
+C1850,Familia,Norte,Tienda,May,46,5709,818,10,7.4,No,2563
+C1851,Senior,Norte,Tienda,Jun,62,4184,521,4,4.4,Sí,1650
+C1852,Joven digital,Oriente,Online,Ene,32,2774,388,19,5.3,No,1574
+C1853,Familia,Oriente,Tienda,Ene,38,5397,943,10,5.3,No,2812
+C1854,Senior,Norte,Tienda,Ene,63,3821,396,6,7.3,No,1481
+C1855,Joven digital,Norte,Online,Feb,21,2939,384,16,8.8,No,1731
+C1856,Familia,Centro,Online,Dic,41,5518,826,11,8.9,No,2598
+C1857,Senior,Sur,Tienda,Ene,63,3182,509,6,8,No,1935
+C1858,Joven digital,Oriente,Tienda,Nov,41,2807,403,18,7.2,No,1542
+C1859,Familia,Norte,Online,Feb,38,5778,810,7,4.3,Sí,2537
+C1860,Senior,Oriente,Tienda,Ene,65,3268,377,1,4,Sí,1397
+C1861,Joven digital,Sur,Online,Jun,33,2859,510,17,8.4,No,1910
+C1862,Familia,Sur,Tienda,Jul,39,4970,910,8,5.3,Sí,2735
+C1863,Senior,Sur,Tienda,Feb,63,3646,535,4,6.4,Sí,1860
+C1864,Joven digital,Sur,Online,Feb,38,2023,440,18,5.3,Sí,1750
+C1865,Familia,Norte,Online,Nov,38,5235,860,13,6,No,2715
+C1866,Senior,Norte,Tienda,Jun,69,3400,467,3,4.9,Sí,1573
+C1867,Joven digital,Oriente,Online,Dic,27,2373,451,21,8.8,No,1902
+C1868,Familia,Oriente,Online,Abr,47,4963,945,6,7.4,No,2819
+C1869,Senior,Oriente,Tienda,Oct,61,3795,464,6,6.4,Sí,1694
+C1870,Joven digital,Norte,Online,Ene,28,2962,376,21,6.6,No,1809
+C1871,Familia,Sur,Tienda,Oct,33,5234,873,9,8.6,No,2713
+C1872,Senior,Sur,Tienda,Jun,68,4179,441,2,5.2,Sí,1496
+C1873,Joven digital,Norte,Online,May,33,2217,385,21,7.1,No,1592
+C1874,Familia,Sur,Tienda,Feb,43,4859,857,7,6.1,Sí,2561
+C1875,Senior,Sur,Tienda,Ene,69,3691,619,3,6.6,Sí,2048
+C1876,Joven digital,Centro,Online,Abr,32,2888,437,17,5.5,Sí,1775
+C1877,Familia,Oriente,Tienda,Oct,37,5216,830,9,7.3,No,2416
+C1878,Senior,Centro,Tienda,May,69,3332,468,2,6.7,Sí,1714
+C1879,Joven digital,Norte,Tienda,Mar,31,2483,400,16,6.4,No,1622
+C1880,Familia,Norte,Tienda,Nov,44,4868,852,8,8.1,No,2665
+C1881,Senior,Norte,Tienda,Abr,63,3958,406,6,4.4,Sí,1404
+C1882,Joven digital,Centro,Online,Ago,19,2954,454,16,4.8,Sí,1923
+C1883,Familia,Sur,Online,Oct,45,5484,836,9,10,No,2472
+C1884,Senior,Sur,Tienda,Mar,61,3611,510,6,3.4,Sí,1886
+C1885,Joven digital,Sur,Tienda,Oct,24,2844,479,17,6.5,No,1802
+C1886,Familia,Norte,Tienda,Nov,42,5109,887,9,5.2,Sí,2603
+C1887,Senior,Centro,Tienda,Nov,59,4258,708,2,5.6,Sí,2163
+C1888,Joven digital,Sur,Online,Mar,26,2689,402,16,7,No,1697
+C1889,Familia,Oriente,Tienda,Abr,44,5442,899,12,5.7,Sí,2656
+C1890,Senior,Norte,Online,Ene,56,4379,415,4,6.7,Sí,1407
+C1891,Joven digital,Centro,Online,Mar,27,2840,428,16,3,Sí,1751
+C1892,Familia,Oriente,Online,Sep,43,5496,881,7,8,No,2594
+C1893,Senior,Centro,Online,Oct,62,3421,541,5,4.9,Sí,1794
+C1894,Joven digital,Oriente,Online,Dic,31,2637,510,16,5.7,No,1823
+C1895,Familia,Norte,Online,Sep,44,4784,785,10,8.4,No,2409
+C1896,Senior,Centro,Tienda,Oct,62,3604,534,4,7.2,No,1794
+C1897,Joven digital,Centro,Online,Ene,29,2816,298,20,7,No,1458
+C1898,Familia,Norte,Tienda,Oct,40,5415,941,11,9.3,No,2911
+C1899,Senior,Centro,Online,Nov,64,4093,476,4,2.6,Sí,1608
+C1900,Joven digital,Centro,Online,Mar,34,2321,469,19,4.9,No,1814
+C1901,Familia,Oriente,Online,May,37,5416,834,9,8.3,No,2477
+C1902,Senior,Centro,Tienda,Oct,64,3764,455,0,5.9,Sí,1475
+C1903,Joven digital,Norte,Online,May,29,2894,360,19,6.7,No,1584
+C1904,Familia,Sur,Tienda,Sep,45,5855,809,11,6,No,2553
+C1905,Senior,Sur,Tienda,Ago,65,3969,608,7,7.9,No,1965
+C1906,Joven digital,Oriente,Online,May,22,2549,369,14,5.1,Sí,1838
+C1907,Familia,Centro,Online,Oct,39,5168,910,6,5.3,Sí,2622
+C1908,Senior,Oriente,Tienda,Ago,73,4135,376,5,5.5,Sí,1684
+C1909,Joven digital,Sur,Online,Sep,28,2809,359,19,4.8,Sí,1702
+C1910,Familia,Norte,Tienda,Jun,38,4285,866,8,5.6,Sí,2655
+C1911,Senior,Norte,Tienda,Jun,56,4057,446,2,4.4,Sí,1438
+C1912,Joven digital,Oriente,Tienda,Nov,22,1209,338,16,2.1,Sí,1545
+C1913,Familia,Centro,Tienda,Ago,40,5609,979,8,8.8,No,2917
+C1914,Senior,Centro,Online,Jul,72,4039,486,6,5.3,Sí,1928
+C1915,Joven digital,Norte,Tienda,Ago,26,2118,412,19,3.5,Sí,1725
+C1916,Familia,Norte,Tienda,May,44,5090,770,12,6.8,No,2561
+C1917,Senior,Centro,Tienda,Jul,63,4151,436,4,5.2,Sí,1473
+C1918,Joven digital,Norte,Online,Dic,24,2056,441,17,7,No,1878
+C1919,Familia,Oriente,Tienda,Nov,33,6002,836,9,5,Sí,2510
+C1920,Senior,Norte,Tienda,Dic,63,3370,635,6,4,Sí,1990
+C1921,Joven digital,Oriente,Online,Mar,24,2568,337,21,5.3,No,1512
+C1922,Familia,Oriente,Online,Jun,43,4874,872,11,7.8,No,2645
+C1923,Senior,Oriente,Tienda,Jul,69,3914,630,4,9.6,No,2185
+C1924,Joven digital,Norte,Online,Ago,23,3049,487,15,6.6,No,1972
+C1925,Familia,Sur,Online,Nov,38,4817,821,11,6.6,Sí,2559
+C1926,Senior,Sur,Tienda,Jun,72,3644,551,4,7.3,No,1957
+C1927,Joven digital,Centro,Online,Ene,20,2613,388,16,6.1,No,1725
+C1928,Familia,Centro,Tienda,Ene,42,4879,731,10,6.2,No,2266
+C1929,Senior,Norte,Online,Nov,62,3278,442,1,5.7,Sí,1511
+C1930,Joven digital,Norte,Online,May,25,2957,411,16,5.1,No,1702
+C1931,Familia,Sur,Tienda,Abr,36,5118,818,8,6.9,Sí,2515
+C1932,Senior,Centro,Tienda,Dic,57,3474,557,7,3.9,Sí,1836
+C1933,Joven digital,Centro,Tienda,May,32,3083,429,17,5.5,No,1742
+C1934,Familia,Norte,Tienda,Abr,35,4816,747,7,8.6,No,2396
+C1935,Senior,Sur,Tienda,Mar,70,3176,516,5,6.4,No,1993
+C1936,Joven digital,Oriente,Online,Feb,28,2486,423,19,7.9,No,1626
+C1937,Familia,Sur,Tienda,Feb,34,4916,881,8,5.3,Sí,2686
+C1938,Senior,Norte,Tienda,Ene,63,3844,418,5,6.7,Sí,1527
+C1939,Joven digital,Centro,Online,Mar,28,2291,279,20,5,No,1415
+C1940,Familia,Centro,Tienda,Jun,44,5337,887,9,7.9,No,2686
+C1941,Senior,Norte,Tienda,Nov,62,3848,444,2,6.6,No,1526
+C1942,Joven digital,Oriente,Online,Dic,27,2630,551,19,7.2,No,2140
+C1943,Familia,Sur,Tienda,Sep,39,5393,808,9,9.3,No,2439
+C1944,Senior,Centro,Online,Jul,66,3237,628,3,9.1,No,2026
+C1945,Joven digital,Norte,Online,May,26,1925,287,16,6.5,No,1423
+C1946,Familia,Norte,Tienda,Dic,38,4763,949,7,7.1,No,2725
+C1947,Senior,Oriente,Online,Ago,70,3589,452,5,7.6,No,1735
+C1948,Joven digital,Norte,Online,Oct,24,3027,393,19,4.5,Sí,1698
+C1949,Familia,Centro,Online,Dic,41,5033,967,10,5,Sí,2857
+C1950,Senior,Sur,Tienda,Nov,66,4366,476,5,5.6,Sí,1632
+C1951,Joven digital,Oriente,Online,Ene,27,2699,434,19,9.9,No,1882
+C1952,Familia,Sur,Tienda,May,48,4939,839,11,8,No,2537
+C1953,Senior,Sur,Tienda,May,59,3285,453,3,3.9,Sí,1491
+C1954,Joven digital,Norte,Online,Dic,30,2877,453,18,8,No,1854
+C1955,Familia,Centro,Tienda,Oct,39,4677,916,9,6.2,Sí,2743
+C1956,Senior,Oriente,Tienda,Mar,66,4111,495,6,8.8,No,1755
+C1957,Joven digital,Norte,Online,Ene,29,2665,350,20,5.2,No,1636
+C1958,Familia,Sur,Online,Feb,45,4026,723,9,7.5,No,2339
+C1959,Senior,Norte,Tienda,Jun,63,3860,360,7,4.3,Sí,1348
+C1960,Joven digital,Norte,Online,May,29,1941,458,19,7.1,No,1807
+C1961,Familia,Oriente,Tienda,Mar,43,5258,796,12,7.8,No,2549
+C1962,Senior,Centro,Tienda,May,62,3236,365,7,5.5,Sí,1415
+C1963,Joven digital,Norte,Online,Nov,27,2555,354,21,5.6,No,1603
+C1964,Familia,Norte,Online,May,37,5727,774,10,9.1,No,2428
+C1965,Senior,Oriente,Tienda,Abr,61,4443,433,5,7.1,No,1545
+C1966,Joven digital,Norte,Online,Sep,22,2901,434,17,8.4,No,1842
+C1967,Familia,Sur,Tienda,Jun,41,5243,861,8,7.1,No,2574
+C1968,Senior,Norte,Online,Jul,68,3361,469,6,6.7,No,1822
+C1969,Joven digital,Norte,Online,Ene,28,2742,198,20,3.7,Sí,1212
+C1970,Familia,Centro,Tienda,May,54,4334,915,9,8.3,No,2810
+C1971,Senior,Sur,Tienda,Ago,60,3452,586,2,5.3,Sí,1695
+C1972,Joven digital,Sur,Tienda,Abr,17,2937,356,20,5.2,No,1761
+C1973,Familia,Oriente,Online,Nov,43,5481,834,9,6.1,Sí,2614
+C1974,Senior,Sur,Tienda,Ago,62,3497,567,1,4.5,Sí,1787
+C1975,Joven digital,Oriente,Online,Nov,27,2424,359,18,6.5,No,1602
+C1976,Familia,Oriente,Online,Abr,36,5644,707,9,7.6,No,2262
+C1977,Senior,Norte,Tienda,May,57,4168,440,7,3.2,Sí,1535
+C1978,Joven digital,Centro,Online,Jul,28,2466,462,15,5.9,No,1723
+C1979,Familia,Oriente,Online,Ene,41,5388,773,11,8.5,No,2456
+C1980,Senior,Centro,Online,Nov,62,3693,456,0,6.2,Sí,1443
+C1981,Joven digital,Norte,Online,Jul,29,2061,426,18,3.1,Sí,1786
+C1982,Familia,Centro,Online,Ago,34,5847,952,10,7.2,Sí,2827
+C1983,Senior,Sur,Tienda,Feb,68,4023,452,4,3.8,Sí,1584
+C1984,Joven digital,Sur,Online,Oct,18,2891,395,22,6.4,No,1861
+C1985,Familia,Centro,Tienda,May,41,5755,832,11,6,Sí,2609
+C1986,Senior,Oriente,Tienda,Oct,63,3941,513,1,6.1,Sí,1752
+C1987,Joven digital,Centro,Online,Jul,30,1934,352,16,2.4,Sí,1519
+C1988,Familia,Centro,Tienda,Abr,34,4613,876,6,6.4,No,2694
+C1989,Senior,Oriente,Online,Oct,63,4359,516,4,6.6,No,1746
+C1990,Joven digital,Oriente,Online,Feb,22,2615,279,19,5.7,Sí,1450
+C1991,Familia,Sur,Online,Ago,35,5724,879,8,6.8,No,2696
+C1992,Senior,Centro,Tienda,Mar,67,4418,472,3,7.5,No,1658
+C1993,Joven digital,Sur,Online,May,24,3122,389,14,6.7,No,1656
+C1994,Familia,Oriente,Tienda,May,38,5297,829,10,6.2,No,2512
+C1995,Senior,Oriente,Tienda,Ene,66,3473,406,7,5.7,Sí,1438
+C1996,Joven digital,Norte,Online,Nov,25,1943,411,17,7.6,No,1651
+C1997,Familia,Sur,Online,Mar,41,5097,871,12,6.1,Sí,2593
+C1998,Senior,Oriente,Online,Dic,54,3930,412,7,7.2,No,1494
+C1999,Joven digital,Centro,Online,Ago,24,2112,354,13,7.9,No,1551
+C2000,Familia,Centro,Online,Oct,40,4996,959,9,7.1,No,2936

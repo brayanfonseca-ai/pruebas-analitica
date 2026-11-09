@@ -125,19 +125,22 @@ flowchart LR
     SEL --> L[Modelo lógico]
 ```
 
-## 10. Laboratorio de ML
+## 10. Experimentos de ML
 
 ```mermaid
 flowchart LR
-    T[Tarjeta de algoritmo] -->|Abrir| W[Flujo guiado]
-    T -->|Ejecutar ejemplo| EX[Configuración automática]
-    W --> D[1 Datos] --> V[2 Variables] --> P[3 Parámetros] --> TR[4 Entrenar]
-    EX --> TR
-    TR -->|POST /ml/run| C[MlController]
-    C --> S[TableStore: CSV de la tabla]
-    C --> M[MlService: algoritmo]
-    M --> R[Resultado: métricas, gráficos, lectura]
-    R --> RS[5 Resultados]
-    RS --> CASO[6 Probar un caso / Muestra]
-    CASO -->|POST /ml/run con input| C
+    CR[Crear → Experimento de ML] --> NEW[Modal: nombre, app, tabla]
+    MENU[Menú → Experimentos de ML] --> LIST[Lista de experimentos]
+    LIST --> NEW
+    NEW -->|POST /ml/experiments| EST[Estudio del experimento]
+    LIST --> EST
+    EST --> DAT[Datos: perfil de variables]
+    EST --> MOD[Modelado: 24 algoritmos]
+    MOD --> CFG[Variables + hiperparámetros]
+    CFG -->|POST /runs| ENG[MlService · MlSupervised · MlUnsupervised]
+    ENG --> RES[Resultados + lectura]
+    ENG --> DB[(ml_runs)]
+    RES --> CASO[Probar un caso: POST /runs con input, sin guardar]
+    EST --> RUNS[Ejecuciones: abrir · comparar · eliminar]
+    DB --> RUNS
 ```

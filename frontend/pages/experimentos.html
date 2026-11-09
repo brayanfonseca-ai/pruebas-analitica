@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" translate="no">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google" content="notranslate" />
+  <title>DataSense · Experimentos de ML</title>
+  <link rel="stylesheet" href="../css/hub.css" />
+  <link rel="stylesheet" href="../css/lab.css" />
+</head>
+<body>
+  <header class="q-topbar">
+    <button class="q-apps" id="appsBtn" title="Ir al catálogo" aria-label="Aplicaciones">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </button>
+    <div class="q-logo">
+      <span class="q-logo-mark">◆</span>
+      <span class="q-logo-text">DataSense</span>
+      <span class="q-logo-sep">Experimentos de ML</span>
+    </div>
+    <div class="q-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar experimentos" aria-label="Buscar experimentos" />
+    </div>
+    <div class="q-top-actions"><div class="q-avatar" id="avatar">D</div></div>
+  </header>
+
+  <div class="q-body">
+    <aside class="q-side"><nav class="q-nav" id="nav"></nav></aside>
+    <main class="q-main"><div class="ml-wrap" id="root"></div></main>
+  </div>
+
+  <div class="mx-modal-bd" id="newModal" hidden>
+    <div class="mx-modal" role="dialog" aria-labelledby="newTitle">
+      <div class="mx-modal-h"><h3 id="newTitle">Nuevo experimento</h3><button class="mx-x" id="newX" aria-label="Cerrar">✕</button></div>
+      <div class="mx-modal-b">
+        <label class="ml-lab"><span>Nombre</span><input class="ml-input" id="nName" maxlength="120" placeholder="Ej. Segmentación de clientes Q1" /></label>
+        <label class="ml-lab"><span>Aplicación con los datos</span><select class="ml-input" id="nApp"></select></label>
+        <label class="ml-lab"><span>Tabla</span><select class="ml-input" id="nTable"></select></label>
+        <label class="ml-lab"><span>Descripción (opcional)</span><textarea class="ml-input" id="nDesc" rows="3" placeholder="Objetivo del experimento"></textarea></label>
+        <p class="mx-err" id="nErr" hidden></p>
+      </div>
+      <div class="mx-modal-f"><button class="ml-btn ghost" id="newCancel">Cancelar</button><button class="ml-btn primary" id="newCreate">Crear experimento</button></div>
+    </div>
+  </div>
+
+  <script type="module" src="../js/experimentos.js"></script>
+</body>
+</html>

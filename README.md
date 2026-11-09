@@ -7,7 +7,7 @@ lee tus datos reales.
 
 - **Backend** — Spring Boot 3 (Java 21). Única fuente de verdad de datos y cálculo:
   perfilado, asociaciones, consultas agregadas con filtro asociativo, modelo lógico,
-  conexiones reales y **laboratorio de ML**. Persiste en **SQLite** + CSV en disco. Sirve
+  conexiones reales y **experimentos de ML** (24 algoritmos). Persiste en **SQLite** + CSV en disco. Sirve
   también el frontend, así que todo vive en el mismo origen (sin CORS).
 - **Frontend** — HTML + CSS + JavaScript ESM, sin framework ni build. Chart.js, jsPDF,
   CodeMirror y SheetJS llegan por CDN.
@@ -22,7 +22,8 @@ módulo) está en [`docs/`](./docs/README.md).
 ```
 Preuba/
   frontend/
-    pages/            Páginas HTML: index (login), inicio, crear, catalogo, hub, app
+    pages/            Páginas HTML: index (login), inicio, crear, catalogo, hub, app,
+                      experimentos (lista) y experimento (estudio)
     css/              Estilos por módulo (hub, editor, hoja, datos, logico, informes, lab…)
     js/               Módulos ES: app.js (shell) y un módulo por vista (app-*.js)
   backend-springboot/ API REST + motor analítico + servidor del frontend
@@ -30,7 +31,7 @@ Preuba/
       config/         Base de datos SQLite, servidor de estáticos (WebConfig)
       web/            Controladores REST /api/v1
       engine/         Perfilado, consulta asociativa, overrides, modelo lógico, conexiones
-      ml/             Laboratorio de ML (MlController, MlService, MlMath)
+      ml/             Experimentos de ML (controladores, algoritmos, AutoML)
       ai/             Cliente de Amazon Bedrock
       repo/           Repositorios JDBC
       model/          DTOs
@@ -81,7 +82,7 @@ Se navega con el **selector de vista** de la barra superior (atajos `Alt + Shift
 |---|---|---|
 | Analizar | **Hoja** | Dashboards con selecciones asociativas; modo vista y modo edición. |
 | Narrar | **Informes** | PDF con métricas de negocio, Pareto, variación y recomendaciones. |
-| Ciencia de datos | **Laboratorio de ML** | Siete algoritmos en tarjetas con flujo guiado. |
+| Ciencia de datos | **Experimentos de ML** | Experimentos de esta app; abre el módulo de Experimentos. |
 | Preparar | **Gestor de datos** | Perfilado, vista previa, preparación de campos y asociaciones. |
 | Preparar | **Editor de carga** | Script Qlik, ejecución por capas y carga de archivos. |
 | Preparar | **Visor del modelo** | Tablas, campos clave y asociaciones. |
@@ -90,20 +91,23 @@ Se navega con el **selector de vista** de la barra superior (atajos `Alt + Shift
 Además: asistente de IA flotante, conexiones reales (S3, Athena, JDBC, HTTP) y servidor MCP.
 Cada módulo tiene su documento en [`docs/modulos/`](./docs/modulos).
 
-## Laboratorio de ML
+## Experimentos de ML
 
-Siete algoritmos implementados en Java puro (sin librerías externas), cada uno como tarjeta
-con el flujo **Datos → Variables → Parámetros → Entrenar → Resultados → Probar un caso**, y
-un botón **Ejecutar ejemplo** que lo configura y entrena solo con tus datos:
+Módulo propio (**Crear → Experimento de ML** o menú lateral **Experimentos de ML**). Un
+experimento apunta a una tabla de cualquier aplicación y tiene tres pestañas: **Datos**
+(perfil de variables), **Modelado** (24 algoritmos con variables, hiperparámetros,
+resultados y prueba de casos) y **Ejecuciones** (historial guardado, abrir, comparar y
+eliminar). Todo en Java puro, sin librerías externas.
 
-| Descubrir patrones | Predecir |
+| Familia | Algoritmos |
 |---|---|
-| Segmentación (K-Means) | Regresión lineal |
-| Reducción de dimensiones (PCA) | Pronóstico de series (tendencia · Holt) |
-| Correlaciones (Pearson · Spearman) | Clasificación (regresión logística) |
-| Detección de anomalías (Z-score · IQR) | |
+| Segmentación | K-Means · Jerárquico · DBSCAN |
+| Exploración | PCA · Correlaciones · Anomalías · Reglas de asociación |
+| Regresión | Lineal · Ridge · Lasso · Polinómica · Árbol · Bosque aleatorio · Gradient Boosting · KNN |
+| Clasificación | Logística · Naive Bayes · Árbol · Bosque aleatorio · Gradient Boosting · KNN |
+| Series y AutoML | Pronóstico · AutoML de regresión y de clasificación |
 
-Detalle en [`docs/modulos/11-laboratorio-ml.md`](./docs/modulos/11-laboratorio-ml.md).
+Datos de ejemplo para probarlo: `samples/clientes_demo_ml.csv`. Detalle en [`docs/modulos/11-laboratorio-ml.md`](./docs/modulos/11-laboratorio-ml.md).
 
 ## Datos en ejecución
 

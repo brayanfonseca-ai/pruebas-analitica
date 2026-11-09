@@ -35,7 +35,16 @@ Términos del dominio de DataSense (muchos heredados de Qlik Sense).
 | **Agente / persona** | El "rol" que adopta el asistente IA según el contexto (ingeniero, analista, diseñador, asesor de informes). |
 | **QueryResult** | Respuesta de `/query`: `{labels, values, value, series}`. Sin dimensión → `value` escalar (KPI); con dimensión → `labels`+`values`. |
 | **Rejilla (grid)** | El lienzo de la hoja: 24 columnas de ancho, filas variables. Los objetos se posicionan en celdas. |
-| **Laboratorio de ML** | Vista con siete algoritmos de aprendizaje automático en tarjetas, con flujo guiado y ejemplo automático. |
+| **Experimento de ML** | Contenedor de trabajo sobre una tabla: guarda cada entrenamiento (ejecución) con sus parámetros y resultado para compararlos. |
+| **Ejecución** | Un entrenamiento guardado de un experimento: algoritmo, variables, hiperparámetros, resultado y métrica principal. |
+| **Hiperparámetro** | Ajuste que se fija antes de entrenar (k, profundidad, número de árboles, λ…). |
+| **AutoML** | Entrena varios modelos con la misma partición y elige el mejor según la métrica. |
+| **Bosque aleatorio / Gradient Boosting** | Conjuntos de árboles: promedio de árboles independientes / árboles en secuencia que corrigen el error anterior. |
+| **Ridge / Lasso** | Regresión lineal con penalización L2 / L1 (Lasso puede descartar variables). |
+| **DBSCAN** | Segmentación por densidad que detecta grupos de cualquier forma y separa el ruido. |
+| **Clúster jerárquico** | Une registros de abajo hacia arriba; el corte del árbol define los grupos. |
+| **Reglas de asociación** | Patrones "si A entonces B" con soporte, confianza y lift (Apriori). |
+| **Importancia por permutación** | Cuánto empeora el modelo al desordenar una variable: mide su aporte real. |
 | **Aprendizaje supervisado / no supervisado** | Supervisado: se predice una variable objetivo conocida (regresión, clasificación). No supervisado: se buscan patrones sin objetivo (segmentación, PCA, anomalías). |
 | **K-Means** | Algoritmo de segmentación que agrupa registros en *k* grupos alrededor de centroides. |
 | **Silueta** | Medida de −1 a 1 de qué tan bien separados están los grupos. Mayor a 0.5 = separación fuerte. |

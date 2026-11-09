@@ -30,7 +30,7 @@ const VIEW_GROUPS = [
   {
     label: "Ciencia de datos",
     views: [
-      { key: "lab", label: "Laboratorio de ML", icon: "predict", shortcut: "L", module: "./app-lab.js" },
+      { key: "lab", label: "Experimentos de ML", icon: "predict", shortcut: "L", module: "./app-lab.js" },
     ],
   },
   {

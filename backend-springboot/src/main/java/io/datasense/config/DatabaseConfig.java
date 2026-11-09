@@ -166,6 +166,31 @@ public class DatabaseConfig {
                     + "doc_json TEXT NOT NULL, "
                     + "updated_at TEXT NOT NULL, "
                     + "FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE)");
+            // Experimentos de ML (proceso independiente de las vistas de una app).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS ml_experiments (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    table_ref TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS ml_runs (
+                    id TEXT PRIMARY KEY,
+                    experiment_id TEXT NOT NULL,
+                    algorithm TEXT NOT NULL,
+                    label TEXT,
+                    params_json TEXT NOT NULL,
+                    result_json TEXT NOT NULL,
+                    metric_name TEXT,
+                    metric_value REAL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (experiment_id) REFERENCES ml_experiments (id) ON DELETE CASCADE
+                )""");
         }
     }
 }

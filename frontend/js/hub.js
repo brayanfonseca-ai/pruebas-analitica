@@ -302,7 +302,7 @@ const PAGES = {
     title: "Predicción",
     headerRight: () => `<button class="q-btn primary">+ Crear nuevo ▾</button>`,
     body: () => createCards([
-      { icon: "ml", title: "Experimento de ML", desc: "Abra una aplicación y entre al Laboratorio de ML: segmentación, regresión, pronóstico y más.", href: "catalogo.html" },
+      { icon: "ml", title: "Experimento de ML", desc: "Cree un experimento sobre sus datos y entrene, compare y pruebe modelos.", href: "experimentos.html?new=1" },
       { icon: "dataset", title: "Conjunto de datos", desc: "Cargue un archivo de datos o registre datos externos.", soon: true },
     ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
       emptyState({ icon: "chart", title: "No se encontraron resultados", text: "El aprendizaje automático (AutoML) estará disponible " + SOON.toLowerCase() + "." }),

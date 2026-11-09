@@ -82,23 +82,38 @@ de negocio devuelven códigos claros (400/404); la IA y las conexiones degradan 
 Respuesta IA: `{ok, message, agent, action?}`. `action` puede traer un plan
 (`build-sheet`/`add-objects`/`apply-script`) que el frontend ejecuta.
 
-## Laboratorio de ML
+## Experimentos de ML
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/apps/{appId}/ml/datasets` | Tablas con campos agrupados: `numeric`, `categorical`, `dates` (`field` físico + `display`). |
-| POST | `/apps/{appId}/ml/run` | Ejecuta un algoritmo. Cuerpo: `{table, algorithm, params}`. |
+| GET | `/ml/experiments` | Lista con app, tabla, nº de ejecuciones y último algoritmo. |
+| POST | `/ml/experiments` | Crea `{appId, name, description?, table?}`. Sin nombre o app → 400. |
+| GET | `/ml/experiments/{id}` | Detalle: `tables`, `dataset` (campos por tipo con distintos/vacíos + `preview`) y `runList`. |
+| PUT | `/ml/experiments/{id}` | Edita `{name?, description?, table?}`. |
+| DELETE | `/ml/experiments/{id}` | Elimina el experimento y sus ejecuciones. |
+| POST | `/ml/experiments/{id}/runs` | Entrena `{algorithm, params, label?, save?}`; guarda la ejecución (salvo `save:false` o `params.input`) y devuelve el resultado con `runId`. |
+| GET | `/ml/experiments/{id}/runs/{runId}` | Resultado completo de una ejecución guardada. |
+| DELETE | `/ml/experiments/{id}/runs/{runId}` | Elimina una ejecución. |
+| GET | `/apps/{appId}/ml/datasets` | Tablas de una app con campos agrupados (`numeric`, `categorical`, `dates`). |
+| POST | `/apps/{appId}/ml/run` | Ejecución directa sin guardar: `{table, algorithm, params}`. |
 
-`algorithm` ∈ `kmeans`, `pca`, `correlation`, `anomaly`, `linear`, `forecast`, `logistic`.
+`algorithm` ∈ `kmeans`, `hierarchical`, `dbscan`, `pca`, `correlation`, `anomaly`, `rules`,
+`linear`, `ridge`, `lasso`, `poly`, `tree`, `forest`, `gbm`, `knn`, `logistic`, `bayes`,
+`forecast`, `automl`.
 
 | Algoritmo | `params` |
 |---|---|
 | `kmeans` | `features[]`, `k` (0 = automático), `standardize` |
+| `hierarchical` | `features[]`, `linkage` (`ward`/`average`/`complete`/`single`), `k` (0 = automático) |
+| `dbscan` | `features[]`, `eps?`, `minPts?` (automáticos si faltan) |
 | `pca`, `correlation` | `features[]` |
 | `anomaly` | `features[]`, `method` (`both`/`zscore`/`iqr`), `threshold` |
-| `linear` | `target`, `features[]`, `testSize` |
-| `logistic` | `target`, `features[]`, `testSize`, `positive?`, `threshold?` |
+| `rules` | `features[]` categóricas, `minSupport`, `minConfidence` |
+| `linear`, `ridge`, `lasso`, `poly` | `target`, `features[]`, `testSize`; `lambda` (ridge/lasso/poly), `degree` (poly) |
+| `tree`, `forest`, `gbm`, `knn` | `target`, `features[]`, `task` (`regression`/`classification`), `testSize` y sus hiperparámetros (`maxDepth`, `minLeaf`, `nTrees`, `rounds`, `learningRate`, `k`) |
+| `logistic`, `bayes` | `target`, `features[]`, `testSize`, `positive?`, `threshold?` |
 | `forecast` | `measure`, `period`, `horizon`, `aggregation` (`sum`/`avg`) |
+| `automl` | `target`, `features[]`, `task`, `testSize` (y `positive?`/`threshold?` en clasificación) |
 
-Con `params.input` (`{campo: valor}`) en `kmeans`, `linear` o `logistic`, la respuesta
-incluye `prediction` para ese caso. Todas las respuestas traen `insights[]`, `n`,
+Con `params.input` (`{campo: valor}`) en K-Means y en cualquier modelo supervisado o AutoML,
+la respuesta incluye `prediction` para ese caso. Todas las respuestas traen `insights[]`, `n`,
 `elapsedMs` y `table`. Errores de entrada: **400** con `message` legible.

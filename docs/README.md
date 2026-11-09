@@ -26,7 +26,7 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/08-informes.md`](./modulos/08-informes.md) | Generador de informes PDF (3 modos + agente). |
 | [`modulos/09-asistente-ia.md`](./modulos/09-asistente-ia.md) | Asistente "estrellita" (Bedrock Nova Micro). |
 | [`modulos/10-mcp.md`](./modulos/10-mcp.md) | Servidor MCP (TypeScript). |
-| [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Laboratorio de ML: 7 algoritmos con flujo guiado. |
+| [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Experimentos de ML: 24 algoritmos, historial, comparación y AutoML. |
 
 ---
 
@@ -59,7 +59,7 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Modelo lógico | ✅ funcional |
 | Conexiones reales | ✅ S3 / Athena verificadas; otras implementadas |
 | Informes PDF | ✅ 3 modos con análisis especializado (margen, rentabilidad, Pareto, variación) |
-| Laboratorio de ML | ✅ 7 algoritmos verificados con datos reales |
+| Experimentos de ML | ✅ 24 algoritmos verificados con datos de verdad conocida y QA en navegador |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |
 

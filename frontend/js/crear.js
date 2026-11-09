@@ -52,7 +52,7 @@ function createCardsHtml(cards) {
 
 const RECOMMENDED = [
   { icon: "app", title: "Aplicación", desc: "Crea una aplicación para visualizar y presentar sus datos.", action: "create-app" },
-  { icon: "ml", title: "Experimento de ML", desc: "Abre una aplicación y entra al Laboratorio de ML: segmentación, regresión, pronóstico y más.", action: "open-lab" },
+  { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento sobre tus datos: segmentación, regresión, clasificación, pronóstico y AutoML.", action: "open-lab" },
   { icon: "automation", title: "Automatización", desc: "Utiliza una interfaz visual de código para crear análisis de datos y flujos de trabajo automatizados." },
   { icon: "connection", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", action: "create-connection" },
   { icon: "dataflow", title: "Flujo de datos", desc: "Crea un flujo de datos para preparar sus datos con un flujo gráfico o script." },
@@ -64,7 +64,7 @@ const CONTENT = [
   { icon: "automation", title: "Automatización", desc: "Configure análisis y flujos de trabajo sin necesidad de programar." },
   { icon: "knowledge", title: "Base de conocimientos", desc: "Fuentes y archivos de datos no estructurados." },
   { icon: "surround", title: "Rodear a", desc: "Agregue enlaces a contenido útil." },
-  { icon: "ml", title: "Experimento de ML", desc: "Abre una aplicación y entra al Laboratorio de ML.", action: "open-lab" },
+  { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento de aprendizaje automático y compara modelos.", action: "open-lab" },
   { icon: "dataflow", title: "Flujo de datos", desc: "Crea un flujo de datos para preparar sus datos cuando grafique." },
   { icon: "note", title: "Nota", desc: "Crea un análisis personal y compartido." },
   { icon: "recipe", title: "Receta de tabla", desc: "Crea una receta de tabla para preparar los datos de una sola tabla." },
@@ -106,7 +106,7 @@ function wireCreateActions() {
       const action = el.dataset.action;
       if (action === "create-app") { e.preventDefault(); handleCreateApp(); }
       else if (action === "create-connection") { e.preventDefault(); openConnectionsFromHub(); }
-      else if (action === "open-lab") { e.preventDefault(); location.href = "catalogo.html"; }
+      else if (action === "open-lab") { e.preventDefault(); location.href = "experimentos.html?new=1"; }
     });
   });
 }

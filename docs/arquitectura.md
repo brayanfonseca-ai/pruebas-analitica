@@ -43,7 +43,9 @@ web/       Controladores REST:
            SheetController, MasterController, ScriptController, CollectionController,
            ConnectionController, FieldOverrideController, LogicalModelController,
            AiController, RootController
-ml/        MlController, MlService (7 algoritmos), MlMath (álgebra y estadística)
+ml/        ExperimentController, MlController, MlService, MlSupervised (+AutoML),
+           MlUnsupervised, MlModels, MlMath
+repo/ExperimentRepository   experimentos y ejecuciones de ML
 engine/    Profiler (infiere tipos), DataFrame, TableReader, TableStore (CSV),
            QueryEngine (agregación + asociativo), AssociativeJoin, Associations,
            Expressions, FieldOverrides, EffectiveFields, LogicalModelService,
@@ -65,7 +67,11 @@ app-modelo.js     Visor del modelo de datos
 app-hoja.js       Hoja: vista (analizar) + edición (construir dashboard)
 app-logico.js     Modelo lógico (Business Logic)
 app-informes.js   Generador de informes PDF
-app-lab.js        Laboratorio de ML (tarjetas + flujo guiado)
+app-lab.js        Vista de enlace a los experimentos de la app
+experimentos.js   Lista y creación de experimentos de ML
+experimento.js    Estudio del experimento (datos, modelado, ejecuciones)
+ml-catalog.js     Catálogo de algoritmos (roles, hiperparámetros)
+ml-render.js      Render de resultados de ML y exportación CSV
 estrellita.js     Widget del asistente de IA (flotante, fullscreen, historial)
 conn-hub.js       Apertura de conexiones desde el hub
 connections.js    Catálogo + asistente de conexiones de datos
@@ -109,7 +115,7 @@ Los **datos** de cada tabla no viven en SQLite sino como **CSV** por app/tabla
 5. **Capa de presentación**: `field_overrides` (renombrar/tipo/ocultar) y
    `logical_model` (clasificación, grupos, jerarquías) ajustan cómo se interpretan
    los campos sin tocar el dato físico.
-6. **Laboratorio de ML**: `MlController /ml/run` lee la tabla desde `TableStore`, ejecuta el algoritmo en `MlService` y devuelve métricas, datos de gráficos y una lectura del resultado.
+6. **Experimentos de ML**: `ExperimentController` guarda experimentos y ejecuciones (`ml_experiments`, `ml_runs`); al entrenar lee la tabla desde `TableStore` y ejecuta el algoritmo (`MlService`, `MlSupervised`, `MlUnsupervised`, `MlModels`).
 7. **IA / Informes / MCP** consumen lo anterior vía REST.
 
 ## Seguridad

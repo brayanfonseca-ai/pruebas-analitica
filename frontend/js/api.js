@@ -199,3 +199,14 @@ export const getMlDatasets = (appId) => request(`/apps/${encodeURIComponent(appI
 // Ejecuta un algoritmo: { table, algorithm, params } -> resultado con métricas y datos de gráficos.
 export const runMl = (appId, payload) =>
   request(`/apps/${encodeURIComponent(appId)}/ml/run`, { method: "POST", body: payload });
+
+/* ----------------------- Experimentos de ML (proceso independiente) ----------------------- */
+export const listExperiments = () => request("/ml/experiments");
+export const createExperiment = (body) => request("/ml/experiments", { method: "POST", body });
+export const getExperiment = (id) => request(`/ml/experiments/${encodeURIComponent(id)}`);
+export const updateExperiment = (id, body) => request(`/ml/experiments/${encodeURIComponent(id)}`, { method: "PUT", body });
+export const deleteExperiment = (id) => request(`/ml/experiments/${encodeURIComponent(id)}`, { method: "DELETE" });
+// { algorithm, params, label?, save? } -> resultado (+ runId si se guardó)
+export const trainExperiment = (id, body) => request(`/ml/experiments/${encodeURIComponent(id)}/runs`, { method: "POST", body });
+export const getExperimentRun = (id, runId) => request(`/ml/experiments/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}`);
+export const deleteExperimentRun = (id, runId) => request(`/ml/experiments/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}`, { method: "DELETE" });
