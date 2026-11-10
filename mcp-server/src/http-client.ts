@@ -90,6 +90,18 @@ export async function put(path: string, body?: unknown): Promise<unknown> {
 }
 
 /**
+ * POST multipart/form-data (subida de archivos). fetch fija el boundary.
+ */
+export async function postForm(path: string, form: FormData): Promise<unknown> {
+  const res = await doFetch(buildUrl(path), {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    body: form,
+  });
+  return handleResponse(res);
+}
+
+/**
  * DELETE tolera 204 No Content (sin cuerpo).
  */
 export async function del(path: string): Promise<unknown> {

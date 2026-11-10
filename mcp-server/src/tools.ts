@@ -10,6 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { contextTools } from "./tools/context-tools.js";
 import type { ContextTool } from "./tools/context-tools.js";
 import { actionTools } from "./tools/action-tools.js";
+import { platformTools } from "./tools/platform-tools.js";
 
 /**
  * Registra una tool (contexto o accion) en el Server MCP envolviendo su handler
@@ -51,6 +52,11 @@ export function registerTools(server: McpServer): void {
 
   // --- Tools de accion (ejecucion) — FEAT-002 ---
   for (const tool of actionTools) {
+    registerTool(server, tool);
+  }
+
+  // --- Tools de plataforma: conexiones realizadas, ML, modelo logico, maestros… ---
+  for (const tool of platformTools) {
     registerTool(server, tool);
   }
 }

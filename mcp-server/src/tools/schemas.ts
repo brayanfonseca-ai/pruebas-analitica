@@ -92,8 +92,11 @@ export const setScriptShape = {
 const sheetObjectSchema = z
   .object({
     type: z
-      .enum(["kpi", "bar", "pie", "line", "table", "filterpane"])
-      .describe("Tipo de objeto: kpi|bar|pie|line|table|filterpane."),
+      .string()
+      .min(1)
+      .describe(
+        "Tipo de objeto. Datos: kpi|bar|line|pie|table|filterpane|combo|scatter|pivot|gauge|histogram|boxplot|treemap(block)|waterfall|funnel|sankey|map|text… (ver list_chart_types). Machine Learning: ml-clustermap|ml-elbow|ml-silhouette|ml-segments|ml-profile|ml-sizes|ml-actualpred|ml-importance|ml-coefs|ml-roc|ml-confusion|ml-leaderboard|ml-forecast|ml-corr|ml-pca|ml-anomaly|ml-rules|ml-metrics|ml-insights (requieren props.ml={experimentId,runId}; mas facil: add_ml_chart).",
+      ),
     title: z.string().optional().describe("Titulo del objeto."),
     dimension: z.string().optional().describe("Campo de dimension."),
     measure: z

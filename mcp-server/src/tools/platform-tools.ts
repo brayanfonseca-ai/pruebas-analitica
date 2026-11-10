@@ -1,0 +1,493 @@
+/**
+ * Tools de PLATAFORMA del MCP de DataSense: cubren todo lo que hace la UI y no
+ * estaba en las tools de contexto/accion originales.
+ *
+ *  - Conexiones realizadas (stack global): listar, explorar, vista previa, cargar, borrar.
+ *  - Datos: subir archivo (CSV/Excel), borrar tabla, preparacion de campos (overrides).
+ *  - Modelo: asociaciones (recomendar, crear, aceptar, borrar).
+ *  - Elementos maestros y validador de expresiones.
+ *  - Modelo logico (documento, activar/reset, grupos, paquetes, jerarquias, comportamientos, periodos).
+ *  - Hojas: borrar, visibilidad, catalogo de tipos, anadir gráficos de ML.
+ *  - Experimentos de ML: CRUD, entrenar, ejecuciones, "Asociar a" (tabla + hoja).
+ *  - Colecciones.
+ *
+ * REGLA DEL PROYECTO: toda funcionalidad nueva de DataSense debe exponerse aqui
+ * (o en action/context-tools) en el mismo cambio. Ver .kiro/steering/mcp-paridad.md.
+ */
+
+import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
+import { z } from "zod";
+import { get, post, put, del, postForm, toToolText } from "../http-client.js";
+import type { ContextTool } from "./context-tools.js";
+
+const id = (d: string) => z.string().min(1).describe(d);
+const appId = { appId: id("Identificador de la aplicacion (appId).") };
+const A = (appIdValue: unknown) => `/api/v1/apps/${encodeURIComponent(String(appIdValue))}`;
+const E = (v: unknown) => encodeURIComponent(String(v));
+const free = (d: string) => z.record(z.string(), z.any()).describe(d);
+
+/** Quita claves undefined para no enviarlas al backend. */
+function pick(args: Record<string, unknown>, keys: string[]): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of keys) if (args[k] !== undefined) out[k] = args[k];
+  return out;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Catalogos estaticos (para que el agente sepa que puede pedir)             */
+/* ------------------------------------------------------------------------ */
+
+const ML_ALGORITHMS = {
+  nota: "POST train_model con {algorithm, params}. 'features' = lista de campos numericos (rules: categoricos). Campos por nombre fisico de la tabla del experimento.",
+  segmentacion: {
+    kmeans: { params: { features: "string[] (>=2 numericos)", k: "int (0/omitir = automatico por silueta)", standardize: "bool (default true)" } },
+    hierarchical: { params: { features: "string[] (>=2)", linkage: "ward|average|complete|single", k: "int (0 = automatico)" } },
+    dbscan: { params: { features: "string[] (>=2)", eps: "number (omitir = automatico)", minPts: "int (omitir = automatico)" } },
+  },
+  exploracion: {
+    pca: { params: { features: "string[] (>=2)" } },
+    correlation: { params: { features: "string[] (>=2)" } },
+    anomaly: { params: { features: "string[] (>=1)", method: "both|zscore|iqr", threshold: "number (default 2.5)" } },
+    rules: { params: { features: "string[] categoricos (>=2)", minSupport: "0.01-0.9 (0.1)", minConfidence: "0.05-1 (0.5)" } },
+  },
+  regresion: {
+    linear: { params: { target: "campo numerico", features: "string[]", testSize: "0-0.5 (0.2)" } },
+    ridge: { params: { target: "", features: "", lambda: "number (1)", testSize: "" } },
+    lasso: { params: { target: "", features: "", lambda: "number (0.1)", testSize: "" } },
+    poly: { params: { target: "", features: "", degree: "2|3|4", lambda: "number (1)", testSize: "" } },
+    tree: { params: { task: "regression", target: "", features: "", maxDepth: "1-12 (5)", minLeaf: "int (5)" } },
+    forest: { params: { task: "regression", target: "", features: "", nTrees: "5-300 (60)", maxDepth: "1-12 (8)", minLeaf: "int (3)" } },
+    gbm: { params: { task: "regression", target: "", features: "", rounds: "10-400 (80)", learningRate: "0.01-1 (0.1)", maxDepth: "1-6 (3)" } },
+    knn: { params: { task: "regression", target: "", features: "", k: "1-50 (5)" } },
+  },
+  clasificacion: {
+    logistic: { params: { target: "campo (categorico o numerico con threshold)", features: "string[]", positive: "valor de la clase positiva (opcional)", threshold: "number (objetivo numerico)", testSize: "" } },
+    bayes: { params: { target: "", features: "", positive: "", threshold: "" } },
+    tree: { params: { task: "classification", target: "", features: "", maxDepth: "", minLeaf: "" } },
+    forest: { params: { task: "classification", target: "", features: "", nTrees: "", maxDepth: "" } },
+    gbm: { params: { task: "classification", target: "", features: "", rounds: "", learningRate: "", maxDepth: "" } },
+    knn: { params: { task: "classification", target: "", features: "", k: "" } },
+  },
+  series: { forecast: { params: { measure: "campo numerico", period: "campo de periodo (fecha, mes, anio…)", horizon: "1-24 (3)", aggregation: "sum|avg" } } },
+  automl: { automl: { params: { task: "regression|classification", target: "", features: "", testSize: "", positive: "(clasificacion)" } } },
+  probar_un_caso: "Anadir params.input = {campo: valor, ...} devuelve 'prediction' sin guardar la ejecucion.",
+};
+
+const CHART_TYPES = {
+  datos: {
+    nota: "Formato plano en create_sheet/update_sheet: {type, title, dimension:'campo' | ['c1','c2'], measure:{field,agg} | [..], x,y,w,h}. Rejilla de 24 columnas, sin solapes.",
+    visualizaciones: ["bar", "line", "pie", "combo", "scatter", "kpi", "gauge", "table", "pivot", "annotationtable", "filterpane", "histogram", "boxplot", "distribution", "block", "gridchart", "funnel", "waterfall", "bulletchart", "mekko", "sankey", "map", "orgchart"],
+    cuadro_de_mando: ["text (props.text)", "button", "hline", "navmenu", "image", "video", "layoutcontainer", "tabcontainer", "matrixcontainer"],
+    heredado: ["radar", "network", "wordcloud", "variance"],
+  },
+  machine_learning: {
+    nota: "Dibujan una ejecucion guardada de Experimentos de ML: props.ml = {experimentId, runId}. Usa add_ml_chart para anadirlos con la ejecucion validada.",
+    clusterizacion: { "ml-clustermap": "Mapa de clusters (12x9)", "ml-elbow": "Eleccion de k: inercia y silueta (12x9)", "ml-silhouette": "Silhouette score (6x4)", "ml-segments": "Perfiles de segmentos (24x8)", "ml-profile": "Perfil z por segmento (12x8)", "ml-sizes": "Tamano de segmentos (12x8)" },
+    regresion: { "ml-actualpred": "Real vs predicho (12x9)", "ml-importance": "Importancia de variables (12x8)", "ml-coefs": "Coeficientes (12x8)" },
+    clasificacion: { "ml-roc": "Curva ROC (12x9)", "ml-confusion": "Matriz de confusion (10x8)" },
+    series: { "ml-forecast": "Pronostico (24x9)" },
+    exploracion: { "ml-corr": "Matriz de correlacion (12x9)", "ml-pca": "Varianza PCA (12x8)", "ml-anomaly": "Distribucion de atipicos (12x8)", "ml-rules": "Reglas de asociacion (24x8)" },
+    cualquier_modelo: { "ml-metrics": "Metricas del modelo (24x3)", "ml-insights": "Lectura del resultado (12x5)", "ml-leaderboard": "Ranking AutoML (12x9, solo automl)" },
+    presentacion: "props.look.legend (bool), props.look.tooltip (bool), props.look.mlPalette ('datasense'|'sense').",
+  },
+};
+
+const ML_SIZES: Record<string, [number, number]> = {
+  "ml-clustermap": [12, 9], "ml-elbow": [12, 9], "ml-silhouette": [6, 4], "ml-segments": [24, 8], "ml-profile": [12, 8], "ml-sizes": [12, 8],
+  "ml-actualpred": [12, 9], "ml-importance": [12, 8], "ml-coefs": [12, 8], "ml-roc": [12, 9], "ml-confusion": [10, 8], "ml-leaderboard": [12, 9],
+  "ml-forecast": [24, 9], "ml-corr": [12, 9], "ml-pca": [12, 8], "ml-anomaly": [12, 8], "ml-rules": [24, 8], "ml-metrics": [24, 3], "ml-insights": [12, 5],
+};
+const ML_TITLES: Record<string, string> = {
+  "ml-clustermap": "Mapa de clusters", "ml-elbow": "Elección de k (inercia y silueta)", "ml-silhouette": "Silhouette score", "ml-segments": "Perfiles de segmentos",
+  "ml-profile": "Perfil z por segmento", "ml-sizes": "Tamaño de segmentos", "ml-actualpred": "Real vs predicho", "ml-importance": "Importancia de variables",
+  "ml-coefs": "Coeficientes", "ml-roc": "Curva ROC", "ml-confusion": "Matriz de confusión", "ml-leaderboard": "Ranking AutoML", "ml-forecast": "Pronóstico",
+  "ml-corr": "Matriz de correlación", "ml-pca": "Varianza explicada (PCA)", "ml-anomaly": "Distribución de atípicos", "ml-rules": "Reglas de asociación",
+  "ml-metrics": "Métricas del modelo", "ml-insights": "Lectura del resultado",
+};
+
+/** ¿La vista ML se puede dibujar con este resultado? (misma regla que frontend/js/ml-views.js) */
+function mlFits(type: string, r: Record<string, any>): boolean {
+  const b = r?.algorithm === "automl" && r.best ? r.best : r;
+  const cluster = ["kmeans", "hierarchical", "dbscan"].includes(b?.algorithm);
+  const cls = b?.task === "classification" || b?.algorithm === "logistic";
+  const reg = !cls && (b?.task === "regression" || b?.algorithm === "linear");
+  switch (type) {
+    case "ml-clustermap": case "ml-elbow": case "ml-segments": case "ml-profile": case "ml-sizes": return cluster;
+    case "ml-silhouette": return cluster && b.silhouette != null;
+    case "ml-actualpred": return reg && !!b.scatter?.length;
+    case "ml-importance": return !!b?.importance?.length;
+    case "ml-coefs": return !!b?.coefficients?.length;
+    case "ml-roc": return cls && !!b.roc?.length;
+    case "ml-confusion": return cls && !!b.confusion;
+    case "ml-leaderboard": return r?.algorithm === "automl";
+    case "ml-forecast": return r?.algorithm === "forecast";
+    case "ml-corr": return r?.algorithm === "correlation";
+    case "ml-pca": return r?.algorithm === "pca";
+    case "ml-anomaly": return r?.algorithm === "anomaly";
+    case "ml-rules": return r?.algorithm === "rules";
+    case "ml-metrics": case "ml-insights": return true;
+    default: return false;
+  }
+}
+
+/** Primer hueco libre w×h en la rejilla de 24 columnas. */
+function freeSlot(objects: Array<Record<string, any>>, w: number, h: number): { x: number; y: number } {
+  const occ = (x: number, y: number) => objects.some((o) => x < (o.x ?? 0) + (o.w ?? 0) && x + w > (o.x ?? 0) && y < (o.y ?? 0) + (o.h ?? 0) && y + h > (o.y ?? 0));
+  for (let y = 0; y < 400; y++) for (let x = 0; x + w <= 24; x++) if (!occ(x, y)) return { x, y };
+  return { x: 0, y: objects.reduce((m, o) => Math.max(m, (o.y ?? 0) + (o.h ?? 0)), 0) };
+}
+
+const mlChartType = z.enum(Object.keys(ML_SIZES) as [string, ...string[]]).describe("Tipo de grafico de ML (ver list_chart_types).");
+const logicalCollections = z.enum(["groups", "packages", "hierarchies", "behaviors", "calendar-periods"]).describe("Coleccion del modelo logico.");
+
+export const platformTools: ContextTool[] = [
+  /* ============================ Catalogos ============================ */
+  {
+    name: "list_chart_types",
+    title: "Catalogo de tipos de grafico",
+    description: "Devuelve todos los tipos de objeto de hoja que se pueden crear (datos y Machine Learning) con su formato y tamano por defecto.",
+    inputShape: {},
+    handler: async () => toToolText(CHART_TYPES),
+  },
+  {
+    name: "list_ml_algorithms",
+    title: "Catalogo de algoritmos de ML",
+    description: "Devuelve los 24 algoritmos de Experimentos de ML con los params que acepta train_model (features, target, k, task, horizon…).",
+    inputShape: {},
+    handler: async () => toToolText(ML_ALGORITHMS),
+  },
+
+  /* ============================ Conexiones realizadas ============================ */
+  {
+    name: "list_all_connections",
+    title: "Conexiones realizadas (todas las apps)",
+    description: "Stack de TODAS las conexiones de datos creadas (en cualquier app), con app_name; secretos enmascarados. GET /api/v1/connections.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/connections")),
+  },
+  {
+    name: "browse_connection",
+    title: "Explorar una conexion",
+    description: "Explora objetos de una conexion. Athena: sin 'database' lista bases; con 'database' lista tablas con columnas. JDBC: tablas/vistas. S3: archivos CSV/Excel bajo 'prefix'. POST /api/v1/connections/{connId}/browse.",
+    inputShape: { connId: id("Id de la conexion."), database: z.string().optional().describe("Base (Athena)."), prefix: z.string().optional().describe("Prefijo/carpeta (S3).") },
+    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/browse`, pick(a, ["database", "prefix"]))),
+  },
+  {
+    name: "preview_connection",
+    title: "Validar extraccion (vista previa)",
+    description: "Extrae una muestra REAL de hasta 50 filas SIN cargarla al modelo y devuelve el script de carga equivalente (LIB CONNECT + SQL SELECT). Errores reales de la fuente en {ok:false,message}. POST /api/v1/connections/{connId}/preview.",
+    inputShape: {
+      connId: id("Id de la conexion."),
+      table: z.string().optional().describe("Tabla (SQL/Athena)."), database: z.string().optional().describe("Base (Athena)."),
+      query: z.string().optional().describe("Consulta SQL propia (reemplaza 'table')."), key: z.string().optional().describe("Objeto S3 (CSV/xlsx)."),
+      limit: z.number().optional().describe("LIMIT para el script de carga (default 1000)."), tableName: z.string().optional().describe("Nombre de la tabla destino."),
+    },
+    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/preview`, pick(a, ["table", "database", "query", "key", "limit", "tableName"]))),
+  },
+  {
+    name: "load_connection",
+    title: "Cargar datos desde una conexion",
+    description: "Trae datos de una conexion (de cualquier app) y los materializa como tabla del modelo de 'appId'. Reemplaza la tabla si ya existe y registra el origen: el script auto-generado queda con LIB CONNECT/SQL y run_script re-extrae. Devuelve {ok, message, table, replaced, script}. POST /api/v1/apps/{appId}/connections/{connId}/load.",
+    inputShape: {
+      ...appId, connId: id("Id de la conexion."),
+      table: z.string().optional(), database: z.string().optional(), query: z.string().optional(), key: z.string().optional(),
+      limit: z.number().optional().describe("Max filas (default 1000)."), tableName: z.string().optional().describe("Nombre de la tabla destino."),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/connections/${E(a.connId)}/load`, pick(a, ["table", "database", "query", "key", "limit", "tableName"]))),
+  },
+  {
+    name: "delete_connection",
+    title: "Borrar conexion",
+    description: "ACCION DESTRUCTIVA: elimina una conexion (deja de estar disponible en todas las apps). DELETE /api/v1/apps/{appId}/connections/{connId}.",
+    inputShape: { ...appId, connId: id("Id de la conexion.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/connections/${E(a.connId)}`)),
+  },
+
+  /* ============================ Datos ============================ */
+  {
+    name: "upload_table",
+    title: "Subir archivo (CSV/Excel) como tabla",
+    description: "Sube un archivo local (.csv, .xlsx, .xls) a una app y lo materializa como tabla. POST multipart /api/v1/apps/{appId}/tables.",
+    inputShape: { ...appId, filePath: id("Ruta absoluta del archivo en el equipo donde corre el MCP.") },
+    handler: async (a) => {
+      const path = String(a.filePath);
+      const buf = await readFile(path);
+      const form = new FormData();
+      form.append("file", new Blob([buf]), basename(path));
+      return toToolText(await postForm(`${A(a.appId)}/tables`, form));
+    },
+  },
+  {
+    name: "delete_table",
+    title: "Borrar tabla",
+    description: "ACCION DESTRUCTIVA: elimina una tabla del modelo. DELETE /api/v1/apps/{appId}/tables/{tableId}.",
+    inputShape: { ...appId, tableId: id("Id de la tabla.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/tables/${E(a.tableId)}`)),
+  },
+  {
+    name: "get_field_overrides",
+    title: "Preparacion de campos (leer)",
+    description: "Renombres, tipos forzados y campos ocultos de una tabla. GET /api/v1/apps/{appId}/tables/{tableId}/field-overrides.",
+    inputShape: { ...appId, tableId: id("Id de la tabla.") },
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/tables/${E(a.tableId)}/field-overrides`)),
+  },
+  {
+    name: "set_field_overrides",
+    title: "Preparacion de campos (guardar)",
+    description: "Reemplaza la preparacion de campos: [{source_field, rename?, forced_type? (text|number|date), hidden?}]. PUT /api/v1/apps/{appId}/tables/{tableId}/field-overrides.",
+    inputShape: { ...appId, tableId: id("Id de la tabla."), overrides: z.array(z.record(z.string(), z.any())).describe("Lista de overrides.") },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/tables/${E(a.tableId)}/field-overrides`, a.overrides)),
+  },
+
+  /* ============================ Asociaciones ============================ */
+  {
+    name: "recommend_associations",
+    title: "Asociaciones recomendadas",
+    description: "Asociaciones entre tablas por campos con el mismo nombre (con confianza). GET /api/v1/apps/{appId}/associations/recommend.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/associations/recommend`)),
+  },
+  {
+    name: "list_associations",
+    title: "Asociaciones guardadas",
+    description: "GET /api/v1/apps/{appId}/associations.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/associations`)),
+  },
+  {
+    name: "save_association",
+    title: "Crear o aceptar asociacion",
+    description: "mode=create: crea una asociacion personalizada; mode=accept: acepta una recomendada. Body {left_table, right_table, fields:[...], ...}. POST|PUT /api/v1/apps/{appId}/associations.",
+    inputShape: { ...appId, mode: z.enum(["create", "accept"]).describe("create|accept"), association: free("Cuerpo de la asociacion.") },
+    handler: async (a) => toToolText(a.mode === "accept"
+      ? await put(`${A(a.appId)}/associations`, a.association)
+      : await post(`${A(a.appId)}/associations`, a.association)),
+  },
+  {
+    name: "delete_association",
+    title: "Borrar asociacion",
+    description: "DELETE /api/v1/apps/{appId}/associations/{assocId}.",
+    inputShape: { ...appId, assocId: id("Id de la asociacion.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/associations/${E(a.assocId)}`)),
+  },
+
+  /* ============================ Elementos maestros ============================ */
+  {
+    name: "list_master_items",
+    title: "Elementos maestros",
+    description: "Dimensiones y medidas maestras. kind opcional dimension|measure. GET /api/v1/apps/{appId}/master-items.",
+    inputShape: { ...appId, kind: z.enum(["dimension", "measure"]).optional() },
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/master-items${a.kind ? `?kind=${E(a.kind)}` : ""}`)),
+  },
+  {
+    name: "save_master_item",
+    title: "Crear/editar elemento maestro",
+    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression (ej. Sum([Ventas])), description?}. POST|PUT /api/v1/apps/{appId}/master-items.",
+    inputShape: {
+      ...appId, itemId: z.string().optional().describe("Id para actualizar."),
+      kind: z.enum(["dimension", "measure"]).optional(), name: z.string().optional(), expression: z.string().optional(), description: z.string().optional(),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["kind", "name", "expression", "description"]);
+      return toToolText(a.itemId ? await put(`${A(a.appId)}/master-items/${E(a.itemId)}`, body) : await post(`${A(a.appId)}/master-items`, body));
+    },
+  },
+  {
+    name: "delete_master_item",
+    title: "Borrar elemento maestro",
+    description: "DELETE /api/v1/apps/{appId}/master-items/{itemId}.",
+    inputShape: { ...appId, itemId: id("Id del elemento.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/master-items/${E(a.itemId)}`)),
+  },
+  {
+    name: "parse_expression",
+    title: "Validar expresion fx",
+    description: "Valida una expresion (ej. Sum([Ventas])/Count([Cliente])) contra los campos de la app. POST /api/v1/apps/{appId}/expressions/parse.",
+    inputShape: { ...appId, expression: id("Expresion."), kind: z.enum(["dimension", "measure"]).optional().describe("default measure") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/parse`, { kind: String(a.kind ?? "measure"), expression: String(a.expression) })),
+  },
+
+  /* ============================ Modelo logico ============================ */
+  {
+    name: "get_logical_model",
+    title: "Modelo logico (leer)",
+    description: "Documento del modelo logico (Business Logic): campos clasificados, grupos, paquetes, jerarquias, comportamientos, periodos de calendario. GET /api/v1/apps/{appId}/logical-model.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/logical-model`)),
+  },
+  {
+    name: "set_logical_model",
+    title: "Modelo logico (guardar documento)",
+    description: "Reemplaza el documento completo del modelo logico. PUT /api/v1/apps/{appId}/logical-model.",
+    inputShape: { ...appId, document: free("Documento del modelo logico.") },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/logical-model`, a.document)),
+  },
+  {
+    name: "logical_model_action",
+    title: "Modelo logico: reset/activar/desactivar",
+    description: "POST /api/v1/apps/{appId}/logical-model/{reset|enable|disable}.",
+    inputShape: { ...appId, action: z.enum(["reset", "enable", "disable"]) },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/logical-model/${a.action}`)),
+  },
+  {
+    name: "logical_model_item",
+    title: "Modelo logico: crear/editar/borrar elemento",
+    description: "op=create|update|delete sobre groups|packages|hierarchies|behaviors|calendar-periods. update/delete requieren itemId. POST|PUT|DELETE /api/v1/apps/{appId}/logical-model/{collection}[/{id}].",
+    inputShape: { ...appId, collection: logicalCollections, op: z.enum(["create", "update", "delete"]), itemId: z.string().optional(), item: free("Cuerpo del elemento.").optional() },
+    handler: async (a) => {
+      const base = `${A(a.appId)}/logical-model/${a.collection}`;
+      if (a.op === "create") return toToolText(await post(base, a.item ?? {}));
+      if (!a.itemId) throw new Error("itemId es obligatorio para update/delete.");
+      return toToolText(a.op === "update" ? await put(`${base}/${E(a.itemId)}`, a.item ?? {}) : await del(`${base}/${E(a.itemId)}`));
+    },
+  },
+
+  /* ============================ Hojas ============================ */
+  {
+    name: "delete_sheet",
+    title: "Borrar hoja",
+    description: "ACCION DESTRUCTIVA: elimina una hoja. DELETE /api/v1/apps/{appId}/sheets/{sheetId}.",
+    inputShape: { ...appId, sheetId: id("Id de la hoja.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/sheets/${E(a.sheetId)}`)),
+  },
+  {
+    name: "set_sheet_visibility",
+    title: "Publicar / privatizar hoja",
+    description: "visibility = privada|publica|comunidad. PUT /api/v1/apps/{appId}/sheets/{sheetId}/visibility.",
+    inputShape: { ...appId, sheetId: id("Id de la hoja."), visibility: id("privada|publica|comunidad") },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/sheets/${E(a.sheetId)}/visibility`, { visibility: String(a.visibility) })),
+  },
+  {
+    name: "add_ml_chart",
+    title: "Anadir grafico de ML a una hoja",
+    description: "Anade un grafico de Machine Learning (ml-clustermap, ml-elbow, ml-silhouette, ml-segments, ml-roc, ml-confusion, ml-actualpred, ml-forecast…) a una hoja existente, ligado a una ejecucion guardada. Valida que el grafico aplique al resultado. Sin x/y lo coloca en el primer hueco libre. Si la hoja la creo associate_ml_run y no se pasa runId, usa su ejecucion.",
+    inputShape: {
+      ...appId, sheetId: id("Id de la hoja."), type: mlChartType,
+      experimentId: z.string().optional(), runId: z.string().optional(), title: z.string().optional(),
+      x: z.number().optional(), y: z.number().optional(), w: z.number().optional(), h: z.number().optional(),
+      look: free("Presentacion: {legend, tooltip, mlPalette: datasense|sense}.").optional(),
+    },
+    handler: async (a) => {
+      const sheets = (await get(`${A(a.appId)}/sheets`)) as Array<Record<string, any>>;
+      const sheet = sheets.find((s) => s.id === a.sheetId);
+      if (!sheet) throw new Error(`Hoja no encontrada: ${a.sheetId}`);
+      let expId = a.experimentId as string | undefined, runId = a.runId as string | undefined;
+      if (!runId && sheet.props?.ml?.ejecucionId) { expId = sheet.props.ml.experimentoId; runId = sheet.props.ml.ejecucionId; }
+      if (!expId || !runId) throw new Error("Indica experimentId y runId (list_experiments / get_experiment).");
+      const result = (await get(`/api/v1/ml/experiments/${E(expId)}/runs/${E(runId)}`)) as Record<string, any>;
+      const type = String(a.type);
+      if (!mlFits(type, result)) throw new Error(`El grafico ${type} no aplica a una ejecucion de ${result.algorithm}${result.task ? " (" + result.task + ")" : ""}.`);
+      const [dw, dh] = ML_SIZES[type];
+      const w = Number(a.w ?? dw), h = Number(a.h ?? dh);
+      const objects = (sheet.objects || []) as Array<Record<string, any>>;
+      const pos = a.x !== undefined && a.y !== undefined ? { x: Number(a.x), y: Number(a.y) } : freeSlot(objects, w, h);
+      const obj = {
+        id: `ml${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`, type, ...pos, w, h,
+        props: { title: a.title ?? ML_TITLES[type], dims: [], measures: [], ml: { experimentId: expId, runId }, ...(a.look ? { look: a.look } : {}) },
+      };
+      const saved = await put(`${A(a.appId)}/sheets/${E(a.sheetId)}`, {
+        title: sheet.title, description: sheet.description, objects: [...objects, obj], props: { ...(sheet.props || {}), ...(pos.y + h > 18 ? { extend: true } : {}) },
+      }) as Record<string, any>;
+      return toToolText({ ok: true, added: obj, sheet: { id: saved.id, title: saved.title, objects: saved.objects?.length } });
+    },
+  },
+
+  /* ============================ Experimentos de ML ============================ */
+  {
+    name: "list_experiments",
+    title: "Experimentos de ML",
+    description: "Lista experimentos con app, tabla, n de ejecuciones y ultimo algoritmo. GET /api/v1/ml/experiments.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/ml/experiments")),
+  },
+  {
+    name: "create_experiment",
+    title: "Crear experimento de ML",
+    description: "Crea un experimento sobre una tabla de una app. {appId, name, description?, table? (id o nombre)}. POST /api/v1/ml/experiments.",
+    inputShape: { ...appId, name: id("Nombre."), description: z.string().optional(), table: z.string().optional().describe("Id o nombre de la tabla.") },
+    handler: async (a) => toToolText(await post("/api/v1/ml/experiments", pick(a, ["appId", "name", "description", "table"]))),
+  },
+  {
+    name: "get_experiment",
+    title: "Detalle de experimento",
+    description: "Experimento con tablas de la app, perfil del dataset (campos numericos/categoricos/fechas) y lista de ejecuciones (runList). GET /api/v1/ml/experiments/{id}.",
+    inputShape: { experimentId: id("Id del experimento.") },
+    handler: async (a) => toToolText(await get(`/api/v1/ml/experiments/${E(a.experimentId)}`)),
+  },
+  {
+    name: "update_experiment",
+    title: "Editar experimento",
+    description: "{name?, description?, table?}. PUT /api/v1/ml/experiments/{id}.",
+    inputShape: { experimentId: id("Id del experimento."), name: z.string().optional(), description: z.string().optional(), table: z.string().optional() },
+    handler: async (a) => toToolText(await put(`/api/v1/ml/experiments/${E(a.experimentId)}`, pick(a, ["name", "description", "table"]))),
+  },
+  {
+    name: "delete_experiment",
+    title: "Borrar experimento",
+    description: "ACCION DESTRUCTIVA: elimina el experimento y sus ejecuciones. DELETE /api/v1/ml/experiments/{id}.",
+    inputShape: { experimentId: id("Id del experimento.") },
+    handler: async (a) => toToolText(await del(`/api/v1/ml/experiments/${E(a.experimentId)}`)),
+  },
+  {
+    name: "train_model",
+    title: "Entrenar modelo (ejecucion de ML)",
+    description: "Entrena un algoritmo en el experimento y guarda la ejecucion (runId). {algorithm, params, label?, save?}. Ver list_ml_algorithms. Con params.input devuelve la prediccion de un caso sin guardar. POST /api/v1/ml/experiments/{id}/runs.",
+    inputShape: {
+      experimentId: id("Id del experimento."), algorithm: id("kmeans|hierarchical|dbscan|pca|correlation|anomaly|rules|linear|ridge|lasso|poly|tree|forest|gbm|knn|logistic|bayes|forecast|automl"),
+      params: free("Parametros (features, target, task, k, horizon…)."), label: z.string().optional(), save: z.boolean().optional(),
+    },
+    handler: async (a) => toToolText(await post(`/api/v1/ml/experiments/${E(a.experimentId)}/runs`, pick(a, ["algorithm", "params", "label", "save"]))),
+  },
+  {
+    name: "get_ml_run",
+    title: "Resultado de una ejecucion",
+    description: "Resultado completo de una ejecucion guardada (metricas, segmentos, coeficientes, lectura…). GET /api/v1/ml/experiments/{id}/runs/{runId}.",
+    inputShape: { experimentId: id("Id del experimento."), runId: id("Id de la ejecucion.") },
+    handler: async (a) => toToolText(await get(`/api/v1/ml/experiments/${E(a.experimentId)}/runs/${E(a.runId)}`)),
+  },
+  {
+    name: "delete_ml_run",
+    title: "Borrar ejecucion",
+    description: "DELETE /api/v1/ml/experiments/{id}/runs/{runId}.",
+    inputShape: { experimentId: id("Id del experimento."), runId: id("Id de la ejecucion.") },
+    handler: async (a) => toToolText(await del(`/api/v1/ml/experiments/${E(a.experimentId)}/runs/${E(a.runId)}`)),
+  },
+  {
+    name: "associate_ml_run",
+    title: "Asociar a (ML -> tabla del modelo + hoja)",
+    description: "Lleva una ejecucion a una app: crea la tabla ML_... con el resultado por registro (segmento, prediccion, probabilidad, atipico) enlazada por clave, y una hoja con graficos de ML (mapa de clusters, silueta, ROC…) y de datos; el analista IA puede explicarla. Re-asociar reemplaza tabla y hoja. {appId? (default la del experimento), sheetTitle?}. POST /api/v1/ml/experiments/{id}/runs/{runId}/associate.",
+    inputShape: { experimentId: id("Id del experimento."), runId: id("Id de la ejecucion."), appId: z.string().optional(), sheetTitle: z.string().optional() },
+    handler: async (a) => toToolText(await post(`/api/v1/ml/experiments/${E(a.experimentId)}/runs/${E(a.runId)}/associate`, pick(a, ["appId", "sheetTitle"]))),
+  },
+  {
+    name: "ml_datasets",
+    title: "Tablas de una app para ML",
+    description: "Tablas con campos agrupados (numeric, categorical, dates). GET /api/v1/apps/{appId}/ml/datasets.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/ml/datasets`)),
+  },
+
+  /* ============================ Colecciones ============================ */
+  {
+    name: "list_collections",
+    title: "Colecciones",
+    description: "GET /api/v1/collections.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/collections")),
+  },
+  {
+    name: "create_collection",
+    title: "Crear coleccion",
+    description: "{name, description?}. POST /api/v1/collections.",
+    inputShape: { name: id("Nombre."), description: z.string().optional() },
+    handler: async (a) => toToolText(await post("/api/v1/collections", pick(a, ["name", "description"]))),
+  },
+  {
+    name: "delete_collection",
+    title: "Borrar coleccion",
+    description: "DELETE /api/v1/collections/{id}.",
+    inputShape: { collectionId: id("Id de la coleccion.") },
+    handler: async (a) => toToolText(await del(`/api/v1/collections/${E(a.collectionId)}`)),
+  },
+];
