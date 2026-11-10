@@ -65,6 +65,13 @@ export const ML_VIEWS = [
   { type: "ml-insights", fam: "general", icon: "mlinsight", label: "Lectura del resultado", desc: "Interpretación en lenguaje claro.", size: { w: 12, h: 5 }, fits: () => true },
 ];
 export const getMlView = (type) => ML_VIEWS.find((v) => v.type === type) || null;
+
+/** Definiciones de tipo de objeto de hoja (mismo formato que chart-types.js). */
+export const ML_TYPE_DEFS = ML_VIEWS.map((v) => ({
+  type: v.type, label: v.label, icon: v.icon, group: "ml", mlFamily: v.fam, desc: v.desc, available: true, render: "ml", noData: true, ml: true,
+  roles: { dims: { min: 0, max: 0, labels: [] }, measures: { min: 0, max: 0, labels: [] } },
+  size: v.size, axes: false, legend: true, presentation: ["mlLegend", "mlPalette"],
+}));
 export const isMlType = (type) => typeof type === "string" && type.startsWith("ml-");
 /** ¿Se puede dibujar esta vista con el resultado r? */
 export const viewFits = (type, r) => { const v = getMlView(type); return !!(v && r && v.fits(r)); };

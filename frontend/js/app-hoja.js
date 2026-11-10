@@ -13,7 +13,7 @@
 import * as api from "./api.js";
 import { svg } from "./hub-nav.js";
 import {
-  CHART_TYPES, GROUPS, getType, typeIcon, roleLabel, defaultProps, isComplete, PALETTE,
+  CHART_TYPES as BASE_TYPES, GROUPS as BASE_GROUPS, getType as baseGetType, typeIcon, roleLabel, defaultProps, isComplete, PALETTE,
 } from "./chart-types.js";
 import {
   buildQuery, mergeSelections, renderChart, renderKpi, renderTable, renderFilterPane, renderText,
@@ -23,7 +23,14 @@ import {
   esc, fmt,
 } from "./hoja-render.js";
 import { TEMPLATES, TEMPLATE_CATEGORIES, GRID_COLS, GRID_ROWS, layoutThumb } from "./hoja-templates.js";
-import { renderMlView, ML_FAMILIES, ML_VIEWS, getMlView, isMlType, runMatches, algoName } from "./ml-views.js";
+import { renderMlView, ML_FAMILIES, ML_VIEWS, ML_TYPE_DEFS, getMlView, isMlType, runMatches, algoName } from "./ml-views.js";
+
+// Los gráficos de ML se registran aquí también: si el navegador conserva en memoria un
+// chart-types.js anterior (pestaña abierta antes de actualizar), siguen disponibles.
+const CHART_TYPES = [...BASE_TYPES.filter((t) => t.group !== "ml"), ...ML_TYPE_DEFS];
+const GROUPS = BASE_GROUPS.some((g) => g.key === "ml") ? BASE_GROUPS
+  : [BASE_GROUPS[0], { key: "ml", label: "Machine Learning" }, ...BASE_GROUPS.slice(1)];
+const getType = (type) => baseGetType(type) || ML_TYPE_DEFS.find((d) => d.type === type) || null;
 import { mountEstrellita } from "./estrellita.js";
 
 const MAX_ROWS = 200;
@@ -1280,16 +1287,21 @@ export async function render(mount, ctx) {
     scheduleSave();
   }
 
-  /** Clic en un gráfico ML del panel: lo coloca en el primer hueco libre. */
-  function addMlObject(type) {
+  /** Clic en un gráfico del panel (Gráficos u Objetos personalizados): lo coloca en el primer hueco libre. */
+  function addTypeObject(type) {
     const def = getType(type);
-    if (!def || !st.sheet) return;
-    const slot = findFreeSlot(def.size.w, def.size.h);
-    if (!slot) { status("No hay espacio libre en la hoja. Active «Ampliar hoja» o reduzca otros objetos.", true); return; }
+    if (!def || !def.available || !st.sheet || !st.edit) return;
+    let slot = findFreeSlot(def.size.w, def.size.h);
+    if (!slot && !st.sheet.props.extend) {
+      // Sin hueco en la hoja fija: se amplía la hoja (como al soltar debajo del borde).
+      st.sheet.props.extend = true;
+      slot = findFreeSlot(def.size.w, def.size.h);
+    }
+    if (!slot) { status("No hay espacio libre en la hoja. Reduzca o mueva otros objetos.", true); return; }
     const obj = { id: uid(), type, ...slot, props: defaultProps(type) };
     pushHistory();
     st.sheet.objects.push(obj);
-    assignMlDefault(obj);
+    if (isMlType(type)) assignMlDefault(obj);
     st.selectedId = obj.id;
     st.accordion = "datos";
     relayout();
@@ -1506,16 +1518,26 @@ export async function render(mount, ctx) {
         <details class="ho-as-sec"><summary>Visualizaciones</summary><div class="ho-as-none">${SOON}</div></details>
         <details open class="ho-as-sec"><summary>Estados alternos</summary><div class="ho-as-none">&lt;estado predeterminado&gt;</div></details>`;
     } else if (key === "graficos") {
-      html = head("Gráficos") + search() + GROUPS.map((g) => `
-        <details open class="ho-as-sec"><summary>${esc(g.label)}</summary>
-          ${CHART_TYPES.filter((t) => t.group === g.key).map((t) => `
-            <div class="ho-chart-item ${t.available ? "" : "soon"}" ${t.available ? `draggable="true"` : ""} data-type="${t.type}" data-filter="${esc(t.label.toLowerCase())}"
-                 title="${t.available ? "Arrastre a la hoja" : SOON}">
+      const item = (t, extra = "") => `
+            <div class="ho-chart-item ${t.available ? "" : "soon"}" ${t.available ? `draggable="true" data-add-type="${t.type}"` : ""} data-type="${t.type}" data-filter="${esc((t.label + " " + extra + " " + (t.desc || "")).toLowerCase())}"
+                 title="${t.available ? (t.desc ? esc(t.desc) + " · " : "") + "Clic para añadir o arrastre a la hoja" : SOON}">
               <span class="ho-chart-ico">${typeIcon(t.icon)}</span>
               <span>${esc(t.label)}</span>
               ${t.available ? `<span class="ho-grip">⋮⋮</span>` : `<span class="ho-soon-tag">${SOON}</span>`}
-            </div>`).join("")}
-        </details>`).join("");
+            </div>`;
+      html = head("Gráficos") + search() + GROUPS.map((g) => {
+        if (g.key === "ml") {
+          return `<details open class="ho-as-sec"><summary>${esc(g.label)}</summary>
+            ${ML_FAMILIES.map((fam) => {
+              const items = CHART_TYPES.filter((t) => t.group === "ml" && t.mlFamily === fam.key);
+              return items.length ? `<div class="ho-as-sub mlv-fam" data-filter="${esc(fam.label.toLowerCase())} ${items.map((t) => esc(t.label.toLowerCase())).join(" ")}">${esc(fam.label)}</div>${items.map((t) => item(t, "machine learning ml " + fam.label)).join("")}` : "";
+            }).join("")}
+          </details>`;
+        }
+        return `<details open class="ho-as-sec"><summary>${esc(g.label)}</summary>
+          ${CHART_TYPES.filter((t) => t.group === g.key).map((t) => item(t)).join("")}
+        </details>`;
+      }).join("");
     } else if (key === "analisis") {
       html = head("Análisis") + search() + `<div class="ho-as-note">Los análisis asistidos llegarán con la capa de IA. ${SOON}.</div>` +
         ANALYSES.map((n) => `<div class="ho-chart-item soon" data-filter="${esc(n.toLowerCase())}"><span class="ho-chart-ico">${typeIcon("line")}</span><span>${esc(n)}</span></div>`).join("");
@@ -1566,7 +1588,8 @@ export async function render(mount, ctx) {
     }));
     a.querySelector("#hoNewSheet")?.addEventListener("click", () => openTemplates());
 
-    a.querySelectorAll("[data-ml-add]").forEach((it) => it.addEventListener("click", () => addMlObject(it.dataset.mlAdd)));
+    a.querySelectorAll("[data-ml-add]").forEach((it) => it.addEventListener("click", () => addTypeObject(it.dataset.mlAdd)));
+    a.querySelectorAll("[data-add-type]").forEach((it) => it.addEventListener("click", () => addTypeObject(it.dataset.addType)));
     a.querySelectorAll(".ho-chart-item[draggable='true']").forEach((it) => {
       it.addEventListener("dragstart", (e) => {
         dragPayload = { kind: "type", type: it.dataset.type };

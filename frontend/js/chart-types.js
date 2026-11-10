@@ -9,7 +9,7 @@
 // solo se dibuja lo que devuelve. Los tipos con available:false se muestran en el
 // catálogo en gris con "Próximamente": no se pueden arrastrar.
 
-import { ML_VIEWS } from "./ml-views.js";
+import { ML_TYPE_DEFS } from "./ml-views.js";
 
 export const PALETTE = [
   "#0a8f3c", "#1f6feb", "#f0a132", "#c0392b", "#8e44ad",
@@ -305,14 +305,11 @@ const DEFS = [
 // ---------------- Machine Learning (objetos personalizados) ----------------
 // Dibujan una ejecución guardada de Experimentos de ML (props.ml = {experimentId, runId});
 // no usan dimensiones/medidas del modelo asociativo. Se ofrecen en "Objetos personalizados".
-ML_VIEWS.forEach((v) => DEFS.push({
-  type: v.type, label: v.label, icon: v.icon, group: "ml", mlFamily: v.fam, desc: v.desc, available: true, render: "ml", noData: true, ml: true,
-  roles: { dims: { min: 0, max: 0, labels: [] }, measures: { min: 0, max: 0, labels: [] } },
-  size: v.size, axes: false, legend: true, presentation: ["mlLegend", "mlPalette"],
-}));
+ML_TYPE_DEFS.forEach((d) => DEFS.push(d));
 
 export const GROUPS = [
   { key: "viz", label: "Visualizaciones" },
+  { key: "ml", label: "Machine Learning" },
   { key: "dash", label: "Objetos del cuadro de mando" },
   { key: "legacy", label: "Heredado" },
 ];
