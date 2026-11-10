@@ -167,6 +167,57 @@ public class MlService {
         return out;
     }
 
+    /* ===================================================================== */
+    /* Puntuación por fila ("Asociar a una app")                              */
+    /* ===================================================================== */
+
+    /**
+     * Parámetro interno: cuando viene a {@code true}, el algoritmo adjunta al
+     * resultado {@code __cols} (nombres) y {@code __rows} (una fila de salida por
+     * cada fila del DataFrame de entrada, {@code null} si la fila no se pudo
+     * puntuar). Solo lo usa el endpoint de asociación; nunca se guarda.
+     */
+    static final String SCORE = "__score";
+
+    static boolean scoring(Map<String, Object> p) { return p != null && bool(p, SCORE, false); }
+
+    static int[] colIndex(DataFrame df, List<String> cols) {
+        int[] ci = new int[cols.size()];
+        for (int i = 0; i < ci.length; i++) {
+            ci[i] = df.indexOf(cols.get(i));
+            if (ci[i] < 0) throw new IllegalArgumentException("Campo no encontrado: " + cols.get(i));
+        }
+        return ci;
+    }
+
+    /** Valores numéricos de una fila para las columnas dadas, o {@code null} si falta alguno. */
+    static double[] rowNums(List<String> row, int[] ci) {
+        double[] v = new double[ci.length];
+        for (int j = 0; j < ci.length; j++) {
+            Double d = parse(ci[j] < row.size() ? row.get(ci[j]) : null);
+            if (d == null) return null;
+            v[j] = d;
+        }
+        return v;
+    }
+
+    static List<String> nulls(int n) {
+        List<String> l = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) l.add(null);
+        return l;
+    }
+
+    /** Número como texto plano (sin notación científica), redondeado a 4 decimales. */
+    static String sv(double v) {
+        if (Double.isNaN(v) || Double.isInfinite(v)) return null;
+        return java.math.BigDecimal.valueOf(Math.round(v * 1e4) / 1e4).stripTrailingZeros().toPlainString();
+    }
+
+    static void attachRows(Map<String, Object> out, List<String> cols, List<List<String>> rows) {
+        out.put("__cols", cols);
+        out.put("__rows", rows);
+    }
+
     static void requireRows(int n, int min) {
         if (n < min) throw new IllegalArgumentException("Se necesitan al menos " + min + " filas completas y hay " + n + ". Revisa valores vacíos en las variables elegidas.");
     }
@@ -366,6 +417,22 @@ public class MlService {
                 "projection", points, "explained", List.of(r(evSum == 0 ? 0 : ev[0] / evSum), r(evSum == 0 || dim < 2 ? 0 : ev[1] / evSum)),
                 "sample", sample, "insights", insights);
 
+        if (scoring(p)) {
+            // Asignación de cada fila al centroide más cercano (misma escala que el ajuste).
+            int[] ci = colIndex(df, feats);
+            List<List<String>> rows = new ArrayList<>(df.rowCount());
+            for (List<String> row : df.rows()) {
+                double[] v = rowNums(row, ci);
+                if (v == null) { rows.add(nulls(2)); continue; }
+                double[] zi = new double[dim];
+                for (int j = 0; j < dim; j++) zi[j] = (v[j] - mu[j]) / sg[j];
+                int best = 0; double bd = Double.MAX_VALUE;
+                for (int c = 0; c < k; c++) { double dd = dist2(zi, centZ[c]); if (dd < bd) { bd = dd; best = c; } }
+                rows.add(Arrays.asList(clusterNames.get(best), sv(Math.sqrt(bd))));
+            }
+            attachRows(out, List.of("Segmento", "Distancia al centro"), rows);
+        }
+
         Map<String, Double> in = inputMap(p);
         if (in != null) {
             double[] zi = new double[dim];
@@ -524,6 +591,20 @@ public class MlService {
         Map<String, Object> out = map("algorithm", "linear", "n", n, "target", target, "features", feats,
                 "equation", eq.toString(), "coefficients", coefs, "train", mTrain, "test", mTest, "adjR2", r(adj),
                 "scatter", scatter, "insights", insights);
+
+        if (scoring(p)) {
+            int[] ci = colIndex(df, feats);
+            int ti = df.indexOf(target);
+            List<List<String>> rows = new ArrayList<>(df.rowCount());
+            for (List<String> row : df.rows()) {
+                double[] v = rowNums(row, ci);
+                if (v == null) { rows.add(nulls(2)); continue; }
+                double pv = predictLin(fit.beta, v);
+                Double act = parse(row.get(ti));
+                rows.add(Arrays.asList(sv(pv), act == null ? null : sv(act - pv)));
+            }
+            attachRows(out, List.of("Prediccion " + target, "Error " + target), rows);
+        }
 
         Map<String, Double> in = inputMap(p);
         if (in != null) {
@@ -860,6 +941,19 @@ public class MlService {
                 "metrics", map("accuracy", r(acc), "precision", r(prec), "recall", r(rec), "f1", r(f1), "auc", auc, "baseline", r(majority)),
                 "confusion", map("tp", tp, "fp", fp, "tn", tn, "fn", fn), "roc", roc, "coefficients", coefs, "insights", insights);
 
+        if (scoring(p)) {
+            List<List<String>> rows = new ArrayList<>(df.rowCount());
+            for (List<String> row : df.rows()) {
+                double[] v = rowNums(row, fi);
+                if (v == null) { rows.add(nulls(2)); continue; }
+                double zz = w[0];
+                for (int j = 0; j < k; j++) zz += w[j + 1] * (v[j] - mu[j]) / sg[j];
+                double pr = sigmoid(zz);
+                rows.add(Arrays.asList(sv(pr), pr >= 0.5 ? posLabel : negLabel));
+            }
+            attachRows(out, List.of("Probabilidad", "Clase predicha"), rows);
+        }
+
         Map<String, Double> in = inputMap(p);
         if (in != null) {
             double zz = w[0];
@@ -951,8 +1045,26 @@ public class MlService {
         else insights.add("No hay valores que se salgan del patrón normal con este umbral; prueba bajándolo.");
         if (total / (double) n > 0.15) insights.add("Más del 15% marcado como atípico: el umbral puede ser muy bajo o la distribución muy asimétrica.");
 
-        return map("algorithm", "anomaly", "n", n, "features", feats, "method", method, "threshold", thr, "total", total,
+        Map<String, Object> out = map("algorithm", "anomaly", "n", n, "features", feats, "method", method, "threshold", thr, "total", total,
                 "stats", stats, "anomalies", found, "histogram", hist, "scatter", scatter, "insights", insights);
+        if (scoring(p)) {
+            int[] ci = colIndex(df, feats);
+            List<List<String>> rows = new ArrayList<>(df.rowCount());
+            for (List<String> row : df.rows()) {
+                double[] v = rowNums(row, ci);
+                if (v == null) { rows.add(nulls(2)); continue; }
+                boolean anyHit = false; double score = 0;
+                for (int j = 0; j < k; j++) {
+                    double zv = sdv[j] == 0 ? 0 : (v[j] - mean[j]) / sdv[j];
+                    boolean fz = Math.abs(zv) >= thr, fi = v[j] < low[j] || v[j] > high[j];
+                    boolean hit = switch (method) { case "zscore" -> fz; case "iqr" -> fi; default -> fz || fi; };
+                    if (hit) { anyHit = true; score = Math.max(score, Math.abs(zv)); }
+                }
+                rows.add(Arrays.asList(anyHit ? "Atípico" : "Normal", sv(score)));
+            }
+            attachRows(out, List.of("Atipico", "Puntaje atipico"), rows);
+        }
+        return out;
     }
 
     /* ===================================================================== */

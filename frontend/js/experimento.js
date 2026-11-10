@@ -27,6 +27,7 @@ const I = {
   classification: SV(`<path d="M3 19c7 0 7-14 18-14"/><path d="M3 12h18" stroke-dasharray="2 3"/>`),
   series: SV(`<path d="M3 17l5-5 4 3 4-6"/><path d="M16 9l5-4" stroke-dasharray="2 2.5"/><path d="M3 21h18"/>`),
   automl: SV(`<path d="M4 18h4V9H4zM10 18h4V5h-4zM16 18h4v-6h-4z"/>`),
+  link: SV(`<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>`),
 };
 
 wireAppsButton();
@@ -37,7 +38,7 @@ if (!ID) location.replace("experimentos.html");
 
 const root = document.getElementById("root");
 const st = { exp: null, ds: null, tab: "modelado", algo: null, cfg: null, result: null, running: false, error: null,
-  caseInput: {}, caseResult: null, caseError: null, filter: "", selected: new Set(), compare: null, positives: {} };
+  caseInput: {}, caseResult: null, caseError: null, filter: "", selected: new Set(), compare: null, positives: {}, assoc: null };
 const charts = [];
 const mk = (id, cfg) => { const el = document.getElementById(id); if (el && window.Chart) charts.push(new window.Chart(el, cfg)); };
 const killCharts = () => charts.splice(0).forEach((c) => { try { c.destroy(); } catch { /* noop */ } });
@@ -304,14 +305,76 @@ function drawResult(host) {
         <span class="ml-muted">${NF0.format(r.n)} registros · ${r.elapsedMs ?? "—"} ms${r.runId ? " · guardado en Ejecuciones" : ""}</span>
         <span class="ml-spacer"></span>
         <button class="ml-btn ghost small" id="csvBtn"><span class="ml-ic">${I.download}</span>Exportar CSV</button>
+        ${r.runId ? `<button class="ml-btn primary small" id="assocBtn" title="Llevar este resultado a una aplicación como tabla del modelo y hoja nueva"><span class="ml-ic">${I.link}</span>Asociar a…</button>` : ""}
       </div>
+      ${st.assoc && st.assoc.runId === r.runId ? `<div class="ml-note ok mx-assoc-ok"><span class="ml-ic">${I.link}</span><span>${esc(st.assoc.message)}</span>
+        <a class="ml-btn ghost small" href="app.html?app=${encodeURIComponent(st.assoc.appId)}&sheet=${encodeURIComponent(st.assoc.sheet.id)}#hoja">Abrir hoja</a></div>` : ""}
       ${out.html}
       ${r.insights?.length ? `<div class="ml-insights"><div class="ml-insights-t">Lectura del resultado</div><ul>${r.insights.map((i) => `<li>${esc(i)}</li>`).join("")}</ul></div>` : ""}
     </div>
     ${a.caseTest ? casePanel() : ""}`;
   out.draw?.(mk);
   host.querySelector("#csvBtn").addEventListener("click", () => { const x = exportRows(r, label); downloadCsv(x.name, x.head, x.rows); });
+  host.querySelector("#assocBtn")?.addEventListener("click", () => openAssociate(r));
   if (a.caseTest) bindCase(host);
+}
+
+/* ---- Asociar a una aplicación: tabla del modelo + hoja nueva ---- */
+const ASSOC_WHAT = {
+  segment: "el grupo asignado a cada registro", regression: "el valor estimado y el error de cada registro",
+  classification: "la probabilidad y la clase predicha de cada registro", anomaly: "la marca de atípico y su puntaje por registro",
+  series: "el histórico y el pronóstico por periodo", explore: "la tabla de resultados del análisis",
+};
+const assocWhat = (key) => {
+  const a = ALGOS[key];
+  if (key === "anomaly") return ASSOC_WHAT.anomaly;
+  if (a.family === "automl") return ASSOC_WHAT[a.task] || ASSOC_WHAT.regression;
+  return ASSOC_WHAT[a.family] || ASSOC_WHAT.explore;
+};
+
+async function openAssociate(r) {
+  const a = ALGOS[st.algo];
+  let apps = [];
+  try { apps = await api.listApps(); } catch { /* sigue con la del experimento */ }
+  if (!apps.some((x) => x.id === st.exp.app_id)) apps.unshift({ id: st.exp.app_id, name: st.exp.app_name });
+  const defTitle = `ML · ${a.name} · ${r.table || st.ds.name}`;
+  const bd = document.createElement("div");
+  bd.className = "mx-modal-bd";
+  bd.innerHTML = `
+    <div class="mx-modal" role="dialog" aria-modal="true" aria-labelledby="assocTitle">
+      <div class="mx-modal-h"><h3 id="assocTitle">Asociar resultado a una aplicación</h3><button class="mx-x" data-x aria-label="Cerrar">✕</button></div>
+      <div class="mx-modal-b">
+        <p class="ml-sub" style="margin:0">Se crea en la aplicación una tabla del modelo de datos con ${esc(assocWhat(st.algo))}, enlazada a <strong>${esc(r.table || st.ds.name)}</strong>, y una hoja nueva con KPIs y gráficos. El agente analista de la hoja podrá explicar el modelo.</p>
+        <label class="ml-lab"><span>Aplicación (catálogo)</span>
+          <select class="ml-input" id="assocApp">${apps.map((x) => `<option value="${esc(x.id)}" ${x.id === st.exp.app_id ? "selected" : ""}>${esc(x.name)}${x.id === st.exp.app_id ? " (origen de los datos)" : ""}</option>`).join("")}</select></label>
+        <p class="ml-muted" id="assocHint" style="margin:0;font-size:12.5px"></p>
+        <label class="ml-lab"><span>Título de la hoja</span><input class="ml-input" id="assocSheet" value="${esc(defTitle)}" maxlength="120"></label>
+        <p class="mx-err" id="assocErr" hidden></p>
+      </div>
+      <div class="mx-modal-f"><button class="ml-btn ghost" data-x>Cancelar</button><button class="ml-btn primary" id="assocGo"><span class="ml-ic">${I.link}</span>Asociar y crear hoja</button></div>
+    </div>`;
+  document.body.appendChild(bd);
+  const close = () => bd.remove();
+  bd.querySelectorAll("[data-x]").forEach((b) => b.addEventListener("click", close));
+  bd.addEventListener("click", (ev) => { if (ev.target === bd) close(); });
+  const sel = bd.querySelector("#assocApp"), hint = bd.querySelector("#assocHint");
+  const syncHint = () => { hint.textContent = sel.value === st.exp.app_id ? "Misma aplicación: la tabla se enlaza a la de origen por su clave única." : "Otra aplicación: la tabla incluye las columnas de origen para que la hoja sea autónoma."; };
+  sel.addEventListener("change", syncHint); syncHint();
+  bd.querySelector("#assocSheet").focus();
+  bd.querySelector("#assocGo").addEventListener("click", async (ev) => {
+    const btn = ev.currentTarget, err = bd.querySelector("#assocErr");
+    btn.disabled = true; btn.lastChild.textContent = "Asociando…"; err.hidden = true;
+    try {
+      const res = await api.associateExperimentRun(ID, r.runId, { appId: sel.value, sheetTitle: bd.querySelector("#assocSheet").value.trim() });
+      st.assoc = { ...res, runId: r.runId };
+      close();
+      killCharts();
+      drawResult(document.getElementById("resultArea"));
+    } catch (e2) {
+      err.textContent = e2.message || String(e2); err.hidden = false;
+      btn.disabled = false; btn.lastChild.textContent = "Asociar y crear hoja";
+    }
+  });
 }
 
 /* ---- Probar un caso ---- */

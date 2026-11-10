@@ -52,7 +52,35 @@ final class MlSupervised {
 
     private static Map<String, Object> single(DataFrame df, String algo, boolean cls, Map<String, Object> p) {
         Prep pr = prepare(df, p, cls);
-        return train(algo, cls, pr, p, true, inputMap(p));
+        Map<String, Object> out = train(algo, cls, pr, p, true, inputMap(p));
+        if (scoring(p)) attachScores(out, df, algo, pr, p);
+        return out;
+    }
+
+    /**
+     * Predicción por fila con el mismo modelo (mismo ajuste determinista que
+     * {@link #train}): probabilidad + clase en clasificación; valor estimado +
+     * error (real − estimado) en regresión.
+     */
+    static void attachScores(Map<String, Object> out, DataFrame df, String algo, Prep pr, Map<String, Object> p) {
+        Predictor m = fit(algo, pr, p, new ArrayList<>());
+        int[] ci = colIndex(df, pr.feats());
+        int ti = df.indexOf(pr.target());
+        List<List<String>> rows = new ArrayList<>(df.rowCount());
+        for (List<String> row : df.rows()) {
+            double[] v = rowNums(row, ci);
+            if (v == null) { rows.add(nulls(2)); continue; }
+            double pv = m.predict(v);
+            if (pr.cls()) {
+                double prob = Math.max(0, Math.min(1, pv));
+                rows.add(Arrays.asList(sv(prob), prob >= 0.5 ? pr.pos() : pr.neg()));
+            } else {
+                Double act = ti < 0 ? null : parse(row.get(ti));
+                rows.add(Arrays.asList(sv(pv), act == null ? null : sv(act - pv)));
+            }
+        }
+        attachRows(out, pr.cls() ? List.of("Probabilidad", "Clase predicha")
+                : List.of("Prediccion " + pr.target(), "Error " + pr.target()), rows);
     }
 
     /* ============================ Preparación ============================ */
@@ -439,6 +467,7 @@ final class MlSupervised {
                 "metric", cls ? "AUC" : "RMSE", "leaderboard", board, "bestAlgorithm", bestAlgo, "bestName", bestEntry.get("name"),
                 "best", best, "insights", ins);
         if (best.get("prediction") != null) out.put("prediction", best.get("prediction"));
+        if (scoring(p)) attachScores(out, df, bestAlgo, pr, hyper);
         return out;
     }
 }

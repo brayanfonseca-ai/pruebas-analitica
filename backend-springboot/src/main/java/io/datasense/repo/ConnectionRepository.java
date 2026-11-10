@@ -55,6 +55,50 @@ public class ConnectionRepository {
     }
 
     /**
+     * "Conexiones realizadas": TODAS las conexiones a las que el usuario tiene
+     * acceso (de cualquier app), con el nombre de la app donde se crearon.
+     * Config enmascarada.
+     */
+    public List<Map<String, Object>> listAll() {
+        return jdbc.query("SELECT c.id, c.app_id, c.name, c.connector, c.space, c.config_json, c.created_at, c.updated_at, a.name AS app_name "
+                        // JOIN: una conexión cuya app ya no existe no se ofrece en el stack.
+                        + "FROM connections c JOIN apps a ON a.id = c.app_id ORDER BY c.created_at DESC",
+                (rs, i) -> {
+                    Map<String, Object> m = mapRow.mapRow(rs, i);
+                    m.put("app_name", rs.getString("app_name"));
+                    return m;
+                });
+    }
+
+    /* ------------- Origen de las tablas cargadas desde una conexión ------------- */
+
+    /** Registra (o reemplaza) de qué conexión y con qué parámetros se cargó una tabla. */
+    public void saveTableSource(String tableId, String appId, String connId, String connName, String connector,
+                                Map<String, Object> params) {
+        jdbc.update("DELETE FROM table_sources WHERE table_id = ?", tableId);
+        jdbc.update("INSERT INTO table_sources (table_id, app_id, conn_id, conn_name, connector, params_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                tableId, appId, connId, connName, connector, write(params), Ids.now());
+    }
+
+    /** tableId -> {conn_id, conn_name, connector, params} de las tablas de una app cargadas por conexión. */
+    public Map<String, Map<String, Object>> tableSources(String appId) {
+        Map<String, Map<String, Object>> out = new LinkedHashMap<>();
+        jdbc.query("SELECT table_id, conn_id, conn_name, connector, params_json FROM table_sources WHERE app_id = ?", rs -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("conn_id", rs.getString("conn_id"));
+            m.put("conn_name", rs.getString("conn_name"));
+            m.put("connector", rs.getString("connector"));
+            m.put("params", parse(rs.getString("params_json")));
+            out.put(rs.getString("table_id"), m);
+        }, appId);
+        return out;
+    }
+
+    public void deleteTableSource(String tableId) {
+        jdbc.update("DELETE FROM table_sources WHERE table_id = ?", tableId);
+    }
+
+    /**
      * Devuelve la config SIN enmascarar de una conexión, para uso interno de los
      * executors (abrir la conexión real necesita los secretos). NO exponer por la
      * API: {@link #list(String)}/{@link #get(String)} siguen enmascarados.

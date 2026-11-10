@@ -89,6 +89,11 @@ Se navega con el **selector de vista** de la barra superior (atajos `Alt + Shift
 | Lógica de negocio | **Modelo lógico** | Clasificación de campos, jerarquías y períodos de calendario. |
 
 Además: asistente de IA flotante, conexiones reales (S3, Athena, JDBC, HTTP) y servidor MCP.
+En el Editor de carga, **Conexiones realizadas** lista todas las conexiones creadas; cada una
+abre un selector que valida la extracción con una muestra real y genera el script
+`LIB CONNECT TO … SQL SELECT …` en paralelo. En Experimentos de ML, **Asociar a…** lleva
+el resultado (segmentos, predicciones, atípicos, pronóstico) a una app como tabla del modelo
+y hoja nueva que el analista IA puede explicar.
 Cada módulo tiene su documento en [`docs/modulos/`](./docs/modulos).
 
 ## Experimentos de ML

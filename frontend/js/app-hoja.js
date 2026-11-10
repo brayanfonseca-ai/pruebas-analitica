@@ -373,11 +373,16 @@ export async function render(mount, ctx) {
       titulo: (o.props && o.props.title) || "",
       dims: (o.props?.dims || []).map((d) => itemLabel(d)),
       medidas: (o.props?.measures || []).map((m) => itemLabel(m)),
+      ...(o.type === "text" && o.props?.text ? { texto: o.props.text } : {}),
     }));
-    return {
-      tablero: { titulo: s?.title || "", objetos },
+    const ctxOut = {
+      tablero: { titulo: s?.title || "", descripcion: s?.description || "", objetos },
       selecciones: st.selections || {},
     };
+    // Hoja generada desde Experimentos de ML ("Asociar a"): el analista recibe el
+    // resumen del modelo (algoritmo, métricas, segmentos, lectura) para explicarlo.
+    if (s?.props?.ml) ctxOut.modeloML = s.props.ml;
+    return ctxOut;
   }
   function buildDisenadorContext() {
     return {
@@ -2642,8 +2647,10 @@ export async function render(mount, ctx) {
      ====================================================================== */
   await Promise.all([loadFields(), loadMasters()]);
   try { st.sheets = await api.listSheets(ctx.appId); } catch (e) { st.sheets = []; status(`No se pudieron cargar las hojas: ${e.message}`, true); }
+  // ?sheet=<id> (p. ej. al venir de "Asociar a" en Experimentos de ML) gana sobre la última abierta.
+  const wanted = new URLSearchParams(location.search).get("sheet");
   const lastId = localStorage.getItem(LS("last"));
-  openSheet(st.sheets.find((s) => s.id === lastId) || st.sheets[0] || null, { quiet: true });
+  openSheet(st.sheets.find((s) => s.id === wanted) || st.sheets.find((s) => s.id === lastId) || st.sheets[0] || null, { quiet: true });
 
   // Registrar el menú "···" del crumb (acciones de la hoja activa).
   registerSheetMenu();

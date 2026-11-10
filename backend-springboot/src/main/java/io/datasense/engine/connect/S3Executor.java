@@ -95,6 +95,37 @@ public class S3Executor implements ConnectionExecutor {
         }
     }
 
+    /** Lista los objetos CSV/.xlsx del bucket bajo el prefijo (config o params); máx. 1000. */
+    @Override
+    public Map<String, Object> browse(Map<String, Object> config, Map<String, Object> params) {
+        String bucket = AwsSupport.str(config.get("bucket"));
+        if (bucket.isBlank()) throw new IllegalArgumentException("Falta el bucket de S3.");
+        Map<String, Object> p = params == null ? Map.of() : params;
+        String prefix = AwsSupport.str(p.get("prefix"));
+        if (prefix.isBlank()) prefix = AwsSupport.str(config.get("prefix"));
+        try (S3Client s3 = client(config)) {
+            java.util.List<Map<String, Object>> items = new java.util.ArrayList<>();
+            String token = null;
+            do {
+                ListObjectsV2Request.Builder lb = ListObjectsV2Request.builder().bucket(bucket).maxKeys(1000);
+                if (!prefix.isBlank()) lb.prefix(prefix);
+                if (token != null) lb.continuationToken(token);
+                ListObjectsV2Response ls = s3.listObjectsV2(lb.build());
+                for (S3Object o : ls.contents()) {
+                    String k = o.key().toLowerCase();
+                    if (!(k.endsWith(".csv") || k.endsWith(".xlsx"))) continue;
+                    Map<String, Object> it = new java.util.LinkedHashMap<>();
+                    it.put("name", o.key());
+                    it.put("type", k.endsWith(".csv") ? "CSV" : "Excel");
+                    it.put("size", o.size());
+                    items.add(it);
+                }
+                token = Boolean.TRUE.equals(ls.isTruncated()) ? ls.nextContinuationToken() : null;
+            } while (token != null && items.size() < 1000);
+            return Map.of("level", "objects", "bucket", bucket, "items", items);
+        }
+    }
+
     /** Mensaje real de AWS: usa el detail message del SDK (NoSuchBucket/AccessDenied/region…). */
     static String awsMessage(Exception e) {
         String m = e.getMessage();

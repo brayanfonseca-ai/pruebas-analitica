@@ -115,6 +115,12 @@ public class AiController {
                 - Eres abierto: puedes razonar, comparar, sugerir siguientes pasos y dar recomendaciones, pero
                   siempre enfocado en estos datos y en este tablero, no en temas ajenos.
                 - Responde en español, en prosa fluida. Usa listas solo cuando aporten claridad.
+                - Si el contexto trae "modeloML", la hoja la generó un experimento de Machine Learning
+                  (botón "Asociar a"). Úsalo para explicar el modelo en lenguaje de negocio: qué algoritmo se
+                  usó, con qué variables, qué tan bueno es (métricas como silueta, R², AUC, exactitud, RMSE),
+                  qué significa cada segmento o predicción y en qué tabla del modelo quedó el resultado.
+                  Interpreta las métricas con criterio (p. ej. silueta < 0.25 = grupos poco definidos) y no
+                  inventes valores que no estén en "modeloML".
                 - Eres de solo lectura: NO emitas planes de acción ni bloques especiales; solo responde en prosa.""";
         return run(system, "Contexto del tablero (JSON) y pregunta del usuario. Responde a la pregunta usando este contexto como única fuente:\n", body, Mode.ANALIZAR);
     }

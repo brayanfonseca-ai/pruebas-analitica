@@ -5,6 +5,7 @@ import io.datasense.engine.Profiler;
 import io.datasense.engine.TableStore;
 import io.datasense.engine.connect.ConnectionExecutor;
 import io.datasense.engine.connect.ConnectionExecutors;
+import io.datasense.engine.connect.LoadScripts;
 import io.datasense.model.AppModels.ColumnProfile;
 import io.datasense.repo.AppRepository;
 import io.datasense.repo.ConnectionRepository;
@@ -131,10 +132,10 @@ public class ConnectionController {
     public Map<String, Object> load(@PathVariable String appId, @PathVariable String connId,
                                     @RequestBody(required = false) Map<String, Object> params) {
         requireApp(appId);
+        // "Conexiones realizadas": una conexión creada en cualquier app puede usarse
+        // para cargar datos en esta (el stack de conexiones es del usuario, no de la app).
         Map<String, Object> conn = repo.getRaw(connId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + connId));
-        if (!appId.equals(conn.get("app_id")))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + connId);
 
         String connector = str(conn.get("connector"));
         Map<String, Object> config = (Map<String, Object>) conn.getOrDefault("config", Map.of());
@@ -149,29 +150,43 @@ public class ConnectionController {
             if (df == null || df.columns().isEmpty())
                 return Map.of("ok", false, "message", "La carga no devolvió datos.");
 
-            String tableName = str(p.get("tableName"));
-            if (tableName.isBlank()) tableName = str(p.get("table"));
-            if (tableName.isBlank()) tableName = str(p.get("object"));
-            if (tableName.isBlank()) tableName = str(p.get("key"));
-            if (tableName.isBlank()) tableName = str(conn.get("name"));
-            if (tableName.isBlank()) tableName = "tabla";
+            String tableName = targetName(p, conn);
+
+            // Volver a cargar la misma tabla la reemplaza (no duplica nombres en el modelo).
+            boolean replaced = false;
+            for (Map<String, Object> t : tables.listTables(appId)) {
+                if (tableName.equals(t.get("name"))) {
+                    tables.deleteTable((String) t.get("id"));
+                    store.delete(appId, (String) t.get("id"));
+                    repo.deleteTableSource((String) t.get("id"));
+                    replaced = true;
+                }
+            }
 
             List<ColumnProfile> profiles = new ArrayList<>();
             for (int c = 0; c < df.columns().size(); c++) {
                 profiles.add(Profiler.profile(df.columns().get(c), df.columnValues(c)));
             }
             Map<String, Object> row = tables.createTable(appId, tableName, "conn:" + connector, profiles);
-            store.save(appId, (String) row.get("id"), df);
+            try { store.save(appId, (String) row.get("id"), df); }
+            catch (RuntimeException ex) { tables.deleteTable((String) row.get("id")); throw ex; }
+            Map<String, Object> stored = new LinkedHashMap<>(p);
+            stored.remove("maxRows");
+            repo.saveTableSource((String) row.get("id"), appId, connId, str(conn.get("name")), connector, stored);
 
             Map<String, Object> table = new LinkedHashMap<>();
             table.put("id", row.get("id"));
             table.put("name", tableName);
             table.put("rows", df.rowCount());
             table.put("fields", df.columns().size());
-            return Map.of("ok", true,
-                    "message", "Tabla " + tableName + " cargada (" + df.rowCount() + " filas, "
-                            + df.columns().size() + " columnas)",
-                    "table", table);
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("ok", true);
+            out.put("message", "Tabla " + tableName + (replaced ? " recargada (" : " cargada (") + df.rowCount() + " filas, "
+                    + df.columns().size() + " columnas)");
+            out.put("table", table);
+            out.put("replaced", replaced);
+            out.put("script", LoadScripts.block(str(conn.get("name")), connector, config, stored, tableName, df.columns()));
+            return out;
         } catch (Exception e) {
             return Map.of("ok", false, "message", message(e));
         }
@@ -199,7 +214,25 @@ public class ConnectionController {
         return missing;
     }
 
-    private static String message(Exception e) {
+    /** Nombre de la tabla destino: el indicado, o el de la tabla/objeto (sin carpeta ni extensión), o el de la conexión. */
+    static String targetName(Map<String, Object> p, Map<String, Object> conn) {
+        String n = str(p.get("tableName")).trim();
+        if (n.isBlank()) n = str(p.get("table")).trim();
+        if (n.isBlank()) {
+            String k = str(p.get("key")).isBlank() ? str(p.get("object")) : str(p.get("key"));
+            if (!k.isBlank()) {
+                k = k.substring(k.lastIndexOf('/') + 1);
+                int dot = k.lastIndexOf('.');
+                n = dot > 0 ? k.substring(0, dot) : k;
+            }
+        }
+        if (n.contains(".")) n = n.substring(n.lastIndexOf('.') + 1); // esquema.tabla -> tabla
+        n = n.replace("\"", "").trim();
+        if (n.isBlank()) n = str(conn.get("name"));
+        return n.isBlank() ? "tabla" : n;
+    }
+
+    static String message(Exception e) {
         String m = e.getMessage();
         return (m == null || m.isBlank()) ? e.getClass().getSimpleName() : m;
     }

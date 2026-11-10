@@ -33,6 +33,15 @@ public interface ConnectionExecutor {
     /** Id del conector que maneja este executor (p.ej. "s3", "postgres"). */
     String type();
 
+    /**
+     * Explora los objetos disponibles (bases de datos, tablas, archivos) para el
+     * selector de datos. Devuelve {@code {level, items:[{name, type, ...}]}}. Los
+     * conectores sin exploración lanzan {@link UnsupportedOperationException}.
+     */
+    default Map<String, Object> browse(Map<String, Object> config, Map<String, Object> params) throws Exception {
+        throw new UnsupportedOperationException("Este conector no permite explorar objetos; escribe la tabla o la consulta.");
+    }
+
     /** Resultado de una prueba de conexión. */
     record ExecResult(boolean ok, String message, Map<String, Object> details) {
         public static ExecResult ok(String message) {

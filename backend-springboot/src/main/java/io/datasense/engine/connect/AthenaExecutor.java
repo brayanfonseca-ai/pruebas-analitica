@@ -6,7 +6,14 @@ import org.springframework.stereotype.Component;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.athena.AthenaClient;
+import software.amazon.awssdk.services.athena.model.Column;
 import software.amazon.awssdk.services.athena.model.ColumnInfo;
+import software.amazon.awssdk.services.athena.model.Database;
+import software.amazon.awssdk.services.athena.model.ListDatabasesRequest;
+import software.amazon.awssdk.services.athena.model.ListDatabasesResponse;
+import software.amazon.awssdk.services.athena.model.ListTableMetadataRequest;
+import software.amazon.awssdk.services.athena.model.ListTableMetadataResponse;
+import software.amazon.awssdk.services.athena.model.TableMetadata;
 import software.amazon.awssdk.services.athena.model.Datum;
 import software.amazon.awssdk.services.athena.model.GetQueryExecutionRequest;
 import software.amazon.awssdk.services.athena.model.GetQueryExecutionResponse;
@@ -19,6 +26,7 @@ import software.amazon.awssdk.services.athena.model.Row;
 import software.amazon.awssdk.services.athena.model.StartQueryExecutionRequest;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,10 +88,7 @@ public class AthenaExecutor implements ConnectionExecutor {
             if (table.isBlank()) {
                 throw new IllegalArgumentException("Indica 'query' o 'table' para cargar desde Athena.");
             }
-            String db = AwsSupport.str(config.get("database"));
-            int limit = rowLimit(p);
-            String qualified = db.isBlank() ? table : db + "." + table;
-            query = "SELECT * FROM " + qualified + " LIMIT " + limit;
+            query = selectFor(config, p);
         }
         try (AthenaClient athena = client(config)) {
             String execId = startQuery(athena, config, query);
@@ -94,11 +99,87 @@ public class AthenaExecutor implements ConnectionExecutor {
                 String reason = r.queryExecution().status().stateChangeReason();
                 throw new IllegalStateException("Athena " + state + (reason == null ? "" : ": " + reason));
             }
-            return readResults(athena, execId);
+            return readResults(athena, execId, maxRows(p));
         }
     }
 
-    private int rowLimit(Map<String, Object> params) {
+    /** Tope de filas a leer del resultado (vista previa); 0 = todas. */
+    private static int maxRows(Map<String, Object> p) {
+        try {
+            int v = Integer.parseInt(AwsSupport.str(p.get("maxRows")).trim());
+            return Math.max(0, v);
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
+
+    /**
+     * Sin {@code database}: lista las bases del catálogo. Con {@code database}:
+     * lista sus tablas (con columnas y tipos) vía ListTableMetadata.
+     */
+    @Override
+    public Map<String, Object> browse(Map<String, Object> config, Map<String, Object> params) {
+        Map<String, Object> p = params == null ? Map.of() : params;
+        String catalog = AwsSupport.str(config.get("dataSource"));
+        if (catalog.isBlank()) catalog = "AwsDataCatalog";
+        String database = AwsSupport.str(p.get("database"));
+        try (AthenaClient athena = client(config)) {
+            List<Map<String, Object>> items = new ArrayList<>();
+            if (database.isBlank()) {
+                String token = null;
+                do {
+                    ListDatabasesRequest.Builder b = ListDatabasesRequest.builder().catalogName(catalog).maxResults(50);
+                    if (token != null) b.nextToken(token);
+                    ListDatabasesResponse r = athena.listDatabases(b.build());
+                    for (Database d : r.databaseList()) items.add(new LinkedHashMap<>(Map.of("name", d.name(), "type", "database")));
+                    token = r.nextToken();
+                } while (token != null && items.size() < 1000);
+                return Map.of("level", "databases", "catalog", catalog,
+                        "defaultDatabase", AwsSupport.str(config.get("database")), "items", items);
+            }
+            String token = null;
+            do {
+                ListTableMetadataRequest.Builder b = ListTableMetadataRequest.builder()
+                        .catalogName(catalog).databaseName(database).maxResults(50);
+                if (token != null) b.nextToken(token);
+                ListTableMetadataResponse r = athena.listTableMetadata(b.build());
+                for (TableMetadata t : r.tableMetadataList()) {
+                    List<Map<String, Object>> cols = new ArrayList<>();
+                    for (Column c : t.columns()) cols.add(Map.of("name", c.name(), "type", c.type() == null ? "" : c.type()));
+                    for (Column c : t.partitionKeys()) cols.add(Map.of("name", c.name(), "type", (c.type() == null ? "" : c.type()) + " (partición)"));
+                    Map<String, Object> it = new LinkedHashMap<>();
+                    it.put("name", t.name());
+                    it.put("type", t.tableType() == null ? "TABLE" : t.tableType());
+                    it.put("columns", cols);
+                    items.add(it);
+                }
+                token = r.nextToken();
+            } while (token != null && items.size() < 1000);
+            return Map.of("level", "tables", "catalog", catalog, "database", database, "items", items);
+        }
+    }
+
+    /**
+     * SELECT que se ejecuta cuando se elige una tabla (sin consulta propia):
+     * {@code SELECT * FROM "db"."tabla" LIMIT n}. La base sale de los params
+     * (selector) o de la config de la conexión. Identificadores entre comillas
+     * dobles (Athena admite guiones en nombres de base, p. ej. analitica-landing).
+     */
+    public static String selectFor(Map<String, Object> config, Map<String, Object> p) {
+        String table = AwsSupport.str(p.get("table"));
+        String db = AwsSupport.str(p.get("database"));
+        if (db.isBlank()) db = AwsSupport.str(config.get("database"));
+        String qualified = db.isBlank() ? quote(table) : quote(db) + "." + quote(table);
+        return "SELECT * FROM " + qualified + " LIMIT " + rowLimitOf(p);
+    }
+
+    private static String quote(String id) {
+        String t = id.trim();
+        if (t.startsWith("\"") && t.endsWith("\"")) return t;
+        return "\"" + t.replace("\"", "\"\"") + "\"";
+    }
+
+    static int rowLimitOf(Map<String, Object> params) {
         String l = AwsSupport.str(params.get("limit"));
         try {
             int v = Integer.parseInt(l.trim());
@@ -152,12 +233,13 @@ public class AthenaExecutor implements ConnectionExecutor {
         }
     }
 
-    private DataFrame readResults(AthenaClient athena, String execId) {
+    private DataFrame readResults(AthenaClient athena, String execId, int maxRows) {
         List<String> columns = new ArrayList<>();
         List<List<String>> rows = new ArrayList<>();
         String token = null;
         boolean first = true;
         do {
+            if (maxRows > 0 && rows.size() >= maxRows) break;
             GetQueryResultsRequest.Builder rb = GetQueryResultsRequest.builder()
                     .queryExecutionId(execId).maxResults(1000);
             if (token != null) rb.nextToken(token);
@@ -179,6 +261,7 @@ public class AthenaExecutor implements ConnectionExecutor {
             first = false;
             token = res.nextToken();
         } while (token != null);
+        if (maxRows > 0 && rows.size() > maxRows) rows = new ArrayList<>(rows.subList(0, maxRows));
         return new DataFrame(columns, rows);
     }
 }

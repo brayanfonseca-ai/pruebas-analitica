@@ -179,9 +179,60 @@ final class MlUnsupervised {
         ins.add("Silueta " + fmt(sil) + ": " + (sil >= 0.5 ? "grupos bien separados." : sil >= 0.25 ? "estructura razonable con algo de solapamiento." : "estructura débil con estas variables."));
         ins.add("A diferencia de K-Means, no se fija k de antemano: el dendrograma muestra cómo se van uniendo los grupos.");
         if (s.sampled()) ins.add("Se usó una muestra de " + n + " filas de " + s.complete() + " (el método es cuadrático en memoria).");
-        return map("algorithm", "hierarchical", "n", n, "features", s.feats(), "linkage", linkage, "k", kSel,
-                "silhouette", r(sil), "heights", heights, "clusters", profiles(s, labels, kSel, false),
+        List<Map<String, Object>> clusters = profiles(s, labels, kSel, false);
+        Map<String, Object> out = map("algorithm", "hierarchical", "n", n, "features", s.feats(), "linkage", linkage, "k", kSel,
+                "silhouette", r(sil), "heights", heights, "clusters", clusters,
                 "projection", projection(z, labels, 500), "sample", sampleRows(s, labels, 12), "insights", ins);
+        if (scoring(p)) attachGroups(out, df, s, labels, clusters, null);
+        return out;
+    }
+
+    /**
+     * Grupo por fila. Las filas que entraron al ajuste conservan su etiqueta
+     * exacta; las que quedaron fuera de la muestra se asignan al centroide más
+     * cercano (jerárquico) o al punto muestral más cercano dentro de eps
+     * (DBSCAN; si no hay ninguno, ruido), y se marca {@code __approx}.
+     */
+    private static void attachGroups(Map<String, Object> out, DataFrame df, Std s, int[] labels,
+                                     List<Map<String, Object>> clusters, Double eps) {
+        Map<Integer, String> names = new HashMap<>();
+        for (Map<String, Object> c : clusters) names.put(((Number) c.get("id")).intValue(), (String) c.get("name"));
+        Map<Integer, Integer> exact = new HashMap<>();
+        for (int i = 0; i < labels.length; i++) exact.put(s.rowIdx()[i], labels[i]);
+        int k = s.feats().size();
+        Map<Integer, double[]> cent = new LinkedHashMap<>();
+        Map<Integer, Integer> cnt = new HashMap<>();
+        for (int i = 0; i < labels.length; i++) {
+            if (labels[i] <= 0) continue;
+            double[] acc = cent.computeIfAbsent(labels[i], x -> new double[k]);
+            for (int j = 0; j < k; j++) acc[j] += s.z()[i][j];
+            cnt.merge(labels[i], 1, Integer::sum);
+        }
+        for (var e : cent.entrySet()) for (int j = 0; j < k; j++) e.getValue()[j] /= cnt.get(e.getKey());
+        int[] ci = colIndex(df, s.feats());
+        boolean approx = false;
+        List<List<String>> rows = new ArrayList<>(df.rowCount());
+        for (int r = 0; r < df.rowCount(); r++) {
+            Integer lab = exact.get(r);
+            if (lab == null) {
+                double[] v = rowNums(df.rows().get(r), ci);
+                if (v == null) { rows.add(nulls(1)); continue; }
+                double[] zi = new double[k];
+                for (int j = 0; j < k; j++) zi[j] = (v[j] - s.mu()[j]) / s.sd()[j];
+                approx = true;
+                if (eps == null) {
+                    double bd = Double.MAX_VALUE; lab = 1;
+                    for (var e : cent.entrySet()) { double d = dist(zi, e.getValue()); if (d < bd) { bd = d; lab = e.getKey(); } }
+                } else {
+                    double bd = Double.MAX_VALUE; int bj = -1;
+                    for (int j = 0; j < labels.length; j++) { double d = dist(zi, s.z()[j]); if (d < bd) { bd = d; bj = j; } }
+                    lab = bj >= 0 && bd <= eps ? labels[bj] : 0;
+                }
+            }
+            rows.add(Collections.singletonList(names.getOrDefault(lab, lab == 0 ? "Ruido (sin grupo)" : "Grupo " + lab)));
+        }
+        attachRows(out, List.of("Grupo"), rows);
+        if (approx) out.put("__approx", true);
     }
 
     private static void refreshNN(int i, double[][] d, boolean[] active, int[] nnIdx, double[] nnD) {
@@ -257,9 +308,12 @@ final class MlUnsupervised {
         ins.add("Radio eps " + fmt(eps) + (auto ? " (sugerido: percentil 90 de la distancia al " + minPts + "º vecino)" : "") + " · mínimo " + minPts + " vecinos por núcleo.");
         ins.add(c == 0 ? "Ningún grupo denso: aumenta eps o baja el mínimo de vecinos." : c == 1 ? "Un único grupo denso: los datos son homogéneos o eps es grande; prueba reducirlo." : "DBSCAN detecta grupos de cualquier forma y separa el ruido, útil cuando K-Means fuerza grupos artificiales.");
         if (s.sampled()) ins.add("Se usó una muestra de " + n + " filas de " + s.complete() + ".");
-        return map("algorithm", "dbscan", "n", n, "features", s.feats(), "eps", r(eps), "minPts", minPts, "clustersFound", c,
-                "noise", noise, "kdistance", kdist, "clusters", profiles(s, lab, c, true),
+        List<Map<String, Object>> clusters = profiles(s, lab, c, true);
+        Map<String, Object> out = map("algorithm", "dbscan", "n", n, "features", s.feats(), "eps", r(eps), "minPts", minPts, "clustersFound", c,
+                "noise", noise, "kdistance", kdist, "clusters", clusters,
                 "projection", projection(z, lab, 500), "sample", sampleRows(s, lab, 12), "insights", ins);
+        if (scoring(p)) attachGroups(out, df, s, lab, clusters, eps);
+        return out;
     }
 
     private static List<Integer> neighbours(double[][] z, int i, double eps) {

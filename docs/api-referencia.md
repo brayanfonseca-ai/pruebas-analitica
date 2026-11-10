@@ -68,8 +68,11 @@ de negocio devuelven códigos claros (400/404); la IA y las conexiones degradan 
 | GET | `/apps/{appId}/connections` | Lista (secretos enmascarados). |
 | POST | `/apps/{appId}/connections` | Crea `{name, connector, space?, config}`. |
 | POST | `/apps/{appId}/connections/test` | Prueba REAL de conexión → `{ok, message}`. |
-| POST | `/apps/{appId}/connections/{connId}/load` | Carga datos de la conexión a una tabla. |
+| POST | `/apps/{appId}/connections/{connId}/load` | Carga datos a una tabla de `appId` (la conexión puede ser de otra app). Params `{table?, database?, query?, key?, limit?, tableName?}`. Reemplaza la tabla si ya existe. → `{ok, message, table, replaced, script}`. |
 | DELETE | `/apps/{appId}/connections/{connId}` | Elimina. |
+| GET | `/connections` | **Conexiones realizadas**: todas las conexiones (cualquier app) con `app_name`; secretos enmascarados. |
+| POST | `/connections/{connId}/browse` | Explora: Athena `{}` → bases, `{database}` → tablas con columnas; JDBC → tablas/vistas; S3 `{prefix?}` → CSV/Excel. → `{ok, level, items}`. |
+| POST | `/connections/{connId}/preview` | Valida la extracción sin materializar: muestra de 50 filas → `{ok, columns, rows, shown, tableName, sql, script, elapsedMs}`; error real de la fuente → `{ok:false, message}`. |
 
 ## Asistente de IA
 | Método | Ruta | Descripción |
@@ -93,6 +96,7 @@ Respuesta IA: `{ok, message, agent, action?}`. `action` puede traer un plan
 | POST | `/ml/experiments/{id}/runs` | Entrena `{algorithm, params, label?, save?}`; guarda la ejecución (salvo `save:false` o `params.input`) y devuelve el resultado con `runId`. |
 | GET | `/ml/experiments/{id}/runs/{runId}` | Resultado completo de una ejecución guardada. |
 | DELETE | `/ml/experiments/{id}/runs/{runId}` | Elimina una ejecución. |
+| POST | `/ml/experiments/{id}/runs/{runId}/associate` | **Asociar a**: `{appId?, sheetTitle?}` → crea/reemplaza la tabla `ML_…` (resultado por fila enlazado por clave, o tabla resumen) y la hoja con `props.ml`. → `{ok, appId, table:{id,name,rows,fields}, key, sheet:{id,title,objects}, message}`. |
 | GET | `/apps/{appId}/ml/datasets` | Tablas de una app con campos agrupados (`numeric`, `categorical`, `dates`). |
 | POST | `/apps/{appId}/ml/run` | Ejecución directa sin guardar: `{table, algorithm, params}`. |
 

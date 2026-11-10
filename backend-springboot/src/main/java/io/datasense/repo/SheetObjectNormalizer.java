@@ -86,6 +86,14 @@ final class SheetObjectNormalizer {
      * {@code props} con {@code dims} o {@code measures} (arrays), que es lo que
      * el frontend genera. Un objeto plano del MCP no tiene {@code props.dims}.
      */
+    /** ¿Todos los objetos ya vienen en formato interno? (entonces no hace falta resolver campos). */
+    @SuppressWarnings("unchecked")
+    static boolean allInternal(List<?> objects) {
+        if (objects == null) return true;
+        for (Object raw : objects) if (raw instanceof Map && !isInternal((Map<String, Object>) raw)) return false;
+        return true;
+    }
+
     @SuppressWarnings("unchecked")
     private static boolean isInternal(Map<String, Object> o) {
         Object props = o.get("props");

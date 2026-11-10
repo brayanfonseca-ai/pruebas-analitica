@@ -66,6 +66,11 @@ public class TableStore {
         }
     }
 
+    /** Borra el CSV de una tabla (si existe). */
+    public void delete(String appId, String tableId) {
+        try { Files.deleteIfExists(pathFor(appId, tableId)); } catch (IOException ignored) {}
+    }
+
     public void deleteApp(String appId) {
         Path dir = dataDir.resolve(appId);
         if (!Files.exists(dir)) return;

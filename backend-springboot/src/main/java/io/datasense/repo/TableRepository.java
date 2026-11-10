@@ -24,10 +24,16 @@ public class TableRepository {
         String now = Ids.now();
         jdbc.update("INSERT INTO tables (id, app_id, name, source_name, created_at) VALUES (?, ?, ?, ?, ?)",
                 id, appId, name, sourceName, now);
-        for (ColumnProfile c : columns) {
-            jdbc.update("INSERT INTO columns (id, table_id, name, logical_type, null_count, distinct_count) "
-                    + "VALUES (?, ?, ?, ?, ?, ?)",
-                    Ids.newId(), id, c.name(), c.type(), c.null_count(), c.distinct_count());
+        try {
+            for (ColumnProfile c : columns) {
+                jdbc.update("INSERT INTO columns (id, table_id, name, logical_type, null_count, distinct_count) "
+                        + "VALUES (?, ?, ?, ?, ?, ?)",
+                        Ids.newId(), id, c.name(), c.type(), c.null_count(), c.distinct_count());
+            }
+        } catch (RuntimeException e) {
+            // Sin columnas la tabla quedaría huérfana (y sin CSV rompería las consultas de la app).
+            deleteTable(id);
+            throw e;
         }
         return Map.of("id", id, "app_id", appId, "name", name,
                 "source_name", sourceName == null ? "" : sourceName, "created_at", now);
@@ -41,6 +47,16 @@ public class TableRepository {
     public List<Map<String, Object>> listColumns(String tableId) {
         return jdbc.queryForList("SELECT name, logical_type, null_count, distinct_count "
                 + "FROM columns WHERE table_id = ? ORDER BY rowid", tableId);
+    }
+
+    /** Reemplaza el perfil de columnas de una tabla (tras recargarla desde su origen). */
+    public void replaceColumns(String tableId, List<ColumnProfile> columns) {
+        jdbc.update("DELETE FROM columns WHERE table_id = ?", tableId);
+        for (ColumnProfile c : columns) {
+            jdbc.update("INSERT INTO columns (id, table_id, name, logical_type, null_count, distinct_count) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)",
+                    Ids.newId(), tableId, c.name(), c.type(), c.null_count(), c.distinct_count());
+        }
     }
 
     public boolean deleteTable(String tableId) {

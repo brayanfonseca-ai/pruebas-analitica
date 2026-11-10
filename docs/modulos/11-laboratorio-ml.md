@@ -22,6 +22,11 @@ librerías de ML externas.
    - **Ejecuciones**: historial con fecha, algoritmo, etiqueta, variables y métrica principal. Permite **abrir** una ejecución (restaura su configuración y resultado), **comparar** dos o más (tabla de métricas y gráfico) y **eliminar**.
 3. **Probar un caso** (segmentación con K-Means, todos los modelos de regresión y clasificación, y AutoML): se escriben valores o se carga una fila real, y el modelo devuelve el grupo, el valor estimado con rango del 95% o la probabilidad de la clase. No se guarda en el historial.
 4. **Exportar CSV** del resultado: grupos, componentes, reglas, atípicos, pronóstico, tabla de posiciones o predicciones.
+5. **Asociar a…** (en el resultado de cualquier ejecución guardada): elige la aplicación del catálogo y el título de la hoja. Se crea automáticamente:
+   - una **tabla del modelo de datos** `ML_<algoritmo>_<tabla>_<etiqueta>` con el resultado **por registro** (segmento/grupo y distancia al centro; valor estimado y error; probabilidad y clase predicha; atípico y puntaje) enlazada a la tabla de origen por su **clave única** (p. ej. `Cliente`), como una asociación de Qlik. Pronóstico, correlaciones, PCA y reglas generan una tabla resumen (periodos, pares, componentes, reglas). En otra aplicación la tabla incluye las columnas de origen para que la hoja sea autónoma.
+   - una **hoja nueva** con texto de lectura, KPIs, barras/dona por grupo o clase, perfil promedio por grupo (medidas de la tabla de origen cruzadas por la clave), real vs. estimado, tabla de detalle y filtro.
+   - en la hoja, `props.ml` con el resumen del modelo (algoritmo, variables, métricas, segmentos, coeficientes/importancias, lectura). El **agente analista** de la hoja lo recibe como `modeloML` y puede explicar el modelo.
+   - Re-asociar la misma ejecución **reemplaza** su tabla y su hoja (no duplica). El aviso del resultado trae **Abrir hoja** (`app.html?app=…&sheet=…#hoja`).
 
 ### Catálogo
 
@@ -94,7 +99,9 @@ la vista dentro de la app. Se revisó que no haya errores de JavaScript ni gráf
 
 ## Limitaciones
 
-- Los modelos se reentrenan en cada ejecución; se guarda el resultado, no el modelo serializado para publicarlo como servicio.
+- Los modelos se reentrenan en cada ejecución; se guarda el resultado, no el modelo serializado para publicarlo como servicio. **Asociar a** vuelve a entrenar con los mismos parámetros y semilla (resultado idéntico) para puntuar cada fila.
+- Jerárquico (muestra de 600) y DBSCAN (muestra de 3 000): las filas que quedan fuera de la muestra se asignan al grupo más cercano (jerárquico: centroide; DBSCAN: punto muestral dentro de eps, si no, ruido); la hoja lo indica.
+- La asociación por clave necesita una columna con un valor único por fila; si no la hay, la tabla ML copia las columnas de origen.
 - La clasificación es binaria (una clase frente al resto); con objetivos numéricos se separa por umbral.
 - Las variables categóricas no se usan como predictoras (sin codificación one-hot).
 

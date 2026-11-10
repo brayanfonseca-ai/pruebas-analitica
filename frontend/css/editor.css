@@ -97,7 +97,7 @@
 .ed-ad-status { font-size: 12px; margin-top: 10px; min-height: 1em; }
 
 /* ---- Modales del editor ---- */
-.ed-modal-backdrop { position: absolute; inset: 0; z-index: 70; background: rgba(20,24,30,.42); display: grid; place-items: center; padding: 24px; }
+.ed-modal-backdrop { position: fixed; inset: 0; z-index: 70; font-size: 13px; background: rgba(20,24,30,.42); display: grid; place-items: center; padding: 24px; }
 .ed-modal-backdrop[hidden] { display: none !important; }
 .ed-modal { width: min(680px, 100%); max-height: 100%; display: flex; flex-direction: column; background: #fff; border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
 .ed-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--q-border); }
@@ -158,6 +158,48 @@
 .cn-status.ok { color: #172983; } .cn-status.err { color: #c0392b; }
 .ed-conn .cn-ic { vertical-align: middle; margin-right: 6px; }
 .ed-conn-load-btn { border-color: var(--q-green, #172983); color: var(--q-green-dark, #101d5e); }
+
+/* ---- Conexiones realizadas (stack) ---- */
+#edConnList { display: flex; flex-direction: column; gap: 8px; }
+.ed-conn-real { cursor: pointer; transition: border-color .12s, box-shadow .12s; }
+.ed-conn-real:hover, .ed-conn-real:focus-visible { border-color: #172983; box-shadow: 0 0 0 2px rgba(23,41,131,.12); outline: none; }
+.ed-conn-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ed-conn-meta { margin-top: 4px; font-size: 11px; color: var(--q-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-conn-empty { margin: 4px 0; }
+
+/* ---- Selector de datos (ventana emergente) ---- */
+/* Alto en unidades de viewport: un % se resolvería contra la fila auto del grid (que crece con la tabla). */
+.ed-modal.ed-ds-modal { width: min(1180px, 100%); height: min(760px, calc(100vh - 48px)); max-height: calc(100vh - 48px); }
+.ed-ds-modal .ed-modal-body { flex: 1; min-height: 0; padding: 0; overflow: hidden; }
+.ed-ds { display: grid; grid-template-columns: 280px 1fr; height: 100%; min-height: 0; }
+.ed-ds-nav { border-right: 1px solid var(--q-border); padding: 14px; display: flex; flex-direction: column; min-height: 0; background: #fafbfd; }
+.ed-ds-conn { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; font-size: 12.5px; }
+.ed-ds-conn div { display: flex; flex-direction: column; min-width: 0; }
+.ed-ds-conn strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-ds-conn em { font-style: normal; color: var(--q-muted); font-size: 11px; }
+.ed-ds-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.ed-ds-item { display: flex; justify-content: space-between; gap: 8px; align-items: center; text-align: left; border: 1px solid transparent; background: none; border-radius: 4px; padding: 6px 8px; font-size: 12px; cursor: pointer; color: var(--q-text); }
+.ed-ds-item:hover { background: #eef1f8; }
+.ed-ds-item.active { background: #e6eaf7; border-color: #b9c3e6; color: #101d5e; font-weight: 600; }
+.ed-ds-item-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ed-ds-item-m { flex: none; font-size: 10.5px; color: var(--q-muted); font-weight: 400; }
+.ed-ds-main { padding: 14px 18px; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.ed-ds-form { display: grid; grid-template-columns: 2fr 1fr 1.4fr; gap: 0 12px; }
+.ed-ds-form .ed-field:only-child { grid-column: 1 / -1; }
+.ed-ds-main textarea { border: 1px solid #c7ccd3; border-radius: 4px; padding: 7px 9px; font: 12px/1.45 Consolas, "Courier New", monospace; resize: vertical; }
+.ed-ds-actions { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.ed-ds-status { font-size: 12px; color: var(--q-muted); }
+.ed-ds-status.ok { color: #1d6b3a; } .ed-ds-status.err { color: #c0392b; } .ed-ds-status.warn { color: #8a6514; }
+.ed-ds-panes { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; }
+.ed-ds-pane { border: 1px solid var(--q-border); border-radius: 6px; display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
+.ed-ds-pane-h { padding: 8px 12px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--q-border); background: #fafbfd; }
+.ed-ds-pane-h em { font-style: normal; font-weight: 400; color: var(--q-muted); }
+.ed-ds-grid { flex: 1; overflow: auto; padding: 0; }
+.ed-ds-grid > p { padding: 12px; margin: 0; }
+.ed-ds-grid .ho-table { font-size: 11.5px; white-space: nowrap; }
+.ed-ds-code { flex: 1; margin: 0; overflow: auto; padding: 12px; background: #0f1630; color: #dfe6ff; font: 12px/1.5 Consolas, "Courier New", monospace; white-space: pre-wrap; word-break: break-all; }
+.ed-ds-loading { display: flex; align-items: center; gap: 10px; padding: 14px; font-size: 12.5px; color: var(--q-muted); }
+.ed-ds-err { margin: 0; padding: 12px; color: #a52a20; font-size: 12.5px; white-space: pre-wrap; }
 
 /* ===================== MODAL DE PROGRESO DE CARGA (FEAT-002) ===================== */
 .ed-load-modal { width: min(560px, 100%); }

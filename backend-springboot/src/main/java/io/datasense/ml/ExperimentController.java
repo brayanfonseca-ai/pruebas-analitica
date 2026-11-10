@@ -36,16 +36,18 @@ public class ExperimentController {
     private final TableStore store;
     private final FieldOverrideRepository overrides;
     private final MlService ml;
+    private final MlAssociation association;
     private final ObjectMapper json = new ObjectMapper();
 
     public ExperimentController(ExperimentRepository repo, AppRepository apps, TableRepository tables, TableStore store,
-                                FieldOverrideRepository overrides, MlService ml) {
+                                FieldOverrideRepository overrides, MlService ml, MlAssociation association) {
         this.repo = repo;
         this.apps = apps;
         this.tables = tables;
         this.store = store;
         this.overrides = overrides;
         this.ml = ml;
+        this.association = association;
     }
 
     private Map<String, Object> requireExp(String id) {
@@ -159,7 +161,8 @@ public class ExperimentController {
         String appId = (String) e.get("app_id");
         String algorithm = s(body, "algorithm");
         if (algorithm == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Falta el algoritmo.");
-        Map<String, Object> params = body.get("params") instanceof Map<?, ?> m ? (Map<String, Object>) m : new HashMap<>();
+        Map<String, Object> params = body.get("params") instanceof Map<?, ?> m ? new HashMap<>((Map<String, Object>) m) : new HashMap<>();
+        params.remove(MlService.SCORE); // interno: solo lo usa /associate
         Map<String, Object> row = findTable(appId, (String) e.get("table"));
         if (row == null) {
             List<Map<String, Object>> all = tables.listTables(appId);
@@ -202,6 +205,52 @@ public class ExperimentController {
             return r;
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Resultado ilegible.");
+        }
+    }
+
+    /**
+     * "Asociar a": lleva el resultado de una ejecución a una app como tabla del
+     * modelo + hoja nueva. Body opcional {@code {appId?, sheetTitle?}}; por defecto
+     * la app del experimento. Re-entrena de forma determinista con
+     * {@code __score=true} para obtener la salida por fila.
+     */
+    @PostMapping("/{id}/runs/{runId}/associate")
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> associate(@PathVariable String id, @PathVariable String runId,
+                                         @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> e = requireExp(id);
+        Map<String, Object> b = body == null ? Map.of() : body;
+        Map<String, Object> run = repo.getRun(id, runId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ejecución no encontrada."));
+        String srcApp = (String) e.get("app_id");
+        String targetApp = s(b, "appId") == null ? srcApp : s(b, "appId");
+        apps.getApp(targetApp).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "App no encontrada: " + targetApp));
+
+        Map<String, Object> params;
+        Map<String, Object> stored;
+        try {
+            params = json.readValue(String.valueOf(run.get("params_json")), new TypeReference<>() {});
+            stored = json.readValue(String.valueOf(run.get("result_json")), new TypeReference<>() {});
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "La ejecución guardada es ilegible.");
+        }
+        Map<String, Object> row = findTable(srcApp, stored.get("table") == null ? null : String.valueOf(stored.get("table")));
+        if (row == null) row = findTable(srcApp, (String) e.get("table"));
+        if (row == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La tabla de origen de esta ejecución ya no existe en la aplicación.");
+        DataFrame df = store.load(srcApp, (String) row.get("id"));
+
+        Map<String, Object> p = new HashMap<>(params);
+        p.remove("input");
+        p.put(MlService.SCORE, true);
+        Map<String, Object> scored;
+        try {
+            scored = ml.run(df, String.valueOf(run.get("algorithm")), p);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+        try {
+            return association.associate(e, run, scored, df, (String) row.get("name"), targetApp, s(b, "sheetTitle"));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
     }
 

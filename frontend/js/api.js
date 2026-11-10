@@ -179,6 +179,16 @@ export const deleteConnection = (appId, connId) =>
 export const loadConnection = (appId, connId, params = {}) =>
   request(`/apps/${encodeURIComponent(appId)}/connections/${encodeURIComponent(connId)}/load`, { method: "POST", body: params });
 
+/* ---- Conexiones realizadas (todas las apps): stack con permisos ---- */
+// [{id, name, connector, space, app_id, app_name, config(enmascarada), created_at}]
+export const listAllConnections = () => request("/connections");
+// Explora objetos: { ok, level, items:[{name, type, schema?, columns?}] }. params {database?, prefix?}
+export const browseConnection = (connId, params = {}) =>
+  request(`/connections/${encodeURIComponent(connId)}/browse`, { method: "POST", body: params });
+// Vista previa SIN materializar: { ok, columns, rows, total, script, message }
+export const previewConnection = (connId, params = {}) =>
+  request(`/connections/${encodeURIComponent(connId)}/preview`, { method: "POST", body: params });
+
 /* ----------------------- Modelo lógico (Business Logic) ----------------------- */
 const LM = (appId) => `/apps/${encodeURIComponent(appId)}/logical-model`;
 export const getLogicalModel = (appId) => request(LM(appId));
@@ -210,3 +220,6 @@ export const deleteExperiment = (id) => request(`/ml/experiments/${encodeURIComp
 export const trainExperiment = (id, body) => request(`/ml/experiments/${encodeURIComponent(id)}/runs`, { method: "POST", body });
 export const getExperimentRun = (id, runId) => request(`/ml/experiments/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}`);
 export const deleteExperimentRun = (id, runId) => request(`/ml/experiments/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}`, { method: "DELETE" });
+// "Asociar a": { appId?, sheetTitle? } -> { ok, appId, table:{id,name,rows,fields}, key, sheet:{id,title,objects}, message }
+export const associateExperimentRun = (id, runId, body = {}) =>
+  request(`/ml/experiments/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}/associate`, { method: "POST", body });

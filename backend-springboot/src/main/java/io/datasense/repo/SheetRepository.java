@@ -35,8 +35,7 @@ public class SheetRepository {
         String appId = rs.getString("app_id");
         // Retrocompatibilidad: una hoja guardada en formato plano se normaliza al vuelo
         // al leerla, para que las hojas viejas creadas por MCP también se pinten.
-        List<Object> objects = SheetObjectNormalizer.normalize(
-                asList(doc.get("objects")), fieldTable(appId));
+        List<Object> objects = normalized(asList(doc.get("objects")), appId);
         return Map.of(
                 "id", rs.getString("id"),
                 "app_id", appId,
@@ -70,6 +69,12 @@ public class SheetRepository {
         return map;
     }
 
+    /** Normaliza; solo resuelve campo→tabla (lee los datos de la app) si algún objeto viene en formato plano. */
+    private List<Object> normalized(List<Object> objects, String appId) {
+        return SheetObjectNormalizer.normalize(objects,
+                SheetObjectNormalizer.allInternal(objects) ? Map.of() : fieldTable(appId));
+    }
+
     @SuppressWarnings("unchecked")
     private static List<Object> asList(Object o) {
         return o instanceof List ? (List<Object>) o : List.of();
@@ -86,14 +91,25 @@ public class SheetRepository {
         return jdbc.query("SELECT " + COLS + " FROM app_sheets WHERE id = ?", mapRow, id).stream().findFirst();
     }
 
+    /** Id de la hoja generada por "Asociar a" desde una ejecución de ML (props.ml.ejecucionId), si existe. */
+    public Optional<String> findByMlRun(String appId, String runId) {
+        return jdbc.query("SELECT id, doc_json FROM app_sheets WHERE app_id = ? AND doc_json LIKE ?",
+                        (rs, i) -> new String[]{rs.getString("id"), rs.getString("doc_json")}, appId, "%" + runId + "%")
+                .stream()
+                .filter(r -> {
+                    Object props = parse(r[1]).get("props");
+                    return props instanceof Map<?, ?> p && p.get("ml") instanceof Map<?, ?> ml && runId.equals(ml.get("ejecucionId"));
+                })
+                .map(r -> r[0]).findFirst();
+    }
+
     @SuppressWarnings("unchecked")
     public Map<String, Object> create(String appId, Map<String, Object> body) {
         String id = Ids.newId();
         String now = Ids.now();
         Integer pos = jdbc.queryForObject(
                 "SELECT COALESCE(MAX(position), -1) + 1 FROM app_sheets WHERE app_id = ?", Integer.class, appId);
-        List<Object> objects = SheetObjectNormalizer.normalize(
-                asList(body.get("objects")), fieldTable(appId));
+        List<Object> objects = normalized(asList(body.get("objects")), appId);
         String doc = write(Map.of(
                 "objects", objects,
                 "props", body.getOrDefault("props", Map.of())));
@@ -107,8 +123,9 @@ public class SheetRepository {
     public Optional<Map<String, Object>> update(String id, Map<String, Object> body) {
         String appId = jdbc.query("SELECT app_id FROM app_sheets WHERE id = ?",
                 (rs, i) -> rs.getString("app_id"), id).stream().findFirst().orElse(null);
-        List<Object> objects = SheetObjectNormalizer.normalize(
-                asList(body.get("objects")), appId == null ? Map.of() : fieldTable(appId));
+        List<Object> objects = appId == null
+                ? SheetObjectNormalizer.normalize(asList(body.get("objects")), Map.of())
+                : normalized(asList(body.get("objects")), appId);
         String doc = write(Map.of(
                 "objects", objects,
                 "props", body.getOrDefault("props", Map.of())));

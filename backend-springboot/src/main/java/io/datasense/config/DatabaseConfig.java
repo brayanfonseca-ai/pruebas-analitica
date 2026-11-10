@@ -31,7 +31,11 @@ public class DatabaseConfig {
         new File(dataDir).mkdirs();
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName("org.sqlite.JDBC");
-        ds.setUrl("jdbc:sqlite:" + dbPath);
+        // busy_timeout: con peticiones concurrentes (p. ej. dos cargas a la vez) SQLite
+        // espera al otro escritor en lugar de fallar con SQLITE_BUSY.
+        // foreign_keys=true en CADA conexión (el PRAGMA de arranque solo afectaba a una):
+        // así borrar una app elimina en cascada sus conexiones, hojas, tablas, etc.
+        ds.setUrl("jdbc:sqlite:" + dbPath + "?busy_timeout=10000&foreign_keys=true");
         return ds;
     }
 
@@ -145,6 +149,19 @@ public class DatabaseConfig {
                     config_json TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            // Origen de las tablas cargadas desde una conexión (para generar el
+            // script LIB CONNECT / SQL SELECT y re-ejecutar la carga).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS table_sources (
+                    table_id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    conn_id TEXT NOT NULL,
+                    conn_name TEXT NOT NULL,
+                    connector TEXT NOT NULL,
+                    params_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
             jdbc.execute("""

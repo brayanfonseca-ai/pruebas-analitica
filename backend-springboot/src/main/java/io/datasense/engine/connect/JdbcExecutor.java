@@ -100,9 +100,12 @@ public class JdbcExecutor implements ConnectionExecutor {
             }
             query = "SELECT * FROM " + table;
         }
+        int maxRows = 0;
+        try { maxRows = Math.max(0, Integer.parseInt(AwsSupport.str(p.get("maxRows")).trim())); } catch (Exception ignored) {}
         try (Connection c = open(config);
-             Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery(query)) {
+             Statement st = c.createStatement()) {
+            if (maxRows > 0) st.setMaxRows(maxRows);
+            ResultSet rs = st.executeQuery(query);
             ResultSetMetaData md = rs.getMetaData();
             int n = md.getColumnCount();
             List<String> columns = new ArrayList<>(n);
@@ -116,7 +119,28 @@ public class JdbcExecutor implements ConnectionExecutor {
                 }
                 rows.add(row);
             }
+            rs.close();
             return new DataFrame(columns, rows);
+        }
+    }
+
+    /** Lista tablas y vistas (esquema.tabla) vía DatabaseMetaData; máx. 1000. */
+    @Override
+    public Map<String, Object> browse(Map<String, Object> config, Map<String, Object> params) throws Exception {
+        try (Connection c = open(config);
+             ResultSet rs = c.getMetaData().getTables(null, null, "%", new String[]{"TABLE", "VIEW"})) {
+            List<Map<String, Object>> items = new ArrayList<>();
+            while (rs.next() && items.size() < 1000) {
+                String schema = rs.getString("TABLE_SCHEM");
+                if (schema != null && (schema.equalsIgnoreCase("information_schema") || schema.equalsIgnoreCase("pg_catalog")
+                        || schema.equalsIgnoreCase("sys"))) continue;
+                String name = rs.getString("TABLE_NAME");
+                Map<String, Object> it = new java.util.LinkedHashMap<>();
+                it.put("name", schema == null || schema.isBlank() ? name : schema + "." + name);
+                it.put("type", rs.getString("TABLE_TYPE"));
+                items.add(it);
+            }
+            return Map.of("level", "tables", "items", items);
         }
     }
 }

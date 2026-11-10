@@ -10,7 +10,7 @@
 // auto-generado, reconstruye desde los archivos subidos. "Ver una vista previa de
 // los datos" lista las tablas resultantes. Nada se calcula en JS.
 
-import { getScript, putScript, runScript, uploadTable, listTables, listConnections, deleteConnection, loadConnection, aiModelar } from "./api.js";
+import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, browseConnection, previewConnection, deleteConnection, loadConnection, aiModelar } from "./api.js";
 import { openConnectionWizard, CONNECTORS } from "./connections.js";
 import { mountEstrellita } from "./estrellita.js";
 
@@ -99,7 +99,7 @@ export async function render(mount, ctx) {
             </button>
             <div class="ed-space-pop" id="edSpacePop" hidden></div>
           </div>
-          <div class="ed-ad-sub">Conexiones existentes</div>
+          <div class="ed-ad-sub" id="edConnSub">Conexiones realizadas</div>
           <input class="ed-ad-search" id="edConnSearch" placeholder="Buscar conexión" />
           <div id="edConnList"></div>
           ${canImport ? `<input type="file" id="edFileInput" accept=".xlsx,.xls,.csv" hidden />` : ""}
@@ -118,6 +118,10 @@ export async function render(mount, ctx) {
   const genBadge = $("#edGenBadge");
   const modal = $("#edModal");
   const loadModal = $("#edLoadModal");
+  // Las ventanas emergentes viven en <body>: un ancestro con transform/contain
+  // haría que position:fixed se calcule respecto al área con scroll y no a la pantalla.
+  document.body.appendChild(modal);
+  document.body.appendChild(loadModal);
 
   /* ---------------- Script del backend + CodeMirror ---------------- */
   let script;
@@ -398,21 +402,33 @@ export async function render(mount, ctx) {
 
   /* ---------------- Crear conexión (asistente real) ---------------- */
   function openCreateConn() {
-    openConnectionWizard(ctx.appId, connHost, () => { renderConnections(); });
+    // Al crearla aparece en "Conexiones realizadas" y se abre su selector de datos.
+    openConnectionWizard(ctx.appId, connHost, async (created) => {
+      await renderConnections();
+      const c = allConns.find((x) => x.id === created?.id);
+      if (c && (canImport || canEdit)) openDataSelector(c);
+    });
   }
 
   /* ---------------- Conexiones existentes (reales + DataFiles) ---------------- */
   const CONN_LABEL = {};
   Object.values(CONNECTORS).forEach((arr) => arr.forEach((c) => { CONN_LABEL[c.id] = c.name; }));
+  let allConns = [];
 
   async function renderConnections(filter = "") {
     const box = $("#edConnList");
     if (!box) return;
+    // "Conexiones realizadas": el stack completo de conexiones del usuario (de
+    // cualquier app), no solo las creadas en esta. Al pulsar una se abre el
+    // selector de datos con validación de la extracción y script en paralelo.
     let conns = [];
-    try { conns = await listConnections(ctx.appId); } catch {}
+    try { conns = await listAllConnections(); } catch { try { conns = await listConnections(ctx.appId); } catch {} }
+    allConns = conns;
     const q = (filter || "").toLowerCase();
-    const items = conns.filter((c) => !q || c.name.toLowerCase().includes(q) || (CONN_LABEL[c.connector] || "").toLowerCase().includes(q));
+    const items = conns.filter((c) => !q || c.name.toLowerCase().includes(q) || (CONN_LABEL[c.connector] || c.connector || "").toLowerCase().includes(q) || (c.app_name || "").toLowerCase().includes(q));
     const dataFilesVisible = !q || "datafiles".includes(q);
+    const sub = $("#edConnSub");
+    if (sub) sub.textContent = `Conexiones realizadas (${conns.length})`;
     box.innerHTML =
       (dataFilesVisible ? `
       <div class="ed-conn">
@@ -423,30 +439,43 @@ export async function render(mount, ctx) {
           <button class="ed-conn-act" data-act="insertStore" title="Insertar sentencia store">⇲</button>
         </div>
       </div>` : "") +
+      (items.length ? "" : (conns.length ? `<p class="ed-muted ed-conn-empty">Ninguna conexión coincide con “${esc(filter)}”.</p>` : `<p class="ed-muted ed-conn-empty">Aún no hay conexiones. Pulsa <strong>Crear conexión</strong>; aparecerá aquí para seleccionar sus datos.</p>`)) +
       items.map((c) => `
-        <div class="ed-conn" data-conn-id="${esc(c.id)}">
-          <div class="ed-conn-head"><span class="cn-ic cn-ic-${esc(connIcon(c.connector))}"></span>${esc(c.name)}<span class="ed-conn-kind">${esc(CONN_LABEL[c.connector] || c.connector)}</span></div>
+        <div class="ed-conn ed-conn-real" data-conn-id="${esc(c.id)}" tabindex="0" role="button" title="Seleccionar datos de ${esc(c.name)}">
+          <div class="ed-conn-head"><span class="cn-ic cn-ic-${esc(connIcon(c.connector))}"></span><span class="ed-conn-name">${esc(c.name)}</span><span class="ed-conn-kind">${esc(CONN_LABEL[c.connector] || c.connector)}</span></div>
+          <div class="ed-conn-meta">${esc(connSummary(c))}${c.app_id && c.app_id !== ctx.appId ? ` · creada en ${esc(c.app_name || "otra app")}` : ""}</div>
           <div class="ed-conn-actions">
-            ${(canImport || canEdit) ? `<button class="ed-conn-act ed-conn-load-btn" data-conn-load="${esc(c.id)}" title="Cargar datos">⬇</button>` : ""}
-            <button class="ed-conn-act" data-conn-insert="${esc(c.id)}" title="Insertar script de selección">⎘</button>
+            ${(canImport || canEdit) ? `<button class="ed-conn-act ed-conn-load-btn" data-conn-sel="${esc(c.id)}" title="Seleccionar y cargar datos">▦</button>` : ""}
+            <button class="ed-conn-act" data-conn-sel="${esc(c.id)}" data-only-script="1" title="Validar e insertar script de carga">⎘</button>
             <button class="ed-conn-act" data-conn-del="${esc(c.id)}" title="Eliminar conexión">🗑</button>
           </div>
         </div>`).join("");
 
-    box.querySelectorAll("[data-conn-del]").forEach((b) => b.addEventListener("click", async () => {
+    box.querySelectorAll("[data-conn-del]").forEach((b) => b.addEventListener("click", async (ev) => {
+      ev.stopPropagation();
       const id = b.dataset.connDel;
       const c = items.find((x) => x.id === id);
-      if (!confirm(`¿Eliminar la conexión "${c?.name || id}"?`)) return;
-      try { await deleteConnection(ctx.appId, id); renderConnections(filter); } catch (e) { alert(e.message); }
+      if (!confirm(`¿Eliminar la conexión "${c?.name || id}"? Dejará de estar disponible en todas las aplicaciones.`)) return;
+      try { await deleteConnection(c?.app_id || ctx.appId, id); renderConnections(filter); } catch (e) { alert(e.message); }
     }));
-    box.querySelectorAll("[data-conn-insert]").forEach((b) => b.addEventListener("click", () => {
-      const c = items.find((x) => x.id === b.dataset.connInsert);
-      if (c) insertAtCursor(connLoadSnippet(c));
+    box.querySelectorAll("[data-conn-sel]").forEach((b) => b.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      const c = items.find((x) => x.id === b.dataset.connSel);
+      if (c) openDataSelector(c, filter);
     }));
-    box.querySelectorAll("[data-conn-load]").forEach((b) => b.addEventListener("click", () => {
-      const c = items.find((x) => x.id === b.dataset.connLoad);
-      if (c) openLoadDialog(c, filter);
-    }));
+    box.querySelectorAll(".ed-conn-real").forEach((card) => {
+      const open = () => { const c = items.find((x) => x.id === card.dataset.connId); if (c) openDataSelector(c, filter); };
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } });
+    });
+  }
+
+  function connSummary(c) {
+    const cfg = c.config || {};
+    if (c.connector === "athena") return [cfg.database, cfg.workgroup, cfg.awsRegion].filter(Boolean).join(" · ");
+    if (c.connector === "s3") return ["s3://" + (cfg.bucket || ""), cfg.prefix].filter(Boolean).join("/");
+    if (cfg.host) return `${cfg.host}${cfg.port ? ":" + cfg.port : ""}${cfg.database ? "/" + cfg.database : ""}`;
+    return cfg.url || cfg.dsn || c.space || "";
   }
 
   /* ---------------- Cargar datos desde una conexión (FEAT-002) ----------------
@@ -480,34 +509,188 @@ export async function render(mount, ctx) {
     ];
   }
 
-  function openLoadDialog(conn, filter) {
-    const fields = loadFieldsFor(conn.connector);
+  /* ---------------- Selector de datos de una conexión realizada ----------------
+     Ventana emergente: explorador (bases → tablas / objetos) · parámetros ·
+     "Validar extracción" (muestra real de 50 filas SIN materializar) con el script
+     de carga generado EN PARALELO. "Cargar datos" trae la tabla al modelo y deja
+     el código en el editor para empezar a modelar. */
+  const SQL_CONNECTORS = ["athena", "postgres", "mysql", "mariadb", "sqlserver", "oracle", "redshift", "odbc", "rds"];
+  const BROWSABLE = [...SQL_CONNECTORS, "s3"];
+
+  function openDataSelector(conn, filter) {
+    const isSql = SQL_CONNECTORS.includes(conn.connector);
+    const canBrowse = BROWSABLE.includes(conn.connector);
+    const sel = { database: conn.config?.database || "", object: "", items: [], preview: null, busy: false };
+    const extraFields = canBrowse ? [] : loadFieldsFor(conn.connector).filter(([n]) => n !== "tableName");
     const body = `
-      <div class="cn-form-head"><span class="cn-ic cn-ic-${esc(connIcon(conn.connector))}"></span><strong>${esc(conn.name)}</strong>
-        <span class="ed-conn-kind">${esc(CONN_LABEL[conn.connector] || conn.connector)}</span></div>
-      <p class="ed-muted">Indica qué datos traer de esta conexión. Se materializarán como una tabla del modelo.</p>
-      ${fields.map(([name, label, ph]) => `
-        <label class="ed-field"><span>${esc(label)}</span>
-          <input data-load-field="${esc(name)}" placeholder="${esc(ph)}" /></label>`).join("")}`;
+      <div class="ed-ds">
+        <aside class="ed-ds-nav">
+          <div class="ed-ds-conn"><span class="cn-ic cn-ic-${esc(connIcon(conn.connector))}"></span><div><strong>${esc(conn.name)}</strong>
+            <em>${esc(CONN_LABEL[conn.connector] || conn.connector)}${conn.app_name ? " · " + esc(conn.app_name) : ""}</em></div></div>
+          ${conn.connector === "athena" ? `<label class="ed-field"><span>Base de datos</span><select id="dsDb"><option>${esc(sel.database || "Cargando…")}</option></select></label>` : ""}
+          ${conn.connector === "s3" ? `<label class="ed-field"><span>Prefijo (carpeta)</span><input id="dsPrefix" placeholder="carpeta/" value="${esc(conn.config?.prefix || "")}" /></label>` : ""}
+          ${canBrowse ? `<input class="ed-ad-search" id="dsFilter" placeholder="${conn.connector === "s3" ? "Buscar archivo" : "Buscar tabla"}" />
+          <div class="ed-ds-list" id="dsList" role="listbox" aria-label="Objetos disponibles"><p class="ed-muted">Cargando objetos…</p></div>`
+            : `<p class="ed-muted">Este conector no permite explorar objetos. Indica el recurso a la derecha.</p>`}
+        </aside>
+        <section class="ed-ds-main">
+          <div class="ed-ds-form">
+            ${canBrowse ? `<label class="ed-field"><span>${conn.connector === "s3" ? "Archivo" : "Tabla"}</span><input id="dsObject" placeholder="${conn.connector === "s3" ? "carpeta/archivo.csv" : "Selecciona en el explorador o escribe"}" /></label>` : ""}
+            ${extraFields.map(([name, label, ph]) => `<label class="ed-field"><span>${esc(label)}</span><input data-ds-extra="${esc(name)}" placeholder="${esc(ph)}" /></label>`).join("")}
+            ${isSql ? `<label class="ed-field ed-ds-limit"><span>Límite de filas</span><input id="dsLimit" type="number" min="1" step="1" value="1000" /></label>` : ""}
+            <label class="ed-field"><span>Tabla destino en el modelo</span><input id="dsTarget" placeholder="(mismo nombre)" /></label>
+          </div>
+          ${isSql ? `<label class="ed-field"><span>Consulta SQL (opcional: reemplaza la tabla elegida)</span><textarea id="dsQuery" rows="2" placeholder="SELECT columna1, columna2 FROM ${conn.connector === "athena" ? "&quot;base&quot;.&quot;tabla&quot;" : "tabla"} WHERE …"></textarea></label>` : ""}
+          <div class="ed-ds-actions"><button class="ho-btn" id="dsValidate">Validar extracción</button><span class="ed-ds-status" id="dsStatus" aria-live="polite"></span></div>
+          <div class="ed-ds-panes">
+            <div class="ed-ds-pane"><div class="ed-ds-pane-h">Vista previa de los datos</div><div class="ed-ds-grid" id="dsGrid"><p class="ed-muted">Elige una tabla y pulsa <strong>Validar extracción</strong>: se trae una muestra real sin cargarla.</p></div></div>
+            <div class="ed-ds-pane"><div class="ed-ds-pane-h">Script de carga <em>(se añade al editor al cargar)</em></div><pre class="ed-ds-code" id="dsCode">// El script aparecerá aquí al validar la extracción.</pre></div>
+          </div>
+        </section>
+      </div>`;
     const foot = `<button class="ho-btn" data-close>Cancelar</button>
-      <button class="ho-btn primary" id="edDoLoad">Cargar</button>`;
-    const m = openModal(`<h3>Cargar datos · ${esc(conn.name)}</h3>`, body, foot);
-    m.querySelector("#edDoLoad").addEventListener("click", () => {
-      const params = {};
-      m.querySelectorAll("[data-load-field]").forEach((el) => {
-        const v = el.value.trim();
-        if (v) params[el.dataset.loadField] = v;
-      });
+      <button class="ho-btn" id="dsInsert" disabled>Insertar script</button>
+      ${(canImport || canEdit) ? `<button class="ho-btn primary" id="dsLoad" disabled>Cargar datos</button>` : ""}`;
+    const m = openModal(`<h3>Seleccionar datos · ${esc(conn.name)}</h3>`, body, foot);
+    m.querySelector(".ed-modal").classList.add("ed-ds-modal");
+    const q = (s) => m.querySelector(s);
+    const statusEl = q("#dsStatus");
+    const setStatus = (t, kind = "") => { statusEl.textContent = t; statusEl.className = "ed-ds-status " + kind; };
+
+    function params() {
+      const p = {};
+      const obj = q("#dsObject")?.value.trim();
+      if (obj) { if (conn.connector === "s3") p.key = obj; else p.table = obj; }
+      if (conn.connector === "athena" && sel.database) p.database = sel.database;
+      const lim = q("#dsLimit")?.value.trim();
+      if (lim) p.limit = Number(lim);
+      const query = q("#dsQuery")?.value.trim();
+      if (query) p.query = query;
+      const tgt = q("#dsTarget")?.value.trim();
+      if (tgt) p.tableName = tgt;
+      m.querySelectorAll("[data-ds-extra]").forEach((el) => { const v = el.value.trim(); if (v) p[el.dataset.dsExtra] = v; });
+      return p;
+    }
+    function invalidate() {
+      sel.preview = null;
+      q("#dsInsert").disabled = true;
+      if (q("#dsLoad")) q("#dsLoad").disabled = true;
+    }
+    m.querySelectorAll("#dsObject, #dsLimit, #dsQuery, #dsTarget, [data-ds-extra]").forEach((el) => el.addEventListener("input", () => { if (sel.preview) { invalidate(); setStatus("Cambiaste los parámetros: vuelve a validar.", "warn"); } }));
+
+    function drawList() {
+      const box = q("#dsList");
+      if (!box) return;
+      const f = (q("#dsFilter")?.value || "").toLowerCase();
+      const items = sel.items.filter((it) => !f || it.name.toLowerCase().includes(f));
+      if (!sel.items.length) { box.innerHTML = `<p class="ed-muted">No hay objetos disponibles.</p>`; return; }
+      box.innerHTML = items.slice(0, 400).map((it) => `
+        <button type="button" class="ed-ds-item ${it.name === sel.object ? "active" : ""}" data-obj="${esc(it.name)}" role="option" aria-selected="${it.name === sel.object}">
+          <span class="ed-ds-item-n">${esc(it.name)}</span>
+          <span class="ed-ds-item-m">${it.columns ? `${it.columns.length} campos` : esc(it.type || "")}</span></button>`).join("")
+        + (items.length > 400 ? `<p class="ed-muted">Mostrando 400 de ${items.length}; filtra para acotar.</p>` : "")
+        + (!items.length ? `<p class="ed-muted">Sin coincidencias.</p>` : "");
+      box.querySelectorAll("[data-obj]").forEach((b) => b.addEventListener("click", () => {
+        sel.object = b.dataset.obj;
+        q("#dsObject").value = sel.object;
+        if (q("#dsQuery")) q("#dsQuery").value = "";
+        invalidate();
+        drawList();
+        const it = sel.items.find((x) => x.name === sel.object);
+        setStatus(it?.columns ? `${it.columns.length} campos: ${it.columns.slice(0, 6).map((c) => c.name).join(", ")}${it.columns.length > 6 ? "…" : ""}` : "Listo para validar.");
+        validate();
+      }));
+    }
+
+    async function browse(extra = {}) {
+      const box = q("#dsList");
+      if (!box) return;
+      box.innerHTML = `<p class="ed-muted">Cargando objetos…</p>`;
+      try {
+        const r = await browseConnection(conn.id, extra);
+        if (!r.ok) { box.innerHTML = `<p class="ed-ds-err">${esc(r.message || "No se pudo explorar la conexión.")}</p>`; return null; }
+        return r;
+      } catch (e) { box.innerHTML = `<p class="ed-ds-err">${esc(e.message)}</p>`; return null; }
+    }
+
+    async function loadTables() {
+      const r = await browse(conn.connector === "athena" ? { database: sel.database } : conn.connector === "s3" ? { prefix: q("#dsPrefix")?.value.trim() || "" } : {});
+      if (!r) return;
+      sel.items = r.items || [];
+      drawList();
+    }
+
+    (async () => {
+      if (!canBrowse) return;
+      if (conn.connector === "athena") {
+        const r = await browse({});
+        const dbSel = q("#dsDb");
+        if (r && dbSel) {
+          const dbs = (r.items || []).map((x) => x.name);
+          if (!sel.database || !dbs.includes(sel.database)) sel.database = dbs.includes(r.defaultDatabase) ? r.defaultDatabase : (dbs[0] || "");
+          dbSel.innerHTML = dbs.map((d) => `<option value="${esc(d)}" ${d === sel.database ? "selected" : ""}>${esc(d)}</option>`).join("");
+          dbSel.addEventListener("change", () => { sel.database = dbSel.value; sel.object = ""; q("#dsObject").value = ""; invalidate(); loadTables(); });
+        }
+        if (r) await loadTables();
+      } else {
+        await loadTables();
+        q("#dsPrefix")?.addEventListener("change", loadTables);
+      }
+      q("#dsFilter")?.addEventListener("input", drawList);
+    })();
+
+    async function validate() {
+      const p = params();
+      if (!p.table && !p.key && !p.query && canBrowse) { setStatus("Elige una tabla/archivo o escribe una consulta.", "err"); return; }
+      sel.busy = true; invalidate();
+      const btn = q("#dsValidate");
+      btn.disabled = true;
+      setStatus("Extrayendo una muestra de la fuente…");
+      q("#dsGrid").innerHTML = `<div class="ed-ds-loading"><span class="ed-load-spinner"></span>Consultando ${esc(conn.name)}…</div>`;
+      try {
+        const r = await previewConnection(conn.id, p);
+        if (!r.ok) {
+          setStatus("La extracción falló.", "err");
+          q("#dsGrid").innerHTML = `<p class="ed-ds-err">${esc(r.message)}</p>`;
+          q("#dsCode").textContent = "// Corrige el origen y vuelve a validar.";
+          return;
+        }
+        sel.preview = { params: p, ...r };
+        const cols = r.columns || [];
+        q("#dsGrid").innerHTML = `<table class="ho-table"><thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead>
+          <tbody>${(r.rows || []).map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+        q("#dsCode").textContent = r.script || "";
+        if (!q("#dsTarget").value) q("#dsTarget").placeholder = r.tableName || "(mismo nombre)";
+        setStatus(`${r.message} (${r.elapsedMs} ms)`, "ok");
+        q("#dsInsert").disabled = false;
+        if (q("#dsLoad")) q("#dsLoad").disabled = false;
+      } catch (e) {
+        setStatus("La extracción falló.", "err");
+        q("#dsGrid").innerHTML = `<p class="ed-ds-err">${esc(e.message)}</p>`;
+      } finally { sel.busy = false; btn.disabled = false; }
+    }
+    q("#dsValidate").addEventListener("click", validate);
+    q("#dsInsert").addEventListener("click", () => {
+      if (!sel.preview) return;
+      const name = sel.preview.tableName || "Tabla";
       closeModal();
-      doLoadConnection(conn, params, filter);
+      insertAtCursor(`\n///$tab ${name}\n${sel.preview.script}`);
+      status.textContent = `Script de carga de ${name} insertado. Pulsa Cargar datos (en la conexión) para traer los datos.`;
+      status.style.color = "";
+    });
+    q("#dsLoad")?.addEventListener("click", () => {
+      if (!sel.preview) return;
+      const p = sel.preview.params;
+      closeModal();
+      doLoadConnection(conn, p, filter);
     });
   }
 
   async function doLoadConnection(conn, params, filter) {
     const prog = openLoadProgress(`Carga desde “${conn.name}”`);
     try {
-      prog.step(`Conectando a ${conn.name}…`);
-      prog.step("Trayendo datos…");
+      prog.step(`LIB CONNECT TO '${conn.name}'…`);
+      prog.step(params.query ? "Ejecutando la consulta SQL en la fuente…" : `Extrayendo ${params.table || params.key || "datos"}…`);
       const r = await loadConnection(ctx.appId, conn.id, params);
       if (!r || r.ok === false) {
         // El mensaje incluye el error real del backend (AWS/JDBC).
@@ -516,14 +699,20 @@ export async function render(mount, ctx) {
       }
       const t = r.table || {};
       prog.step("Materializando la tabla en el modelo…", "ok");
-      prog.done(r.message || `Tabla ${t.name || ""} cargada (${t.rows ?? "?"} filas).`);
+      // En paralelo: el código de carga queda en el editor para empezar a modelar.
+      const fresh = await getScript(ctx.appId).catch(() => null);
+      if (!dirty && fresh && !fresh.is_custom) {
+        setCode(fresh.text || ""); genBadge.textContent = "auto-generado"; renderSectionList();
+        prog.step("Script auto-generado actualizado con LIB CONNECT + SQL SELECT.", "ok");
+      } else if (r.script) {
+        const marker = `[${t.name}]:`;
+        if (!getCode().includes(marker)) insertAtCursor(`\n///$tab ${t.name}\n${r.script}`);
+        prog.step("Bloque de carga añadido al script (guárdalo para conservarlo).", "ok");
+      }
+      prog.done(`${r.message}. Ya puedes modelar: Modelo de datos / Modelo lógico.`);
       status.textContent = r.message || `Tabla ${t.name || ""} cargada.`;
       status.style.color = "var(--q-green-dark, #101d5e)";
-      // Refrescar la lista de conexiones y, si el script no estaba editado, el auto-generado.
       renderConnections(filter);
-      if (!dirty) {
-        try { const fresh = await getScript(ctx.appId); if (!fresh.is_custom) { setCode(fresh.text || ""); genBadge.textContent = "auto-generado"; renderSectionList(); } } catch {}
-      }
     } catch (err) {
       prog.fail(err.message);
     }
@@ -532,21 +721,6 @@ export async function render(mount, ctx) {
   function connIcon(id) {
     for (const arr of Object.values(CONNECTORS)) { const c = arr.find((x) => x.id === id); if (c) return c.icon; }
     return "db";
-  }
-
-  /** Snippet de carga de ejemplo según el conector (orientativo para el script). */
-  function connLoadSnippet(c) {
-    const cfg = c.config || {};
-    if (c.connector === "athena") {
-      return `\nLIB CONNECT TO '${c.name}';\n// Selección desde Amazon Athena (${esc(cfg.database || "db")})\nSELECT * FROM "${esc(cfg.database || "default")}"."mi_tabla";\n`;
-    }
-    if (["postgres","mysql","sqlserver","redshift","odbc"].includes(c.connector)) {
-      return `\nLIB CONNECT TO '${c.name}';\nSELECT * FROM mi_tabla;\n`;
-    }
-    if (c.connector === "s3") {
-      return `\n// Archivo en S3 vía ${c.name}\n// LOAD * FROM [lib://${esc(c.name)}/carpeta/archivo.csv] (txt, utf8, embedded labels, delimiter is ',');\n`;
-    }
-    return `\n// Conexión ${esc(c.name)} (${esc(c.connector)})\nLIB CONNECT TO '${c.name}';\n`;
   }
 
   /* ---------------- Incluir script ---------------- */
@@ -700,5 +874,5 @@ export async function render(mount, ctx) {
     if (pop && !pop.hidden && !$(".ed-space").contains(e.target)) pop.hidden = true;
   });
 
-  return () => { try { cm?.toTextArea(); } catch {} try { unmountStar(); } catch {} };
+  return () => { try { cm?.toTextArea(); } catch {} try { unmountStar(); } catch {} modal.remove(); loadModal.remove(); };
 }

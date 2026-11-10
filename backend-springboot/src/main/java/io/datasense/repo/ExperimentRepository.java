@@ -107,6 +107,24 @@ public class ExperimentRepository {
                 (rs, i) -> rs.getString("result_json"), runId, experimentId).stream().findFirst();
     }
 
+    /** Ejecución completa (algoritmo, etiqueta, parámetros y resultado JSON). */
+    public Optional<Map<String, Object>> getRun(String experimentId, String runId) {
+        return jdbc.query("SELECT id, algorithm, label, params_json, result_json, metric_name, metric_value, created_at FROM ml_runs WHERE id = ? AND experiment_id = ?",
+                (rs, i) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", rs.getString("id"));
+                    m.put("algorithm", rs.getString("algorithm"));
+                    m.put("label", rs.getString("label"));
+                    m.put("params_json", rs.getString("params_json"));
+                    m.put("result_json", rs.getString("result_json"));
+                    m.put("metric_name", rs.getString("metric_name"));
+                    double v = rs.getDouble("metric_value");
+                    m.put("metric_value", rs.wasNull() ? null : v);
+                    m.put("created_at", rs.getString("created_at"));
+                    return m;
+                }, runId, experimentId).stream().findFirst();
+    }
+
     public void deleteRun(String experimentId, String runId) {
         jdbc.update("DELETE FROM ml_runs WHERE id = ? AND experiment_id = ?", runId, experimentId);
     }

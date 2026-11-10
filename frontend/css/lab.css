@@ -82,6 +82,10 @@
 .ml-note.info { background: var(--ml-disc-bg); border-color: #d3daf3; color: #28324f; }
 .ml-note.warn { background: #fdf9ec; border-color: #ecdca4; color: #5c4710; }
 .ml-note.err { background: #fdf0ef; border-color: #f0c9c5; color: #8f2a22; }
+.ml-note.ok { background: #eef6f0; border-color: #c4e1cc; color: #1d4a2b; }
+.mx-assoc-ok { margin-top: 12px; }
+.mx-assoc-ok > span:nth-child(2) { flex: 1; }
+.mx-assoc-ok .ml-btn { text-decoration: none; }
 .ml-note .ml-ic { flex: none; width: 17px; height: 17px; }
 
 /* Variables */
