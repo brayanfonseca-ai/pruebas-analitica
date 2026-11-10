@@ -7,6 +7,7 @@ Términos del dominio de DataSense (muchos heredados de Qlik Sense).
 | **Aplicación (app)** | Contenedor de trabajo: agrupa sus tablas, modelo, hojas, conexiones y modelo lógico. Identificada por `appId`. Lo que creas desde "Crear → Aplicación". |
 | **Tabla** | Conjunto de datos cargado (desde Excel/CSV o una conexión). Tiene columnas con un tipo inferido. Se materializa como CSV. |
 | **Conexiones realizadas** | Stack de todas las conexiones de datos creadas (en cualquier app o desde el hub). En el Editor de carga, cada una abre el **selector de datos**: explorar, validar la extracción con una muestra real y ver el script de carga en paralelo antes de cargar. |
+| **Gráfico de ML** | Objeto de hoja de tipo `ml-*` (mapa de clusters, silhouette score, curva ROC…) que dibuja una ejecución guardada de Experimentos de ML. Se añade desde *Objetos personalizados* y se edita como cualquier gráfico. |
 | **Asociar a** | Acción de un resultado de Experimentos de ML: crea en una app una tabla `ML_…` (resultado por registro enlazado por la clave, o tabla resumen) y una hoja con sus gráficos; la hoja guarda en `props.ml` el resumen del modelo para el agente analista. |
 | **Campo** | Una columna de una tabla. Puede ser dimensión o medida según su tipo y clasificación. |
 | **Dimensión** | Campo categórico (texto/fecha) por el que se agrupa o filtra: Región, Categoría, Mes. |

@@ -9,6 +9,8 @@
 // solo se dibuja lo que devuelve. Los tipos con available:false se muestran en el
 // catálogo en gris con "Próximamente": no se pueden arrastrar.
 
+import { ML_VIEWS } from "./ml-views.js";
+
 export const PALETTE = [
   "#0a8f3c", "#1f6feb", "#f0a132", "#c0392b", "#8e44ad",
   "#16a085", "#d35400", "#2c3e50", "#7f8c8d", "#b8860b",
@@ -55,6 +57,26 @@ const I = {
   network: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="10" cy="18" r="2"/><path d="M8 7l8 1M7 8l2 8M12 17l5-7"/>',
   cloud: '<path d="M4 10h6M12 10h8M4 15h4M10 15h10"/>',
   variance: '<path d="M4 20V8M9 20V4M14 20v-6M19 20V10"/><path d="M4 8h5"/>',
+  // ---- Machine Learning ----
+  mlcluster: '<circle cx="7" cy="8" r="1.5"/><circle cx="9" cy="6" r="1.2"/><circle cx="6" cy="5.5" r="1"/><circle cx="16" cy="15" r="1.5"/><circle cx="18" cy="17" r="1.2"/><circle cx="15" cy="18" r="1"/><circle cx="17" cy="7" r="1.3"/><path d="M3 3v18h18"/>',
+  mlelbow: '<path d="M4 4c1 8 3 11 7 12s7 1 9 1"/><path d="M4 19l4-6 4 2 4-5 4 1" stroke-dasharray="2 2"/>',
+  mlsil: '<path d="M3 16h18"/><path d="M3 16v-2M9 16v-2M15 16v-2M21 16v-2"/><path d="M15 12l2-5 2 5"/>',
+  mlseg: '<rect x="3" y="4" width="8" height="7" rx="1.5"/><rect x="13" y="4" width="8" height="7" rx="1.5"/><rect x="3" y="13" width="8" height="7" rx="1.5"/><path d="M5 7h4M15 7h4M5 16h4"/>',
+  mlprofile: '<path d="M12 3v18"/><path d="M12 6h6M12 10H7M12 14h4M12 18H8"/>',
+  mlsizes: '<path d="M5 20V9M10 20V6M15 20v-9M20 20V4"/><circle cx="5" cy="6" r="1"/><circle cx="20" cy="2.5" r="1"/>',
+  mlactual: '<path d="M3 21L21 3" stroke-dasharray="2 2"/><circle cx="7" cy="16" r="1.4"/><circle cx="11" cy="11" r="1.4"/><circle cx="15" cy="9" r="1.4"/><circle cx="17" cy="5" r="1.4"/>',
+  mlimp: '<path d="M4 5h14M4 10h10M4 15h7M4 20h4"/>',
+  mlcoef: '<path d="M12 3v18"/><path d="M12 7h7M12 12H6M12 17h4"/>',
+  mlroc: '<path d="M3 21V3M3 21h18"/><path d="M3 21c2-10 7-15 18-18"/><path d="M3 21L21 3" stroke-dasharray="2 2"/>',
+  mlconf: '<rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/><path d="M6 7h2M16 17h2"/>',
+  mlboard: '<path d="M4 6h16M4 12h11M4 18h7"/><circle cx="20" cy="12" r="1.2"/>',
+  mlforecast: '<path d="M3 16l4-4 4 2 4-5"/><path d="M15 9l6-3" stroke-dasharray="2 2"/><path d="M15 12l6-1M15 6l6-5" stroke-opacity=".5"/>',
+  mlcorr: '<rect x="3" y="3" width="6" height="6"/><rect x="9" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/>',
+  mlpca: '<path d="M4 20V6M9 20V11M14 20v-6M19 20v-3"/><path d="M4 6l5-2 5 2 5 1"/>',
+  mlanom: '<path d="M4 20v-5h3v5M7 20V9h3v11M10 20v-7h3v7M13 20v-3h3v3"/><circle cx="20" cy="6" r="1.8"/>',
+  mlrules: '<path d="M4 7h6M14 7h6M10 7l4 0"/><path d="M12 5l2 2-2 2"/><path d="M4 15h6M14 15h6"/><path d="M12 13l2 2-2 2"/>',
+  mlmetrics: '<rect x="3" y="6" width="5" height="12" rx="1"/><rect x="10" y="6" width="5" height="12" rx="1"/><rect x="17" y="6" width="4" height="12" rx="1"/>',
+  mlinsight: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/>',
 };
 
 export function typeIcon(name) {
@@ -279,6 +301,15 @@ const DEFS = [
     size: { w: 10, h: 7 }, axes: false, legend: false, presentation: [],
   },
 ];
+
+// ---------------- Machine Learning (objetos personalizados) ----------------
+// Dibujan una ejecución guardada de Experimentos de ML (props.ml = {experimentId, runId});
+// no usan dimensiones/medidas del modelo asociativo. Se ofrecen en "Objetos personalizados".
+ML_VIEWS.forEach((v) => DEFS.push({
+  type: v.type, label: v.label, icon: v.icon, group: "ml", mlFamily: v.fam, desc: v.desc, available: true, render: "ml", noData: true, ml: true,
+  roles: { dims: { min: 0, max: 0, labels: [] }, measures: { min: 0, max: 0, labels: [] } },
+  size: v.size, axes: false, legend: true, presentation: ["mlLegend", "mlPalette"],
+}));
 
 export const GROUPS = [
   { key: "viz", label: "Visualizaciones" },

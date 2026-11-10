@@ -151,18 +151,31 @@ public class MlAssociation {
         long lines = head.chars().filter(ch -> ch == '\n').count() + 1;
         L.add(text(head.toString()), 24, lines <= 6 ? 2 : 3);
 
+        // Gráficos de ML (objetos de hoja "ml-*": dibujan esta ejecución y se editan como cualquier gráfico).
+        String expId = String.valueOf(exp.get("id"));
+        java.util.function.BiFunction<String, String, Map<String, Object>> mlv = (type, t) -> mlChart(type, t, expId, runId);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> model = "automl".equals(algo) && scored.get("best") instanceof Map<?, ?> bm ? (Map<String, Object>) bm : scored;
+        boolean hasImp = model.get("importance") instanceof List<?> il && !il.isEmpty();
+        boolean hasCoef = model.get("coefficients") instanceof List<?> cl0 && !cl0.isEmpty();
+        L.newRow();
+        L.add(mlv.apply("ml-metrics", "Métricas del modelo"), 24, 3);
+        if ("automl".equals(algo)) { L.add(mlv.apply("ml-leaderboard", "Ranking de modelos (AutoML)"), 24, 8); }
+
         switch (family) {
             case "segment" -> {
                 String g = col.get("group");
-                int kw = col.containsKey("dist") ? 12 : 24;
-                L.add(kpi("Registros segmentados", m(tableName, g, "count")), kw, 3);
-                if (col.containsKey("dist")) L.add(kpi("Distancia media al centro (z)", m(tableName, col.get("dist"), "avg")), 12, 3);
-                L.newRow();
-                L.add(chart("bar", "Registros por grupo", d(tableName, g), List.of(m(tableName, g, "count"))), 12, 8);
-                L.add(chart("pie", "Participación por grupo", d(tableName, g), List.of(m(tableName, g, "count"))), 12, 8);
+                L.add(mlv.apply("ml-clustermap", "Mapa de clusters"), 12, 9);
+                L.add(mlv.apply("ml-elbow", "kmeans".equals(algo) ? "Elección de k · inercia y silueta" : "hierarchical".equals(algo) ? "Altura de fusión (dendrograma)" : "Distancia al k-ésimo vecino"), 12, 9);
+                if (scored.get("silhouette") != null) L.add(mlv.apply("ml-silhouette", "Silhouette score"), 6, 6);
+                int rest = scored.get("silhouette") != null ? 9 : 12;
+                L.add(chart("bar", "Registros por grupo", d(tableName, g), List.of(m(tableName, g, "count"))), rest, 6);
+                L.add(chart("pie", "Participación por grupo", d(tableName, g), List.of(m(tableName, g, "count"))), rest, 6);
+                L.add(mlv.apply("ml-segments", "Perfiles de segmentos"), 24, 8);
+                L.add(mlv.apply("ml-profile", "Perfil z por segmento"), 12, 8);
                 List<Map<String, Object>> prof = new ArrayList<>();
                 for (String f : feats.subList(0, Math.min(3, feats.size()))) prof.add(m(featTable, f, "avg"));
-                if (!prof.isEmpty()) L.add(chart("bar", "Perfil promedio por grupo", d(tableName, g), prof), 24, 8);
+                if (!prof.isEmpty()) L.add(chart("bar", "Perfil promedio por grupo", d(tableName, g), prof), 12, 8);
                 List<Map<String, Object>> cent = new ArrayList<>();
                 cent.add(m(tableName, g, "count"));
                 for (String f : feats.subList(0, Math.min(4, feats.size()))) cent.add(m(featTable, f, "avg"));
@@ -171,6 +184,10 @@ public class MlAssociation {
             }
             case "regression" -> {
                 String p = col.get("pred"), e = col.get("err");
+                L.add(mlv.apply("ml-actualpred", "Real vs predicho"), 12, 9);
+                if (hasImp) L.add(mlv.apply("ml-importance", "Importancia de variables"), 12, 9);
+                else if (hasCoef) L.add(mlv.apply("ml-coefs", "Coeficientes del modelo"), 12, 9);
+                L.newRow();
                 L.add(kpi("Predicción promedio", m(tableName, p, "avg")), 8, 3);
                 if (e != null) L.add(kpi("Error medio (real − estimado)", m(tableName, e, "avg")), 8, 3);
                 if (target != null) L.add(kpi(target + " real promedio", m(featTable, target, "avg")), 8, 3);
@@ -193,6 +210,11 @@ public class MlAssociation {
             }
             case "classification" -> {
                 String pr = col.get("prob"), cl = col.get("class");
+                if (model.get("roc") instanceof List<?> rl && !rl.isEmpty()) L.add(mlv.apply("ml-roc", "Curva ROC"), 12, 9);
+                if (model.get("confusion") != null) L.add(mlv.apply("ml-confusion", "Matriz de confusión"), 12, 9);
+                if (hasImp) L.add(mlv.apply("ml-importance", "Importancia de variables"), 24, 8);
+                else if (hasCoef) L.add(mlv.apply("ml-coefs", "Influencia de cada variable"), 24, 8);
+                L.newRow();
                 L.add(kpi("Probabilidad promedio", m(tableName, pr, "avg")), 12, 3);
                 L.add(kpi("Registros puntuados", m(tableName, cl, "count")), 12, 3);
                 L.newRow();
@@ -204,37 +226,36 @@ public class MlAssociation {
             }
             case "anomaly" -> {
                 String a = col.get("flag"), s = col.get("score");
-                L.add(kpi("Registros evaluados", m(tableName, a, "count")), 12, 3);
-                L.add(kpi("Puntaje máximo (σ)", m(tableName, s, "max")), 12, 3);
-                L.newRow();
+                L.add(mlv.apply("ml-anomaly", "Distribución de atípicos"), 14, 8);
                 L.add(chart("pie", "Atípicos vs. normales", d(tableName, a), List.of(m(tableName, a, "count"))), 10, 8);
                 List<Map<String, Object>> prof = new ArrayList<>();
                 for (String f : feats.subList(0, Math.min(3, feats.size()))) prof.add(m(featTable, f, "avg"));
-                if (!prof.isEmpty()) L.add(chart("bar", "Promedios: atípicos vs. normales", d(tableName, a), prof), 14, 8);
+                if (!prof.isEmpty()) L.add(chart("bar", "Promedios: atípicos vs. normales", d(tableName, a), prof), 24, 8);
                 if (key != null) L.add(chart("table", "Puntaje por registro", d(tableName, key), List.of(m(tableName, s, "max"))), 24, 8);
                 L.add(chart("filterpane", "Filtrar atípicos", d(tableName, a), List.of()), 24, 3);
             }
             case "forecast" -> {
                 String per = col.get("period");
-                L.add(chart("line", "Histórico y pronóstico", d(tableName, per),
-                        List.of(m(tableName, col.get("value"), "sum"), m(tableName, col.get("lower"), "sum"), m(tableName, col.get("upper"), "sum"))), 24, 9);
+                L.add(mlv.apply("ml-forecast", "Histórico, ajuste y pronóstico"), 24, 9);
                 L.add(chart("table", "Detalle por periodo", d(tableName, per),
                         List.of(m(tableName, col.get("value"), "sum"), m(tableName, col.get("fitted"), "sum"), m(tableName, col.get("lower"), "sum"), m(tableName, col.get("upper"), "sum"))), 24, 8);
                 L.add(chart("filterpane", "Histórico / pronóstico", d(tableName, col.get("kind")), List.of()), 24, 3);
             }
             case "correlation" -> {
-                L.add(chart("bar", "Correlación por par de variables", d(tableName, col.get("pair")), List.of(m(tableName, col.get("r"), "sum"))), 24, 9);
+                L.add(mlv.apply("ml-corr", "Matriz de correlación (Pearson)"), 12, 9);
+                L.add(chart("bar", "Correlación por par de variables", d(tableName, col.get("pair")), List.of(m(tableName, col.get("r"), "sum"))), 12, 9);
                 L.add(chart("table", "Detalle de correlaciones", d(tableName, col.get("pair")), List.of(m(tableName, col.get("r"), "sum"), m(tableName, col.get("r2"), "sum"))), 24, 8);
             }
             case "pca" -> {
+                L.add(mlv.apply("ml-pca", "Varianza explicada (individual y acumulada)"), 12, 8);
                 L.add(chart("bar", "Varianza explicada por componente", d(tableName, col.get("comp")), List.of(m(tableName, col.get("explained"), "sum"))), 12, 8);
-                L.add(chart("line", "Varianza acumulada", d(tableName, col.get("comp")), List.of(m(tableName, col.get("cumulative"), "sum"))), 12, 8);
                 List<Map<String, Object>> ms = new ArrayList<>();
                 ms.add(m(tableName, col.get("explained"), "sum"));
                 for (String f : feats.subList(0, Math.min(4, feats.size()))) if (col.containsKey("load:" + f)) ms.add(m(tableName, col.get("load:" + f), "sum"));
                 L.add(chart("table", "Cargas por componente", d(tableName, col.get("comp")), ms), 24, 8);
             }
             case "rules" -> {
+                L.add(mlv.apply("ml-rules", "Reglas de asociación"), 24, 8);
                 L.add(chart("bar", "Lift por regla", d(tableName, col.get("rule")), List.of(m(tableName, col.get("lift"), "sum"))), 24, 9);
                 L.add(chart("table", "Reglas encontradas", d(tableName, col.get("rule")),
                         List.of(m(tableName, col.get("support"), "sum"), m(tableName, col.get("confidence"), "sum"), m(tableName, col.get("lift"), "sum"), m(tableName, col.get("count"), "sum"))), 24, 8);
@@ -495,6 +516,16 @@ public class MlAssociation {
         props.put("measures", measures);
         if ("pie".equals(type)) props.put("look", Map.of("donut", true, "valueLabels", true));
         if ("line".equals(type)) props.put("look", Map.of("points", true));
+        return obj(type, props);
+    }
+
+    /** Gráfico de ML (tipo "ml-*" del frontend) ligado a una ejecución guardada. */
+    private static Map<String, Object> mlChart(String type, String title, String experimentId, String runId) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("title", title);
+        props.put("dims", List.of());
+        props.put("measures", List.of());
+        props.put("ml", Map.of("experimentId", experimentId, "runId", runId));
         return obj(type, props);
     }
 

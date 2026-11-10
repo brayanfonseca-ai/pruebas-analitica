@@ -23,6 +23,7 @@ import {
   esc, fmt,
 } from "./hoja-render.js";
 import { TEMPLATES, TEMPLATE_CATEGORIES, GRID_COLS, GRID_ROWS, layoutThumb } from "./hoja-templates.js";
+import { renderMlView, ML_FAMILIES, ML_VIEWS, getMlView, isMlType, runMatches, algoName } from "./ml-views.js";
 import { mountEstrellita } from "./estrellita.js";
 
 const MAX_ROWS = 200;
@@ -101,6 +102,41 @@ export async function render(mount, ctx) {
   const els = new Map();       // objId -> elemento DOM
   const cleanups = new Map();  // objId -> destroy()
   const tokens = new Map();    // objId -> token de la última consulta
+
+  /* ---------------- Objetos de Machine Learning (ejecuciones guardadas) ---------------- */
+  const mlCache = new Map();   // "expId:runId" -> Promise<resultado>
+  let mlExpsP = null;          // Promise<[{id, name, app_id, app_name, runs}]>
+  function mlRun(expId, runId) {
+    const k = `${expId}:${runId}`;
+    if (!mlCache.has(k)) mlCache.set(k, api.getExperimentRun(expId, runId).catch((e) => { mlCache.delete(k); throw e; }));
+    return mlCache.get(k);
+  }
+  /** Experimentos con sus ejecuciones; primero los de esta app. */
+  function mlExperiments(force = false) {
+    if (!mlExpsP || force) {
+      mlExpsP = api.listExperiments().then((list) => Promise.all(
+        [...list].sort((a, b) => (b.app_id === ctx.appId) - (a.app_id === ctx.appId)).map((e) =>
+          api.getExperiment(e.id).then((d) => ({ id: e.id, name: e.name, app_id: e.app_id, app_name: e.app_name, runs: d.runList || [] }))
+            .catch(() => ({ id: e.id, name: e.name, app_id: e.app_id, app_name: e.app_name, runs: [] })))))
+        .catch((e) => { mlExpsP = null; throw e; });
+    }
+    return mlExpsP;
+  }
+  /** Ejecución por defecto para una vista nueva: la de la hoja (si la generó "Asociar a"), si no la más reciente compatible. */
+  async function mlDefaultRef(type) {
+    const exps = await mlExperiments().catch(() => []);
+    const sm = st.sheet?.props?.ml;
+    if (sm?.ejecucionId) {
+      const e = exps.find((x) => x.id === sm.experimentoId);
+      const run = e?.runs.find((x) => x.id === sm.ejecucionId);
+      if (run && runMatches(type, run)) return { experimentId: e.id, runId: run.id };
+    }
+    for (const e of exps) {
+      const run = e.runs.find((x) => runMatches(type, x));
+      if (run) return { experimentId: e.id, runId: run.id };
+    }
+    return null;
+  }
   let dragPayload = null;      // {kind:'type', type} | {kind:'field'|'master', ...}
   let saveTimer = null;
   let rowH = 40;
@@ -730,6 +766,24 @@ export async function render(mount, ctx) {
       renderNavMenu(body, st.sheets, st.edit ? null : (id) => { const s = st.sheets.find((x) => x.id === id); if (s) openSheet(s); }, st.sheet?.id);
       return;
     }
+    if (r === "ml") {
+      const ref = p.ml;
+      if (!ref?.runId) {
+        body.innerHTML = `<div class="mlv-empty"><span class="mlv-empty-ico">${typeIcon(def.icon)}</span><strong>${esc(def.label)}</strong>
+          <span>${st.edit ? "Elige el experimento y la ejecución en Propiedades › Datos." : "Este gráfico no tiene una ejecución de ML asignada."}</span></div>`;
+        return;
+      }
+      body.innerHTML = `<div class="ho-obj-loading">Cargando el resultado del modelo…</div>`;
+      try {
+        const res = await mlRun(ref.experimentId, ref.runId);
+        if (tokens.get(o.id) !== token) return;
+        cleanups.set(o.id, renderMlView(body, o.type, res, { look: p.look }));
+      } catch (e) {
+        if (tokens.get(o.id) !== token) return;
+        body.innerHTML = `<div class="ho-obj-msg">No se pudo cargar la ejecución de ML: ${esc(e.message)}</div>`;
+      }
+      return;
+    }
 
     if (!isComplete(def, p)) { renderEmptyState(body, o, def); return; }
     body.innerHTML = `<div class="ho-obj-loading">Calculando…</div>`;
@@ -1060,6 +1114,7 @@ export async function render(mount, ctx) {
       obj = { id: uid(), type: payload.type, x: r.x, y: r.y, w: r.w, h: r.h, props: defaultProps(payload.type) };
       pushHistory();
       st.sheet.objects.push(obj);
+      if (isMlType(obj.type)) assignMlDefault(obj);
     } else {
       // Campo o elemento maestro sobre la rejilla: panel de filtrado (dimensión) o KPI (medida).
       const type = isMeasureLike(payload) ? "kpi" : "filterpane";
@@ -1211,6 +1266,36 @@ export async function render(mount, ctx) {
     const n = String(name || "").trim().toLowerCase();
     if (!n) return null;
     return (st.fields || []).find((f) => String(f.field).toLowerCase() === n) || null;
+  }
+
+  /** Objeto ML recién creado: título por defecto y la ejecución más adecuada. */
+  async function assignMlDefault(obj) {
+    const def = getType(obj.type);
+    if (!obj.props.title) obj.props.title = def.label;
+    const ref = await mlDefaultRef(obj.type);
+    if (!st.sheet?.objects.includes(obj)) return;
+    if (ref) obj.props.ml = ref;
+    renderContent(obj);
+    if (st.selectedId === obj.id) renderProps();
+    scheduleSave();
+  }
+
+  /** Clic en un gráfico ML del panel: lo coloca en el primer hueco libre. */
+  function addMlObject(type) {
+    const def = getType(type);
+    if (!def || !st.sheet) return;
+    const slot = findFreeSlot(def.size.w, def.size.h);
+    if (!slot) { status("No hay espacio libre en la hoja. Active «Ampliar hoja» o reduzca otros objetos.", true); return; }
+    const obj = { id: uid(), type, ...slot, props: defaultProps(type) };
+    pushHistory();
+    st.sheet.objects.push(obj);
+    assignMlDefault(obj);
+    st.selectedId = obj.id;
+    st.accordion = "datos";
+    relayout();
+    renderProps();
+    scheduleSave();
+    els.get(obj.id)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   /** Recorre la rejilla de 24 columnas buscando el primer hueco donde cabe w×h. */
@@ -1435,7 +1520,22 @@ export async function render(mount, ctx) {
       html = head("Análisis") + search() + `<div class="ho-as-note">Los análisis asistidos llegarán con la capa de IA. ${SOON}.</div>` +
         ANALYSES.map((n) => `<div class="ho-chart-item soon" data-filter="${esc(n.toLowerCase())}"><span class="ho-chart-ico">${typeIcon("line")}</span><span>${esc(n)}</span></div>`).join("");
     } else if (key === "objetos") {
-      html = head("Objetos personalizados") + search() + `<div class="ho-as-empty"><strong>No hay extensiones instaladas.</strong><span>Las extensiones propias se podrán registrar más adelante. ${SOON}.</span></div>`;
+      // Stack de gráficos de Machine Learning: dibujan una ejecución guardada de Experimentos de ML.
+      const sm = st.sheet?.props?.ml;
+      html = head("Objetos personalizados") + search() + `
+        <div class="ho-as-note mlv-as-note">Gráficos de <strong>Machine Learning</strong>. Arrástrelos a la hoja o haga clic para añadirlos; dibujan una ejecución de Experimentos de ML${sm ? ` (por defecto: <strong>${esc(sm.algoritmo || "")}</strong> de «${esc(sm.experimento || "")}»)` : ""}.</div>` +
+        ML_FAMILIES.map((fam) => {
+          const items = CHART_TYPES.filter((t) => t.group === "ml" && t.mlFamily === fam.key);
+          if (!items.length) return "";
+          return `<details open class="ho-as-sec"><summary>${esc(fam.label)}</summary>
+            ${items.map((t) => `
+              <div class="ho-chart-item mlv-item" draggable="true" data-type="${t.type}" data-ml-add="${t.type}" data-filter="${esc((t.label + " " + fam.label + " " + (t.desc || "")).toLowerCase())}" title="${esc(t.desc || "")}">
+                <span class="ho-chart-ico">${typeIcon(t.icon)}</span>
+                <span class="mlv-item-t"><span>${esc(t.label)}</span><em>${esc(t.desc || "")}</em></span>
+                <span class="ho-grip">⋮⋮</span>
+              </div>`).join("")}
+          </details>`;
+        }).join("");
     }
     a.innerHTML = html;
     wireAssets(a);
@@ -1466,6 +1566,7 @@ export async function render(mount, ctx) {
     }));
     a.querySelector("#hoNewSheet")?.addEventListener("click", () => openTemplates());
 
+    a.querySelectorAll("[data-ml-add]").forEach((it) => it.addEventListener("click", () => addMlObject(it.dataset.mlAdd)));
     a.querySelectorAll(".ho-chart-item[draggable='true']").forEach((it) => {
       it.addEventListener("dragstart", (e) => {
         dragPayload = { kind: "type", type: it.dataset.type };
@@ -1753,7 +1854,8 @@ export async function render(mount, ctx) {
             <button class="ho-mini" data-filter-edit="${i}" title="Editar">✎</button><button class="ho-mini" data-filter-del="${i}" title="Quitar">✕</button></div>`).join("")}
         <button class="ho-add-btn" data-add-filter ${complete ? "" : "disabled"}>Añadir</button>
       </div>`;
-    const datos = def.noData ? `<p class="ho-p-hint">Este objeto no usa datos.</p>` : `${roleBlock("dimension", "Dimensiones")}${roleBlock("measure", "Medidas")}${filtersBlock}`;
+    const datos = def.ml ? `<div id="mlDatos"><p class="ho-p-hint">Cargando experimentos de ML…</p></div>`
+      : def.noData ? `<p class="ho-p-hint">Este objeto no usa datos.</p>` : `${roleBlock("dimension", "Dimensiones")}${roleBlock("measure", "Medidas")}${filtersBlock}`;
 
     // ---------- Ordenar ----------
     const sort = p.sort || { by: "auto", dir: "asc" };
@@ -1831,6 +1933,11 @@ export async function render(mount, ctx) {
           <option value="connect" ${look.missing === "connect" ? "selected" : ""}>Mostrar como conexiones</option>
           <option value="zero" ${look.missing === "zero" ? "selected" : ""}>Mostrar como ceros</option></select></div>`);
       if (k === "points") pres.push(`<label class="ho-check"><input type="checkbox" data-look-chk="points" ${look.points ? "checked" : ""}/> Mostrar puntos de datos</label>`);
+      if (k === "mlLegend") pres.push(`<label class="ho-check"><input type="checkbox" data-look-chk="legend" ${look.legend !== false ? "checked" : ""}/> Mostrar leyenda</label>
+        <label class="ho-check"><input type="checkbox" data-look-chk="tooltip" ${look.tooltip !== false ? "checked" : ""}/> Mostrar información al pasar el cursor</label>`);
+      if (k === "mlPalette") pres.push(`<div class="ho-p-field"><label class="ho-p-label">Paleta de colores</label><select data-look-sel="mlPalette">
+          <option value="datasense" ${look.mlPalette !== "sense" ? "selected" : ""}>DataSense (azul, verde, ocre…)</option>
+          <option value="sense" ${look.mlPalette === "sense" ? "selected" : ""}>Sense (verde, azul, naranja…)</option></select></div>`);
       if (k === "totals") pres.push(`<label class="ho-check"><input type="checkbox" data-look-chk="totals" ${look.totals !== false ? "checked" : ""}/> Mostrar totales (calculados por el motor)</label>`);
     });
     // Presentación común a los gráficos con datos (etiquetas de valores, barra
@@ -1890,6 +1997,60 @@ export async function render(mount, ctx) {
     wireObjectProps(pane, obj, def);
   }
 
+  /** Datos de un gráfico ML: tipo de gráfico, experimento y ejecución (filtrados por compatibilidad). */
+  async function wireMlDatos(pane, obj) {
+    const box = pane.querySelector("#mlDatos");
+    if (!box) return;
+    let exps;
+    try { exps = await mlExperiments(); } catch (e) { box.innerHTML = `<p class="ho-p-hint">No se pudieron cargar los experimentos: ${esc(e.message)}</p>`; return; }
+    if (!pane.contains(box) || st.selectedId !== obj.id) return;
+    const ref = obj.props.ml || {};
+    const fitting = (e) => e.runs.filter((r) => runMatches(obj.type, r) || r.id === ref.runId);
+    const expOpts = exps.filter((e) => fitting(e).length || e.id === ref.experimentId);
+    const cur = exps.find((e) => e.id === ref.experimentId) || expOpts[0];
+    const runs = cur ? fitting(cur) : [];
+    const nf = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 3 });
+    const runLabel = (r) => `${algoName(r.algorithm)}${r.label ? " · " + r.label : ""}${r.metric_name && r.metric_value != null ? ` — ${r.metric_name} ${nf.format(r.metric_value)}` : ""}`;
+    box.innerHTML = `
+      <div class="ho-p-field"><label class="ho-p-label" for="mlType">Gráfico de ML</label>
+        <select id="mlType">${ML_FAMILIES.map((f) => {
+          const vs = ML_VIEWS.filter((v) => v.fam === f.key);
+          return vs.length ? `<optgroup label="${esc(f.label)}">${vs.map((v) => `<option value="${v.type}" ${v.type === obj.type ? "selected" : ""}>${esc(v.label)}</option>`).join("")}</optgroup>` : "";
+        }).join("")}</select></div>
+      <div class="ho-p-field"><label class="ho-p-label" for="mlExp">Experimento</label>
+        <select id="mlExp" ${expOpts.length ? "" : "disabled"}>${expOpts.length ? expOpts.map((e) => `<option value="${esc(e.id)}" ${cur && e.id === cur.id ? "selected" : ""}>${esc(e.name)}${e.app_id !== ctx.appId ? ` · ${esc(e.app_name || "otra app")}` : ""}</option>`).join("") : `<option value="">Sin experimentos compatibles</option>`}</select></div>
+      <div class="ho-p-field"><label class="ho-p-label" for="mlRunSel">Ejecución</label>
+        <select id="mlRunSel" ${runs.length ? "" : "disabled"}>${runs.length ? `${ref.runId && runs.some((r) => r.id === ref.runId) ? "" : `<option value="">Elegir ejecución…</option>`}${runs.map((r) => `<option value="${esc(r.id)}" ${r.id === ref.runId ? "selected" : ""}>${esc(runLabel(r))}</option>`).join("")}` : `<option value="">—</option>`}</select></div>
+      ${expOpts.length ? "" : `<p class="ho-p-hint">No hay ejecuciones guardadas que sirvan para este gráfico. Entrena un modelo en <a href="experimentos.html" target="_blank" rel="noopener">Experimentos de ML</a>.</p>`}
+      <p class="ho-p-hint">${esc(getMlView(obj.type)?.desc || "")}</p>
+      <div class="mlv-p-actions">
+        ${ref.experimentId ? `<a class="ho-add-btn mlv-open" href="experimento.html?id=${encodeURIComponent(ref.experimentId)}" target="_blank" rel="noopener">Abrir experimento ↗</a>` : ""}
+        <button class="ho-add-btn" id="mlRefresh" type="button" title="Vuelve a leer experimentos y resultados">Recargar</button>
+      </div>`;
+
+    const setRef = (experimentId, runId) => { updateObjProps(obj, (p) => { p.ml = runId ? { experimentId, runId } : null; }); renderProps(); };
+    box.querySelector("#mlType").addEventListener("change", async (e) => {
+      const oldDef = getType(obj.type), nt = e.target.value;
+      pushHistory();
+      obj.type = nt;
+      if (!obj.props.title || obj.props.title === oldDef?.label) obj.props.title = getType(nt).label;
+      const curRun = cur?.runs.find((r) => r.id === obj.props.ml?.runId);
+      if (!curRun || !runMatches(nt, curRun)) obj.props.ml = await mlDefaultRef(nt);
+      renderContent(obj); renderProps(); scheduleSave();
+    });
+    box.querySelector("#mlExp")?.addEventListener("change", (e) => {
+      const ex = exps.find((x) => x.id === e.target.value);
+      const run = ex?.runs.find((r) => runMatches(obj.type, r));
+      setRef(ex?.id, run?.id);
+    });
+    box.querySelector("#mlRunSel")?.addEventListener("change", (e) => setRef(cur?.id, e.target.value));
+    box.querySelector("#mlRefresh").addEventListener("click", () => {
+      mlCache.clear(); mlExpsP = null;
+      st.sheet.objects.filter((o) => isMlType(o.type)).forEach((o) => renderContent(o));
+      renderProps();
+    });
+  }
+
   function wireObjectProps(pane, obj, def) {
     const p = obj.props;
     const rerenderPane = () => renderProps();
@@ -1901,6 +2062,7 @@ export async function render(mount, ctx) {
       st.sub[b.dataset.sub] = !st.sub[b.dataset.sub];
       rerenderPane();
     }));
+    if (def.ml) wireMlDatos(pane, obj);
 
     // Datos
     pane.querySelectorAll("[data-add-kind]").forEach((b) => b.addEventListener("click", () => openCatalog(b, obj.id, b.dataset.addKind)));
