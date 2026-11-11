@@ -5,7 +5,9 @@ import io.datasense.engine.Profiler;
 import io.datasense.engine.TableStore;
 import io.datasense.engine.connect.ConnectionExecutor;
 import io.datasense.engine.connect.ConnectionExecutors;
+import io.datasense.engine.connect.Extraction;
 import io.datasense.engine.connect.LoadScripts;
+import io.datasense.engine.transform.DataTransform;
 import io.datasense.model.AppModels.ColumnProfile;
 import io.datasense.repo.AppRepository;
 import io.datasense.repo.ConnectionRepository;
@@ -146,7 +148,8 @@ public class ConnectionController {
             return Map.of("ok", false, "message", "Conector no soportado: " + connector);
 
         try {
-            DataFrame df = exec.load(config, p);
+            DataTransform.Result tr = Extraction.load(exec, config, p);
+            DataFrame df = tr == null ? null : tr.df();
             if (df == null || df.columns().isEmpty())
                 return Map.of("ok", false, "message", "La carga no devolvió datos.");
 
@@ -185,8 +188,12 @@ public class ConnectionController {
                     + df.columns().size() + " columnas)");
             out.put("table", table);
             out.put("replaced", replaced);
+            out.put("rowsExtracted", tr.rowsIn());
+            if (!tr.warnings().isEmpty()) out.put("warnings", tr.warnings());
             out.put("script", LoadScripts.block(str(conn.get("name")), connector, config, stored, tableName, df.columns()));
             return out;
+        } catch (IllegalArgumentException e) {
+            return Map.of("ok", false, "message", message(e));
         } catch (Exception e) {
             return Map.of("ok", false, "message", message(e));
         }

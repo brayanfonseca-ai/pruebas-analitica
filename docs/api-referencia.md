@@ -72,7 +72,9 @@ de negocio devuelven códigos claros (400/404); la IA y las conexiones degradan 
 | DELETE | `/apps/{appId}/connections/{connId}` | Elimina. |
 | GET | `/connections` | **Conexiones realizadas**: todas las conexiones (cualquier app) con `app_name`; secretos enmascarados. |
 | POST | `/connections/{connId}/browse` | Explora: Athena `{}` → bases, `{database}` → tablas con columnas; JDBC → tablas/vistas; S3 `{prefix?}` → CSV/Excel. → `{ok, level, items}`. |
-| POST | `/connections/{connId}/preview` | Valida la extracción sin materializar: muestra de 50 filas → `{ok, columns, rows, shown, tableName, sql, script, elapsedMs}`; error real de la fuente → `{ok:false, message}`. |
+| POST | `/connections/{connId}/preview` | Valida la extracción sin materializar. Body = params de carga `{table\|query\|key, database?, mode: all\|partial\|sample, limit, tableName?, transform?}` → `{ok, raw:{columns,rows}, columns, rows (transformadas), nulls, warnings, transformError?, tableName, mode, limit, sql, script, elapsedMs}`; error real de la fuente → `{ok:false, message}`. |
+| POST | `/connections/{connId}/transform` | `{params, columns, rows}` → mismo formato que preview, sin volver a la fuente. |
+| POST | `/connections/{connId}/parse-script` | `{script, columns?, params?}` → `{ok, params (table/query, database, mode, limit, tableName, transform), script, sql}` o `{ok:false, message}`. |
 
 ## Asistente de IA
 | Método | Ruta | Descripción |

@@ -100,12 +100,12 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (62 tools en total):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (64 tools en total):
 
 | Grupo | Tools |
 |---|---|
 | Catalogos | `list_chart_types`, `list_ml_algorithms` |
-| Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `load_connection`, `delete_connection` |
+| Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (mode + transform), `delete_connection` |
 | Datos | `upload_table`, `delete_table`, `get_field_overrides`, `set_field_overrides` |
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |
 | Elementos maestros | `list_master_items`, `save_master_item`, `delete_master_item`, `parse_expression` |

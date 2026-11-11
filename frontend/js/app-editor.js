@@ -10,8 +10,9 @@
 // auto-generado, reconstruye desde los archivos subidos. "Ver una vista previa de
 // los datos" lista las tablas resultantes. Nada se calcula en JS.
 
-import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, browseConnection, previewConnection, deleteConnection, loadConnection, aiModelar } from "./api.js";
+import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnection, loadConnection, aiModelar } from "./api.js";
 import { openConnectionWizard, CONNECTORS } from "./connections.js";
+import { openDataSelector as openDataSelectorModal } from "./data-selector.js";
 import { mountEstrellita } from "./estrellita.js";
 
 const SOON = "Próximamente";
@@ -478,211 +479,23 @@ export async function render(mount, ctx) {
     return cfg.url || cfg.dsn || c.space || "";
   }
 
-  /* ---------------- Cargar datos desde una conexión (FEAT-002) ----------------
-     Mini-diálogo para capturar los params según el conector; al confirmar, lanza
-     el flujo de carga con el modal de progreso vía loadConnection(). */
-  function loadFieldsFor(connector) {
-    // Campos simples por conector (con placeholders); todos opcionales salvo donde aplique.
-    if (connector === "athena") return [
-      ["database", "Base de datos (schema)", "default"],
-      ["table", "Tabla", "mi_tabla"],
-      ["query", "O una consulta SQL", "SELECT * FROM default.mi_tabla LIMIT 1000"],
-      ["tableName", "Nombre de la tabla destino (opcional)", ""],
-    ];
-    if (["postgres","mysql","mariadb","sqlserver","oracle","redshift","odbc","rds"].includes(connector)) return [
-      ["table", "Tabla", "mi_tabla"],
-      ["query", "O una consulta SQL", "SELECT * FROM mi_tabla"],
-      ["tableName", "Nombre de la tabla destino (opcional)", ""],
-    ];
-    if (connector === "s3") return [
-      ["key", "Objeto / key (CSV o Excel)", "carpeta/archivo.csv"],
-      ["tableName", "Nombre de la tabla destino (opcional)", ""],
-    ];
-    if (["webfile","rest","graphql","odata"].includes(connector)) return [
-      ["url", "URL (opcional, usa la de la conexión si se omite)", ""],
-      ["tableName", "Nombre de la tabla destino (opcional)", ""],
-    ];
-    // Resto: solo permite nombre de tabla destino; el backend decidirá/explicará.
-    return [
-      ["object", "Objeto / recurso (opcional)", ""],
-      ["tableName", "Nombre de la tabla destino (opcional)", ""],
-    ];
-  }
-
   /* ---------------- Selector de datos de una conexión realizada ----------------
-     Ventana emergente: explorador (bases → tablas / objetos) · parámetros ·
-     "Validar extracción" (muestra real de 50 filas SIN materializar) con el script
-     de carga generado EN PARALELO. "Cargar datos" trae la tabla al modelo y deja
-     el código en el editor para empezar a modelar. */
-  const SQL_CONNECTORS = ["athena", "postgres", "mysql", "mariadb", "sqlserver", "oracle", "redshift", "odbc", "rds"];
-  const BROWSABLE = [...SQL_CONNECTORS, "s3"];
-
+     Ventana emergente estilo Power Query (js/data-selector.js): explorador,
+     extracción Todo / Parcial / Muestra, vista previa transformada, Transformar
+     (quitar/renombrar/tipos/nulos/calculadas/filtro), Ver script y Editar script.
+     "Cargar datos" trae la tabla al modelo y deja el código en el editor. */
   function openDataSelector(conn, filter) {
-    const isSql = SQL_CONNECTORS.includes(conn.connector);
-    const canBrowse = BROWSABLE.includes(conn.connector);
-    const sel = { database: conn.config?.database || "", object: "", items: [], preview: null, busy: false };
-    const extraFields = canBrowse ? [] : loadFieldsFor(conn.connector).filter(([n]) => n !== "tableName");
-    const body = `
-      <div class="ed-ds">
-        <aside class="ed-ds-nav">
-          <div class="ed-ds-conn"><span class="cn-ic cn-ic-${esc(connIcon(conn.connector))}"></span><div><strong>${esc(conn.name)}</strong>
-            <em>${esc(CONN_LABEL[conn.connector] || conn.connector)}${conn.app_name ? " · " + esc(conn.app_name) : ""}</em></div></div>
-          ${conn.connector === "athena" ? `<label class="ed-field"><span>Base de datos</span><select id="dsDb"><option>${esc(sel.database || "Cargando…")}</option></select></label>` : ""}
-          ${conn.connector === "s3" ? `<label class="ed-field"><span>Prefijo (carpeta)</span><input id="dsPrefix" placeholder="carpeta/" value="${esc(conn.config?.prefix || "")}" /></label>` : ""}
-          ${canBrowse ? `<input class="ed-ad-search" id="dsFilter" placeholder="${conn.connector === "s3" ? "Buscar archivo" : "Buscar tabla"}" />
-          <div class="ed-ds-list" id="dsList" role="listbox" aria-label="Objetos disponibles"><p class="ed-muted">Cargando objetos…</p></div>`
-            : `<p class="ed-muted">Este conector no permite explorar objetos. Indica el recurso a la derecha.</p>`}
-        </aside>
-        <section class="ed-ds-main">
-          <div class="ed-ds-form">
-            ${canBrowse ? `<label class="ed-field"><span>${conn.connector === "s3" ? "Archivo" : "Tabla"}</span><input id="dsObject" placeholder="${conn.connector === "s3" ? "carpeta/archivo.csv" : "Selecciona en el explorador o escribe"}" /></label>` : ""}
-            ${extraFields.map(([name, label, ph]) => `<label class="ed-field"><span>${esc(label)}</span><input data-ds-extra="${esc(name)}" placeholder="${esc(ph)}" /></label>`).join("")}
-            ${isSql ? `<label class="ed-field ed-ds-limit"><span>Límite de filas</span><input id="dsLimit" type="number" min="1" step="1" value="1000" /></label>` : ""}
-            <label class="ed-field"><span>Tabla destino en el modelo</span><input id="dsTarget" placeholder="(mismo nombre)" /></label>
-          </div>
-          ${isSql ? `<label class="ed-field"><span>Consulta SQL (opcional: reemplaza la tabla elegida)</span><textarea id="dsQuery" rows="2" placeholder="SELECT columna1, columna2 FROM ${conn.connector === "athena" ? "&quot;base&quot;.&quot;tabla&quot;" : "tabla"} WHERE …"></textarea></label>` : ""}
-          <div class="ed-ds-actions"><button class="ho-btn" id="dsValidate">Validar extracción</button><span class="ed-ds-status" id="dsStatus" aria-live="polite"></span></div>
-          <div class="ed-ds-panes">
-            <div class="ed-ds-pane"><div class="ed-ds-pane-h">Vista previa de los datos</div><div class="ed-ds-grid" id="dsGrid"><p class="ed-muted">Elige una tabla y pulsa <strong>Validar extracción</strong>: se trae una muestra real sin cargarla.</p></div></div>
-            <div class="ed-ds-pane"><div class="ed-ds-pane-h">Script de carga <em>(se añade al editor al cargar)</em></div><pre class="ed-ds-code" id="dsCode">// El script aparecerá aquí al validar la extracción.</pre></div>
-          </div>
-        </section>
-      </div>`;
-    const foot = `<button class="ho-btn" data-close>Cancelar</button>
-      <button class="ho-btn" id="dsInsert" disabled>Insertar script</button>
-      ${(canImport || canEdit) ? `<button class="ho-btn primary" id="dsLoad" disabled>Cargar datos</button>` : ""}`;
-    const m = openModal(`<h3>Seleccionar datos · ${esc(conn.name)}</h3>`, body, foot);
-    m.querySelector(".ed-modal").classList.add("ed-ds-modal");
-    const q = (s) => m.querySelector(s);
-    const statusEl = q("#dsStatus");
-    const setStatus = (t, kind = "") => { statusEl.textContent = t; statusEl.className = "ed-ds-status " + kind; };
-
-    function params() {
-      const p = {};
-      const obj = q("#dsObject")?.value.trim();
-      if (obj) { if (conn.connector === "s3") p.key = obj; else p.table = obj; }
-      if (conn.connector === "athena" && sel.database) p.database = sel.database;
-      const lim = q("#dsLimit")?.value.trim();
-      if (lim) p.limit = Number(lim);
-      const query = q("#dsQuery")?.value.trim();
-      if (query) p.query = query;
-      const tgt = q("#dsTarget")?.value.trim();
-      if (tgt) p.tableName = tgt;
-      m.querySelectorAll("[data-ds-extra]").forEach((el) => { const v = el.value.trim(); if (v) p[el.dataset.dsExtra] = v; });
-      return p;
-    }
-    function invalidate() {
-      sel.preview = null;
-      q("#dsInsert").disabled = true;
-      if (q("#dsLoad")) q("#dsLoad").disabled = true;
-    }
-    m.querySelectorAll("#dsObject, #dsLimit, #dsQuery, #dsTarget, [data-ds-extra]").forEach((el) => el.addEventListener("input", () => { if (sel.preview) { invalidate(); setStatus("Cambiaste los parámetros: vuelve a validar.", "warn"); } }));
-
-    function drawList() {
-      const box = q("#dsList");
-      if (!box) return;
-      const f = (q("#dsFilter")?.value || "").toLowerCase();
-      const items = sel.items.filter((it) => !f || it.name.toLowerCase().includes(f));
-      if (!sel.items.length) { box.innerHTML = `<p class="ed-muted">No hay objetos disponibles.</p>`; return; }
-      box.innerHTML = items.slice(0, 400).map((it) => `
-        <button type="button" class="ed-ds-item ${it.name === sel.object ? "active" : ""}" data-obj="${esc(it.name)}" role="option" aria-selected="${it.name === sel.object}">
-          <span class="ed-ds-item-n">${esc(it.name)}</span>
-          <span class="ed-ds-item-m">${it.columns ? `${it.columns.length} campos` : esc(it.type || "")}</span></button>`).join("")
-        + (items.length > 400 ? `<p class="ed-muted">Mostrando 400 de ${items.length}; filtra para acotar.</p>` : "")
-        + (!items.length ? `<p class="ed-muted">Sin coincidencias.</p>` : "");
-      box.querySelectorAll("[data-obj]").forEach((b) => b.addEventListener("click", () => {
-        sel.object = b.dataset.obj;
-        q("#dsObject").value = sel.object;
-        if (q("#dsQuery")) q("#dsQuery").value = "";
-        invalidate();
-        drawList();
-        const it = sel.items.find((x) => x.name === sel.object);
-        setStatus(it?.columns ? `${it.columns.length} campos: ${it.columns.slice(0, 6).map((c) => c.name).join(", ")}${it.columns.length > 6 ? "…" : ""}` : "Listo para validar.");
-        validate();
-      }));
-    }
-
-    async function browse(extra = {}) {
-      const box = q("#dsList");
-      if (!box) return;
-      box.innerHTML = `<p class="ed-muted">Cargando objetos…</p>`;
-      try {
-        const r = await browseConnection(conn.id, extra);
-        if (!r.ok) { box.innerHTML = `<p class="ed-ds-err">${esc(r.message || "No se pudo explorar la conexión.")}</p>`; return null; }
-        return r;
-      } catch (e) { box.innerHTML = `<p class="ed-ds-err">${esc(e.message)}</p>`; return null; }
-    }
-
-    async function loadTables() {
-      const r = await browse(conn.connector === "athena" ? { database: sel.database } : conn.connector === "s3" ? { prefix: q("#dsPrefix")?.value.trim() || "" } : {});
-      if (!r) return;
-      sel.items = r.items || [];
-      drawList();
-    }
-
-    (async () => {
-      if (!canBrowse) return;
-      if (conn.connector === "athena") {
-        const r = await browse({});
-        const dbSel = q("#dsDb");
-        if (r && dbSel) {
-          const dbs = (r.items || []).map((x) => x.name);
-          if (!sel.database || !dbs.includes(sel.database)) sel.database = dbs.includes(r.defaultDatabase) ? r.defaultDatabase : (dbs[0] || "");
-          dbSel.innerHTML = dbs.map((d) => `<option value="${esc(d)}" ${d === sel.database ? "selected" : ""}>${esc(d)}</option>`).join("");
-          dbSel.addEventListener("change", () => { sel.database = dbSel.value; sel.object = ""; q("#dsObject").value = ""; invalidate(); loadTables(); });
-        }
-        if (r) await loadTables();
-      } else {
-        await loadTables();
-        q("#dsPrefix")?.addEventListener("change", loadTables);
-      }
-      q("#dsFilter")?.addEventListener("input", drawList);
-    })();
-
-    async function validate() {
-      const p = params();
-      if (!p.table && !p.key && !p.query && canBrowse) { setStatus("Elige una tabla/archivo o escribe una consulta.", "err"); return; }
-      sel.busy = true; invalidate();
-      const btn = q("#dsValidate");
-      btn.disabled = true;
-      setStatus("Extrayendo una muestra de la fuente…");
-      q("#dsGrid").innerHTML = `<div class="ed-ds-loading"><span class="ed-load-spinner"></span>Consultando ${esc(conn.name)}…</div>`;
-      try {
-        const r = await previewConnection(conn.id, p);
-        if (!r.ok) {
-          setStatus("La extracción falló.", "err");
-          q("#dsGrid").innerHTML = `<p class="ed-ds-err">${esc(r.message)}</p>`;
-          q("#dsCode").textContent = "// Corrige el origen y vuelve a validar.";
-          return;
-        }
-        sel.preview = { params: p, ...r };
-        const cols = r.columns || [];
-        q("#dsGrid").innerHTML = `<table class="ho-table"><thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join("")}</tr></thead>
-          <tbody>${(r.rows || []).map((row) => `<tr>${row.map((v) => `<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-        q("#dsCode").textContent = r.script || "";
-        if (!q("#dsTarget").value) q("#dsTarget").placeholder = r.tableName || "(mismo nombre)";
-        setStatus(`${r.message} (${r.elapsedMs} ms)`, "ok");
-        q("#dsInsert").disabled = false;
-        if (q("#dsLoad")) q("#dsLoad").disabled = false;
-      } catch (e) {
-        setStatus("La extracción falló.", "err");
-        q("#dsGrid").innerHTML = `<p class="ed-ds-err">${esc(e.message)}</p>`;
-      } finally { sel.busy = false; btn.disabled = false; }
-    }
-    q("#dsValidate").addEventListener("click", validate);
-    q("#dsInsert").addEventListener("click", () => {
-      if (!sel.preview) return;
-      const name = sel.preview.tableName || "Tabla";
-      closeModal();
-      insertAtCursor(`\n///$tab ${name}\n${sel.preview.script}`);
-      status.textContent = `Script de carga de ${name} insertado. Pulsa Cargar datos (en la conexión) para traer los datos.`;
-      status.style.color = "";
-    });
-    q("#dsLoad")?.addEventListener("click", () => {
-      if (!sel.preview) return;
-      const p = sel.preview.params;
-      closeModal();
-      doLoadConnection(conn, p, filter);
+    openDataSelectorModal(conn, {
+      openModal, closeModal,
+      canLoad: canImport || canEdit,
+      label: (c) => CONN_LABEL[c] || c,
+      icon: connIcon,
+      insertScript: (script, name) => {
+        insertAtCursor(`\n///$tab ${name}\n${script}`);
+        status.textContent = `Script de carga de ${name} insertado. Ejecuta Cargar datos para traer los datos.`;
+        status.style.color = "";
+      },
+      load: (c, params) => doLoadConnection(c, params, filter),
     });
   }
 
@@ -690,7 +503,8 @@ export async function render(mount, ctx) {
     const prog = openLoadProgress(`Carga desde “${conn.name}”`);
     try {
       prog.step(`LIB CONNECT TO '${conn.name}'…`);
-      prog.step(params.query ? "Ejecutando la consulta SQL en la fuente…" : `Extrayendo ${params.table || params.key || "datos"}…`);
+      const modeTxt = params.mode === "all" ? "todas las filas" : params.mode === "sample" ? `muestra aleatoria de ${params.limit} filas` : params.limit ? `primeras ${params.limit} filas` : "";
+      prog.step((params.query ? "Ejecutando la consulta SQL en la fuente" : `Extrayendo ${params.table || params.key || "datos"}`) + (modeTxt ? ` (${modeTxt})…` : "…"));
       const r = await loadConnection(ctx.appId, conn.id, params);
       if (!r || r.ok === false) {
         // El mensaje incluye el error real del backend (AWS/JDBC).
@@ -698,6 +512,8 @@ export async function render(mount, ctx) {
         return;
       }
       const t = r.table || {};
+      if (params.transform) prog.step(`Transformaciones aplicadas: ${r.rowsExtracted ?? "?"} filas extraídas → ${t.rows} cargadas.`, "ok");
+      (r.warnings || []).forEach((w) => prog.step(w, "warn"));
       prog.step("Materializando la tabla en el modelo…", "ok");
       // En paralelo: el código de carga queda en el editor para empezar a modelar.
       const fresh = await getScript(ctx.appId).catch(() => null);

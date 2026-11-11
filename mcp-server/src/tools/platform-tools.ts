@@ -138,6 +138,32 @@ function freeSlot(objects: Array<Record<string, any>>, w: number, h: number): { 
   return { x: 0, y: objects.reduce((m, o) => Math.max(m, (o.y ?? 0) + (o.h ?? 0)), 0) };
 }
 
+/** Parametros de extraccion comunes a preview_connection / load_connection. */
+const EXTRACTION = {
+  table: z.string().optional().describe("Tabla (SQL/Athena)."),
+  database: z.string().optional().describe("Base (Athena)."),
+  query: z.string().optional().describe("Consulta SQL propia (reemplaza 'table')."),
+  key: z.string().optional().describe("Objeto S3 (CSV/xlsx)."),
+  mode: z.enum(["all", "partial", "sample"]).optional().describe("all = todo sin limite; partial = primeras 'limit' filas (default); sample = 'limit' filas aleatorias."),
+  limit: z.number().optional().describe("Cantidad de filas para partial/sample (default 1000)."),
+  tableName: z.string().optional().describe("Nombre de la tabla destino."),
+  transform: z.object({
+    columns: z.array(z.object({
+      source: z.string().describe("Columna de origen."),
+      include: z.boolean().optional().describe("false = no se carga."),
+      name: z.string().optional().describe("Nuevo nombre (en el script: [origen] AS [nombre])."),
+      type: z.enum(["auto", "text", "integer", "decimal", "date"]).optional(),
+      text: z.enum(["none", "trim", "upper", "lower"]).optional(),
+      nulls: z.enum(["keep", "remove", "fill"]).optional().describe("remove = quitar filas con vacio; fill = reemplazar por 'fill'."),
+      fill: z.string().optional(),
+    }).passthrough()).optional(),
+    computed: z.array(z.object({ name: z.string(), expr: z.string().describe("Ej: [A] + [B], [Nombre] & ' ' & [Apellido], If([x] > 0, 'Si', 'No'), Round([v], 2), Year([fecha]).") })).optional(),
+    filter: z.string().optional().describe("Condicion de filas a conservar, ej: [ANIO] >= 2024 AND [ESTADO] = 'ACTIVO'."),
+    distinct: z.boolean().optional().describe("Quitar filas duplicadas."),
+  }).optional().describe("Transformaciones previas a la carga (estilo Power Query)."),
+};
+const EXTRACTION_KEYS = Object.keys(EXTRACTION);
+
 const mlChartType = z.enum(Object.keys(ML_SIZES) as [string, ...string[]]).describe("Tipo de grafico de ML (ver list_chart_types).");
 const logicalCollections = z.enum(["groups", "packages", "hierarchies", "behaviors", "calendar-periods"]).describe("Coleccion del modelo logico.");
 
@@ -176,25 +202,37 @@ export const platformTools: ContextTool[] = [
   {
     name: "preview_connection",
     title: "Validar extraccion (vista previa)",
-    description: "Extrae una muestra REAL de hasta 50 filas SIN cargarla al modelo y devuelve el script de carga equivalente (LIB CONNECT + SQL SELECT). Errores reales de la fuente en {ok:false,message}. POST /api/v1/connections/{connId}/preview.",
+    description: "Valida la extraccion: trae una muestra REAL (max 50 filas, todas las columnas en 'raw') SIN cargarla, le aplica 'transform' y devuelve {raw, columns, rows (transformadas), nulls por columna, warnings, transformError?, sql, script}. Errores reales de la fuente en {ok:false,message}. POST /api/v1/connections/{connId}/preview.",
+    inputShape: { connId: id("Id de la conexion."), ...EXTRACTION },
+    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/preview`, pick(a, EXTRACTION_KEYS))),
+  },
+  {
+    name: "transform_preview",
+    title: "Re-aplicar transformaciones a una muestra",
+    description: "Aplica 'params.transform' a una muestra ya extraida (columns + rows de preview_connection.raw) sin volver a la fuente. Devuelve columnas/filas transformadas, avisos, el SQL y el script de carga (LOAD con AS, Num(), Alt(), WHERE…). POST /api/v1/connections/{connId}/transform.",
     inputShape: {
-      connId: id("Id de la conexion."),
-      table: z.string().optional().describe("Tabla (SQL/Athena)."), database: z.string().optional().describe("Base (Athena)."),
-      query: z.string().optional().describe("Consulta SQL propia (reemplaza 'table')."), key: z.string().optional().describe("Objeto S3 (CSV/xlsx)."),
-      limit: z.number().optional().describe("LIMIT para el script de carga (default 1000)."), tableName: z.string().optional().describe("Nombre de la tabla destino."),
+      connId: id("Id de la conexion."), params: free("Params de carga (table/query, database, mode, limit, tableName, transform)."),
+      columns: z.array(z.string()).describe("Columnas de origen de la muestra."), rows: z.array(z.array(z.any())).describe("Filas de la muestra."),
     },
-    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/preview`, pick(a, ["table", "database", "query", "key", "limit", "tableName"]))),
+    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/transform`, pick(a, ["params", "columns", "rows"]))),
+  },
+  {
+    name: "parse_load_script",
+    title: "Interpretar un script de carga editado",
+    description: "Convierte un bloque de script ([Tabla]: LOAD campos [AS …] [WHERE …]; SQL SELECT …;) en params de carga + transform, para luego usar load_connection. Las columnas conocidas no listadas quedan excluidas. POST /api/v1/connections/{connId}/parse-script.",
+    inputShape: {
+      connId: id("Id de la conexion."), script: id("Bloque de script."),
+      columns: z.array(z.string()).optional().describe("Columnas de origen conocidas (de preview_connection.raw.columns)."),
+      params: free("Params actuales (p. ej. database).").optional(),
+    },
+    handler: async (a) => toToolText(await post(`/api/v1/connections/${E(a.connId)}/parse-script`, pick(a, ["script", "columns", "params"]))),
   },
   {
     name: "load_connection",
     title: "Cargar datos desde una conexion",
-    description: "Trae datos de una conexion (de cualquier app) y los materializa como tabla del modelo de 'appId'. Reemplaza la tabla si ya existe y registra el origen: el script auto-generado queda con LIB CONNECT/SQL y run_script re-extrae. Devuelve {ok, message, table, replaced, script}. POST /api/v1/apps/{appId}/connections/{connId}/load.",
-    inputShape: {
-      ...appId, connId: id("Id de la conexion."),
-      table: z.string().optional(), database: z.string().optional(), query: z.string().optional(), key: z.string().optional(),
-      limit: z.number().optional().describe("Max filas (default 1000)."), tableName: z.string().optional().describe("Nombre de la tabla destino."),
-    },
-    handler: async (a) => toToolText(await post(`${A(a.appId)}/connections/${E(a.connId)}/load`, pick(a, ["table", "database", "query", "key", "limit", "tableName"]))),
+    description: "Trae datos de una conexion (de cualquier app), aplica 'transform' (quitar/renombrar columnas, tipos, limpieza de nulos, calculadas, filtro, duplicados) y los materializa como tabla del modelo de 'appId'. mode: all (todo) | partial (primeras 'limit') | sample (aleatorias 'limit'). Reemplaza la tabla si existe; el script auto-generado queda con LIB CONNECT + LOAD + SQL y run_script re-extrae con las mismas transformaciones. Devuelve {ok, message, table, rowsExtracted, warnings?, replaced, script}. POST /api/v1/apps/{appId}/connections/{connId}/load.",
+    inputShape: { ...appId, connId: id("Id de la conexion."), ...EXTRACTION },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/connections/${E(a.connId)}/load`, pick(a, EXTRACTION_KEYS))),
   },
   {
     name: "delete_connection",

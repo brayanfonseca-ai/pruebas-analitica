@@ -146,7 +146,9 @@ public class ScriptController {
                 } else {
                     log.add("LIB CONNECT TO '" + connName + "' → extrayendo " + name + "…");
                     try {
-                        DataFrame fresh = exec.load((Map<String, Object>) conn.get().get("config"), (Map<String, Object>) src.get("params"));
+                        var res = io.datasense.engine.connect.Extraction.load(exec, (Map<String, Object>) conn.get().get("config"), (Map<String, Object>) src.get("params"));
+                        DataFrame fresh = res == null ? null : res.df();
+                        if (res != null) res.warnings().forEach(w -> log.add("  · " + name + ": " + w));
                         if (fresh != null && !fresh.columns().isEmpty()) {
                             store.save(appId, tableId, fresh);
                             List<ColumnProfile> profiles = new ArrayList<>();

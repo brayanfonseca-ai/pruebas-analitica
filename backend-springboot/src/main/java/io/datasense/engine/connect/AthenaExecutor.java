@@ -82,14 +82,11 @@ public class AthenaExecutor implements ConnectionExecutor {
     @Override
     public DataFrame load(Map<String, Object> config, Map<String, Object> params) throws Exception {
         Map<String, Object> p = params == null ? Map.of() : params;
-        String query = AwsSupport.str(p.get("query"));
-        if (query.isBlank()) {
-            String table = AwsSupport.str(p.get("table"));
-            if (table.isBlank()) {
-                throw new IllegalArgumentException("Indica 'query' o 'table' para cargar desde Athena.");
-            }
-            query = selectFor(config, p);
+        if (AwsSupport.str(p.get("query")).isBlank() && AwsSupport.str(p.get("table")).isBlank()) {
+            throw new IllegalArgumentException("Indica 'query' o 'table' para cargar desde Athena.");
         }
+        // Mismo SQL que muestra el script: modo (todo/parcial/muestra) + poda de columnas.
+        String query = LoadScripts.sqlFor("athena", config, p);
         try (AthenaClient athena = client(config)) {
             String execId = startQuery(athena, config, query);
             QueryExecutionState state = waitFor(athena, execId, timeoutMs(config));

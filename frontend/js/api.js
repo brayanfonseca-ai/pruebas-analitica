@@ -188,6 +188,12 @@ export const browseConnection = (connId, params = {}) =>
 // Vista previa SIN materializar: { ok, columns, rows, total, script, message }
 export const previewConnection = (connId, params = {}) =>
   request(`/connections/${encodeURIComponent(connId)}/preview`, { method: "POST", body: params });
+// Re-aplica transformaciones a la muestra ya extraída: {params, columns, rows} -> {columns, rows, warnings, transformError?, script, sql}
+export const transformConnection = (connId, body) =>
+  request(`/connections/${encodeURIComponent(connId)}/transform`, { method: "POST", body });
+// "Editar script": {script, columns, params} -> {ok, params (con transform), script, sql} | {ok:false, message}
+export const parseLoadScript = (connId, body) =>
+  request(`/connections/${encodeURIComponent(connId)}/parse-script`, { method: "POST", body });
 
 /* ----------------------- Modelo lógico (Business Logic) ----------------------- */
 const LM = (appId) => `/apps/${encodeURIComponent(appId)}/logical-model`;

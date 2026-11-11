@@ -92,14 +92,11 @@ public class JdbcExecutor implements ConnectionExecutor {
     @Override
     public DataFrame load(Map<String, Object> config, Map<String, Object> params) throws Exception {
         Map<String, Object> p = params == null ? Map.of() : params;
-        String query = AwsSupport.str(p.get("query"));
-        if (query.isBlank()) {
-            String table = AwsSupport.str(p.get("table"));
-            if (table.isBlank()) {
-                throw new IllegalArgumentException("Indica 'query' o 'table' para cargar desde " + connector + ".");
-            }
-            query = "SELECT * FROM " + table;
+        if (AwsSupport.str(p.get("query")).isBlank() && AwsSupport.str(p.get("table")).isBlank()) {
+            throw new IllegalArgumentException("Indica 'query' o 'table' para cargar desde " + connector + ".");
         }
+        // Mismo SQL que muestra el script: modo (todo/parcial/muestra) + poda de columnas.
+        String query = LoadScripts.sqlFor(connector, config, p);
         int maxRows = 0;
         try { maxRows = Math.max(0, Integer.parseInt(AwsSupport.str(p.get("maxRows")).trim())); } catch (Exception ignored) {}
         try (Connection c = open(config);

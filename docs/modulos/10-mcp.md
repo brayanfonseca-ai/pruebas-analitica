@@ -10,14 +10,14 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **62 herramientas**: cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **64 herramientas**: cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
 | Contexto (`context-tools.ts`) | `list_apps`, `get_app`, `list_tables`, `read_table`, `get_fields`, `get_field_values`, `get_model`, `get_script`, `list_sheets`, `list_connections`, `ai_health` |
 | Acción (`action-tools.ts`) | `create_app`, `delete_app`, `run_query`, `set_script`, `run_script`, `create_sheet`, `update_sheet` (cualquier tipo de gráfico, incluidos los `ml-*`), `create_connection`, `test_connection`, `ai_modelar`, `ai_analizar`, `ai_disenar` |
 | Catálogos | `list_chart_types` (datos + 19 gráficos de ML), `list_ml_algorithms` (24 algoritmos y sus params) |
-| Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection` (muestra + script LIB CONNECT/SQL), `load_connection`, `delete_connection` |
+| Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (modo all/partial/sample + `transform`: quitar/renombrar columnas, tipos, nulos, calculadas, filtro, duplicados), `delete_connection` |
 | Datos | `upload_table` (CSV/Excel desde una ruta local), `delete_table`, `get_field_overrides`, `set_field_overrides` |
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |
 | Elementos maestros | `list_master_items`, `save_master_item`, `delete_master_item`, `parse_expression` |
