@@ -10,7 +10,7 @@ export const num = (v) => (v == null || Number.isNaN(v) ? "—" : Math.abs(v) >=
   : v !== 0 && Math.abs(v) < 0.001 ? v.toExponential(2).replace(".", ",") : NF3.format(v));
 const ms = (v) => (v == null ? "—" : v < 1 ? "< 1 ms" : NF0.format(v) + " ms");
 export const pct = (v) => (v == null ? "—" : (v * 100).toFixed(1) + "%");
-export const COLORS = ["#172983", "#2e9e57", "#d6a52f", "#c0392b", "#6a4bd8", "#0e9db5", "#e07b39", "#7a869a", "#a23b72", "#3b7a57"];
+export const COLORS = ["#6366f1", "#10b981", "#f59e0b", "#f43f5e", "#8b5cf6", "#06b6d4", "#ec4899", "#64748b", "#0ea5e9", "#84cc16"];
 const NOISE = "#a7adbd";
 
 const metric = (label, value, hint, tone) => `<div class="ml-metric ${tone || ""}"><div class="ml-metric-v">${value}</div><div class="ml-metric-l">${esc(label)}</div>${hint ? `<div class="ml-metric-h">${esc(hint)}</div>` : ""}</div>`;
@@ -27,7 +27,7 @@ export function heat(v) {
 }
 function zbar(z) {
   const v = Math.max(-2, Math.min(2, z ?? 0)) / 2, w = Math.abs(v) * 50;
-  const style = v >= 0 ? `left:50%;width:${w}%;background:#172983` : `left:${50 - w}%;width:${w}%;background:#d6a52f`;
+  const style = v >= 0 ? `left:50%;width:${w}%;background:#6366f1` : `left:${50 - w}%;width:${w}%;background:#d6a52f`;
   return `<span class="ml-zbar" title="z = ${num(z)}"><i style="${style}"></i></span>`;
 }
 const quality = (v, good, ok) => (v == null ? "" : v >= good ? "good" : v >= ok ? "mid" : "low");

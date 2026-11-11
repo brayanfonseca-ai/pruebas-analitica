@@ -64,6 +64,12 @@ $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-21.0.13.9-hotspot"
 Abre **http://localhost:8080/** (puerto 8080). Detener con **Ctrl+C**. Tras cambios en el
 frontend basta **Ctrl+F5**; los cambios en Java requieren reiniciar.
 
+## Apariencia: modo claro / oscuro
+
+Identidad visual propia (índigo + cian, superficies de vidrio, fondo con rejilla). El botón
+de **sol/luna** junto a la campana de notificaciones cambia entre modo claro y oscuro y la
+elección se recuerda en el navegador. Detalle en [`docs/arquitectura.md`](./docs/arquitectura.md).
+
 ## Cuentas de demostración
 
 | Rol    | Correo               | Contraseña |

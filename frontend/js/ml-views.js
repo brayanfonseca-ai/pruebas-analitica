@@ -10,7 +10,7 @@
 import { num, pct, heat, keyMetrics, COLORS } from "./ml-render.js";
 
 // Paleta "Sense" (la misma de chart-types.js; copiada para no crear un import circular).
-const PALETTE = ["#0a8f3c", "#1f6feb", "#f0a132", "#c0392b", "#8e44ad", "#16a085", "#d35400", "#2c3e50", "#7f8c8d", "#b8860b"];
+const PALETTE = ["#06b6d4", "#6366f1", "#f59e0b", "#f43f5e", "#8b5cf6", "#10b981", "#ec4899", "#0ea5e9", "#84cc16", "#64748b"];
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

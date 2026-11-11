@@ -11,10 +11,19 @@
 
 import { ML_TYPE_DEFS } from "./ml-views.js";
 
+// Paleta propia de DataSense (índigo, cian, ámbar, rosa, violeta…), legible en claro y oscuro.
 export const PALETTE = [
-  "#0a8f3c", "#1f6feb", "#f0a132", "#c0392b", "#8e44ad",
-  "#16a085", "#d35400", "#2c3e50", "#7f8c8d", "#b8860b",
+  "#6366f1", "#06b6d4", "#f59e0b", "#f43f5e", "#8b5cf6",
+  "#10b981", "#ec4899", "#0ea5e9", "#84cc16", "#64748b",
 ];
+// Paleta anterior: los gráficos guardados con esos colores se pintan con su equivalente nuevo.
+const LEGACY_PALETTE = ["#0a8f3c", "#1f6feb", "#f0a132", "#c0392b", "#8e44ad", "#16a085", "#d35400", "#2c3e50", "#7f8c8d", "#b8860b", "#172983"];
+/** Color de un objeto: el elegido por el usuario o el primero de la paleta; los de la paleta vieja se traducen. */
+export function themeColor(c) {
+  if (!c) return PALETTE[0];
+  const i = LEGACY_PALETTE.indexOf(String(c).toLowerCase());
+  return i < 0 ? c : PALETTE[i % PALETTE.length];
+}
 
 const I = {
   sankey: '<path d="M3 5h4c6 0 6 14 14 14M3 12h4c4 0 6-7 14-7M3 19h4"/>',

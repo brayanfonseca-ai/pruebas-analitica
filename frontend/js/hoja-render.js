@@ -2,7 +2,7 @@
 // que devuelve el motor Python. No calcula agregaciones: solo ordena/limita la
 // PRESENTACIÓN del resultado (orden, Top N) y pinta con Chart.js o HTML.
 
-import { PALETTE } from "./chart-types.js";
+import { PALETTE, themeColor } from "./chart-types.js";
 
 const NF = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
 export const fmt = (v) =>
@@ -180,7 +180,7 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
     datasets = [{
       label: props.dims[0]?.label || "",
       data: data.labels.map((l, i) => ({ x: xs[i], y: ys[i], label: l })),
-      backgroundColor: data.labels.map((_, i) => withAlpha(look.color || PALETTE[0], dim(i))),
+      backgroundColor: data.labels.map((_, i) => withAlpha(themeColor(look.color), dim(i))),
       pointRadius: 5,
     }];
   } else if (def.type === "combo") {
@@ -189,8 +189,8 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
       type: i === 0 ? "bar" : "line",
       label: s.label,
       data: s.values,
-      backgroundColor: i === 0 ? withAlpha(look.color || PALETTE[0], 0.85) : PALETTE[1],
-      borderColor: i === 0 ? look.color || PALETTE[0] : PALETTE[1],
+      backgroundColor: i === 0 ? withAlpha(themeColor(look.color), 0.85) : PALETTE[1],
+      borderColor: i === 0 ? themeColor(look.color) : PALETTE[1],
       borderWidth: i === 0 ? 0 : 2,
       tension: 0.25,
       order: i === 0 ? 2 : 1,
@@ -198,7 +198,7 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
   } else {
     const isLine = def.type === "line";
     datasets = data.series.map((s, si) => {
-      const base = data.series.length > 1 ? PALETTE[si % PALETTE.length] : look.color || PALETTE[0];
+      const base = data.series.length > 1 ? PALETTE[si % PALETTE.length] : themeColor(look.color);
       const values = isLine && look.missing === "zero" ? s.values.map((v) => v ?? 0) : s.values;
       return {
         label: s.label,
@@ -388,7 +388,7 @@ export function renderKpi(host, props, result) {
   host.innerHTML = `
     <div class="ho-kpi" style="text-align:${esc(look.kpiAlign || "center")};">
       <div class="ho-kpi-label">${esc(label)}</div>
-      <div class="ho-kpi-value" style="color:${esc(look.color || PALETTE[0])};">${esc(fmtAs(result.value, mode))}</div>
+      <div class="ho-kpi-value" style="color:${esc(themeColor(look.color))};">${esc(fmtAs(result.value, mode))}</div>
       ${cmp}
     </div>`;
   return null;

@@ -12,7 +12,7 @@
   display: grid; place-items: center; padding: 24px; }
 .cnh-backdrop[hidden] { display: none !important; }
 .cnh-modal { width: min(720px, 100%); max-height: 90vh; display: flex; flex-direction: column;
-  background: #fff; border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  background: var(--ds-surface, #fff); border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
 .cnh-head { display: flex; align-items: center; justify-content: space-between;
   padding: 14px 18px; border-bottom: 1px solid var(--q-border); }
 .cnh-head h2 { margin: 0; font-size: 15px; }
@@ -27,8 +27,8 @@
 .cnh-toast.show { opacity: 1; }
 
 /* ---- Botones ---- */
-.ho-btn { height: 30px; padding: 0 14px; border: 1px solid #c7ccd3; border-radius: 3px;
-  background: #fff; cursor: pointer; font-size: 12.5px; color: var(--q-text); }
+.ho-btn { height: 30px; padding: 0 14px; border: 1px solid var(--ds-border-2, #c7ccd3); border-radius: 3px;
+  background: var(--ds-surface, #fff); cursor: pointer; font-size: 12.5px; color: var(--q-text); }
 .ho-btn:hover:not(:disabled) { background: var(--q-hover); }
 .ho-btn.primary { background: var(--q-green); border-color: var(--q-green); color: #fff; font-weight: 600; }
 .ho-btn.primary:hover:not(:disabled) { background: var(--q-green-dark); }
@@ -37,22 +37,22 @@
 /* ---- Campos de formulario (compartidos con el editor) ---- */
 .ed-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12.5px; }
 .ed-field > span:first-child { color: var(--q-text); }
-.ed-field input, .ed-field select { height: 32px; border: 1px solid #c7ccd3; border-radius: 4px; padding: 0 9px; font-size: 12.5px; }
+.ed-field input, .ed-field select { height: 32px; border: 1px solid var(--ds-border-2, #c7ccd3); border-radius: 4px; padding: 0 9px; font-size: 12.5px; }
 .ed-ad-sub { font-size: 12px; color: var(--q-muted); margin: 12px 0 6px; }
-.ed-ad-search { width: 100%; height: 30px; border: 1px solid #c7ccd3; border-radius: 4px; padding: 0 9px; font-size: 12.5px; margin-bottom: 10px; }
+.ed-ad-search { width: 100%; height: 30px; border: 1px solid var(--ds-border-2, #c7ccd3); border-radius: 4px; padding: 0 9px; font-size: 12.5px; margin-bottom: 10px; }
 .ed-muted { color: var(--q-muted); font-size: 12.5px; }
 
 /* ---- Asistente de conexiones ---- */
 .cn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 10px; }
 .cn-col-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--q-muted); margin-bottom: 6px; }
 .cn-opt { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 1px solid var(--q-border);
-  background: #fff; border-radius: 8px; padding: 9px 11px; margin-bottom: 6px; cursor: pointer; font-size: 0.85rem; }
-.cn-opt:hover { border-color: #172983; background: #e8ebf7; }
-.cn-ic { width: 20px; height: 20px; border-radius: 5px; flex: none; display: inline-block; background: #172983; opacity: .9; }
+  background: var(--ds-surface, #fff); border-radius: 8px; padding: 9px 11px; margin-bottom: 6px; cursor: pointer; font-size: 0.85rem; }
+.cn-opt:hover { border-color: var(--ds-accent, #172983); background: var(--ds-accent-soft, #e8ebf7); }
+.cn-ic { width: 20px; height: 20px; border-radius: 5px; flex: none; display: inline-block; background: var(--ds-accent, #172983); opacity: .9; }
 .cn-ic-athena, .cn-ic-s3, .cn-ic-redshift, .cn-ic-azure { background: #ff9900; }
 .cn-ic-db, .cn-ic-odbc { background: #2f6fed; }
 .cn-ic-rest { background: #7a3ff2; }
-.cn-ic-ai { background: #172983; }
+.cn-ic-ai { background: var(--ds-accent, #172983); }
 .cn-ic-cloud { background: #0a66c2; }
 .cn-ic-mcp { background: #d4651b; }
 .cn-form-head { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 0.95rem; }
@@ -64,4 +64,4 @@
 .cn-back { border: none; background: none; color: var(--q-green-dark); cursor: pointer; font-size: 0.82rem; padding: 0; margin-bottom: 8px; }
 .cn-back:hover { text-decoration: underline; }
 .cn-status { min-height: 1.2em; margin-top: 10px; font-size: 0.85rem; }
-.cn-status.ok { color: #172983; } .cn-status.err { color: #c0392b; }
+.cn-status.ok { color: var(--ds-accent, #172983); } .cn-status.err { color: #c0392b; }

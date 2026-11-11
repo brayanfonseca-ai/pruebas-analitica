@@ -81,7 +81,25 @@ chart-types.js    Catálogo de tipos de objeto/gráfico + PALETTE
 api.js            Cliente REST (fetch) de todos los endpoints
 auth.js / auth-service.js / store.js   Sesión y estado del cliente
 hub-nav.js / inicio.js / hub.js / crear.js / catalogo.js   Hub
+theme.js          Modo claro/oscuro: html[data-theme], botón junto a la campana, recuerda la elección (localStorage "ds.theme") y recolorea Chart.js
 ```
+
+### Identidad visual y temas (`frontend/css/theme.css`)
+
+`theme.css` se carga **después** del resto de hojas en todas las páginas (salvo el login) y
+define la identidad propia de DataSense: índigo `#4f46e5`/`#6366f1` + cian `#06b6d4`, barra
+superior de vidrio con línea de neón, fondo con rejilla y resplandores, botones principales
+con gradiente y tarjetas con brillo al pasar el cursor. Solo cambia color, fondo, sombra y
+tipografía: **no mueve ni redimensiona botones**.
+
+- Variables base: `--ds-surface`, `--ds-surface-2/3`, `--ds-text`, `--ds-muted`,
+  `--ds-border(-2)`, `--ds-accent(-2)`, `--ds-accent-soft`, `--ds-grad`, `--ds-page`.
+- El resto de CSS usa `var(--ds-*, <color original>)`; las variables heredadas
+  (`--q-*`, `--star-*`, `--ml-*`) se remapean a las nuevas.
+- `html[data-theme="dark"]` redefine las variables; el valor inicial sale de
+  `localStorage "ds.theme"` o, si no hay, de `prefers-color-scheme`.
+- Paleta de gráficos: `PALETTE` + `themeColor()` en `chart-types.js` (traduce colores de la
+  paleta antigua guardados en hojas existentes) y `COLORS` en `ml-render.js`.
 
 ## Estructura del repositorio
 

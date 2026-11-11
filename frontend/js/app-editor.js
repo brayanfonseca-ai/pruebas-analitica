@@ -69,7 +69,7 @@ export async function render(mount, ctx) {
           <div class="ed-sections-head"><span>Secciones</span>
             ${canEdit ? `<button class="ed-addsec" id="edAddSec" title="Añadir sección">+</button>` : ""}
           </div>
-          <div class="ed-arch-note">Arquitectura QDF de 3 capas (reformulado de la documentación de Qlik).</div>
+          <div class="ed-arch-note">Arquitectura de datos en 3 capas (extracción · transformación · modelo).</div>
           <div class="ed-section-list" id="edSectionList"></div>
         </aside>
 
@@ -558,7 +558,7 @@ export async function render(mount, ctx) {
     appId: ctx.appId,
     persona: "ingeniero de datos",
     title: "Ingeniero de datos",
-    greeting: "Soy tu ingeniero de datos. Cargo tus tablas y te propongo un modelo (estrella/copo/araña), llaves PK/FK y un script LOAD en Qlik. ¿Qué modelamos?",
+    greeting: "Soy tu ingeniero de datos. Cargo tus tablas y te propongo un modelo (estrella/copo/araña), llaves PK/FK y un script LOAD de DataSense. ¿Qué modelamos?",
     sendFn: aiModelar,
     buildContext: async () => {
       let tablas = [];
