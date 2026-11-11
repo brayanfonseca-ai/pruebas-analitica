@@ -49,6 +49,11 @@ La URL base del backend es configurable con la variable de entorno **`DATASENSE_
 - Si no se define, se usa `http://localhost:8080` por defecto.
 - Se normaliza quitando la barra final (ej. `http://host:9000/` -> `http://host:9000`).
 
+El backend exige sesión en toda la API. El MCP inicia sesión solo con **`DATASENSE_USER`** y **`DATASENSE_PASSWORD`**
+(por defecto `admin@datasense.io` / `admin123`, la cuenta de demostración) y renueva el token si caduca. Con un usuario
+que no sea administrador, las tools respetan sus permisos y etapas (el servidor responde 403/404 con el motivo). Si cambias
+la contraseña del administrador, añade ambas variables en `env` de `mcp.json`.
+
 ## Conectar un cliente MCP
 
 Copia el bloque de [`mcp.config.example.json`](./mcp.config.example.json) en la configuracion de tu cliente MCP y **ajusta las rutas**:
@@ -100,7 +105,7 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (68 tools en total):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (76 tools en total):
 
 | Grupo | Tools |
 |---|---|
@@ -113,6 +118,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Hojas | `delete_sheet`, `set_sheet_visibility`, `add_ml_chart` |
 | Experimentos de ML | `list_experiments`, `create_experiment`, `get_experiment`, `update_experiment`, `delete_experiment`, `train_model`, `get_ml_run`, `delete_ml_run`, `associate_ml_run`, `ml_datasets` |
 | Colecciones | `list_collections`, `create_collection`, `delete_collection` |
+| Usuarios y etapas | `get_current_user`, `get_security_catalog`, `list_users`, `create_user`, `update_user`, `reset_user_password`, `delete_user`, `set_app_stage` |
 | Notificaciones | `list_notifications`, `mark_notifications_read`, `clear_notifications` (`/api/v1/notifications`) |
 | Ayuda | `get_help` (lee `/help/ayuda.json`: manual técnico, FAQ, atajos; admite `query` y `section`) |
 

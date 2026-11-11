@@ -11,6 +11,7 @@
 import { authService } from "./auth-service.js";
 import { ALGOS, ALGO_BY_BACKEND } from "./ml-catalog.js";
 import { ICON, DUO, BRAIN } from "./hub-nav.js";
+import { authHeader } from "./api.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -332,7 +333,7 @@ function dayGroup(iso) {
 }
 
 async function fetchFeed() {
-  const r = await fetch(`/api/v1/notifications?limit=${limit}`, { cache: "no-store" });
+  const r = await fetch(`/api/v1/notifications?limit=${limit}`, { cache: "no-store", headers: authHeader() });
   if (!r.ok) throw new Error("No se pudieron cargar las notificaciones (" + r.status + ")");
   return r.json();
 }
@@ -455,7 +456,7 @@ async function openNotif() {
       const b = e.target.closest("[data-act]"); if (!b) return;
       b.disabled = true;
       try {
-        await fetch(`/api/v1/notifications/${b.dataset.act === "read" ? "read-all" : "clear"}`, { method: "POST" });
+        await fetch(`/api/v1/notifications/${b.dataset.act === "read" ? "read-all" : "clear"}`, { method: "POST", headers: authHeader() });
         await refresh(false);
       } finally { b.disabled = false; }
     });
@@ -465,7 +466,7 @@ async function openNotif() {
       const a = e.target.closest(".ds-notif-item");
       if (a && a.classList.contains("unread")) {
         // Marca como leída antes de navegar (keepalive: sobrevive al cambio de página).
-        fetch(`/api/v1/notifications/${encodeURIComponent(a.dataset.id)}/read`, { method: "POST", keepalive: true });
+        fetch(`/api/v1/notifications/${encodeURIComponent(a.dataset.id)}/read`, { method: "POST", keepalive: true, headers: authHeader() });
       }
     });
     addEventListener("resize", placeNotif);
@@ -509,6 +510,13 @@ function init() {
   refresh(true);
   polling = setInterval(() => { if (!document.hidden) refresh(true); }, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(true); });
+  // El «+» de la barra es el atajo de Crear: no se ofrece a quien no puede crear aplicaciones.
+  if (!authService.can("apps:create")) document.querySelectorAll('.q-top-actions [title="Crear"]').forEach((b) => b.remove());
+  // Permisos al día: si un administrador cambió el rol o los permisos de esta persona, se recarga una vez.
+  const before = JSON.stringify([authService.current()?.role, authService.current()?.permissions]);
+  authService.refresh().then((s) => {
+    if (s && JSON.stringify([s.role, s.permissions]) !== before) location.reload();
+  });
   window.DSHelp = { open: openHelp, close: closeHelp };
   window.DSNotifications = { open: openNotif, close: closeNotif, refresh: () => refresh(false) };
   window.DSSide = { toggle: () => document.getElementById("dsBurger")?.click(), collapsed: sideCollapsed };

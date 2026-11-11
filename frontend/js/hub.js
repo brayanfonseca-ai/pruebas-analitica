@@ -1,11 +1,9 @@
 // hub.js — shell genérico de las páginas del menú lateral de DataSense,
-// replicando las pantallas de Qlik Analítica (Páginas, Alimentar, Favoritos,
-// Colecciones, Mercado de datos, Productos de datos, Calidad de los datos,
-// Analizar, Preparar datos, Predicción, Asistentes).
+// con las páginas que sí tienen contenido real: Colecciones, Analizar (apps por etapa) y Temas.
+// Se retiraron las pantallas de relleno sin motor (Páginas, Alimentar, Favoritos, Mercado de datos,
+// Productos, Calidad, Asistentes, Automatizaciones, Alertas, Suscripciones e Información).
 //
-// Cada página se describe de forma declarativa (título, tarjetas de creación,
-// barra de filtros y estado vacío) y se renderiza según ?page=<key>. Las
-// funciones enterprise que aún no tienen motor se marcan con «Próximamente».
+// Cada página se describe de forma declarativa y se renderiza según ?page=<key>.
 
 import { renderNav, wireAppsButton, renderProfileMenu, svg, DUO as D, BRAIN } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
@@ -192,132 +190,29 @@ function emptyState({ icon: ic = "empty", title, text, action }) {
    Definición de cada página (fiel a las capturas de Qlik)
    ------------------------------------------------------------------------- */
 const PAGES = {
-  paginas: {
-    title: "Páginas",
-    preview: true,
-    body: () => `
-      <div class="q-video-card">
-        <div class="q-video-frame">
-          <div class="q-video-play">▶</div>
-          <span class="q-video-time">0:00 / 0:04</span>
-        </div>
-        <h2>Páginas de aterrizaje del panel de control</h2>
-        <p>Cree y utilice páginas de inicio y paneles personalizados, alimentados por múltiples aplicaciones, que se adaptan a su flujo de trabajo o al de sus usuarios. Con las nuevas páginas basadas en el lienzo central, puede diseñar disposiciones flexibles combinando gráficos, KPI, texto, enlaces y más, yendo más allá de los carriles tradicionales.</p>
-        <div class="q-video-actions">
-          <button class="q-btn">Más información</button>
-          <button class="q-btn primary">Probar las páginas</button>
-        </div>
-      </div>`,
-  },
-
-  alimentar: {
-    title: "",
-    topbar: () => `<div class="q-feed-top"><span class="q-feed-tab">ⓘ Información</span>
-      <span class="q-feed-right"><button class="q-filter-chip">Filtros</button><button class="q-filter-chip">&lt;/&gt; Insertar</button></span></div>`,
-    body: () => emptyState({ icon: "feed", title: "Aún no hay información que explore aquí…", text: "Los conocimientos aparecerán en el feed a medida que se creen y activen." }),
-  },
-
-  favoritos: {
-    title: "Favoritos",
-    body: () => filterBar(["Tipos", "Propietario", "Todos los filtros"]) +
-      emptyState({ icon: "star", title: "No se encontraron favoritos", text: "Todavía no tiene ninguno o necesita ajustar sus filtros de búsqueda favoritos. Para marcar un elemento como favorito, haga clic en la estrella." }),
-    mount: (main) => wireFilterChips(main),
-  },
-
   colecciones: {
     title: "Colecciones",
-    headerRight: () => `<button class="q-btn" id="newCollectionBtn">Crear colección</button>`,
+    headerRight: () => (authService.can("charts:edit") ? `<button class="q-btn" id="newCollectionBtn">Crear colección</button>` : ""),
     body: () => filterBar(["Tipo"], { right: `<button class="q-filter-chip">Modificado por ▾</button>` }) +
       `<div id="collectionsWrap"></div>`,
     mount: mountCollections,
   },
 
-  mercado: {
-    title: "Mercado de datos",
-    body: () => `
-      <div class="q-banner">
-        <h2>busque datos en los que pueda <span class="q-accent">Confiar</span>.</h2>
-        <p>Explore datos que han sido seleccionados, preparados y revisados solo para usted.</p>
-      </div>` +
-      emptyState({ icon: "shop", title: "No hay productos de datos", text: "Cree un nuevo producto de datos para empezar a compartir conjuntos de datos aprobados con su organización." }),
-  },
-
-  productos: {
-    title: "Productos de datos",
-    headerRight: () => `<button class="q-btn primary">+ Crear nuevo</button>`,
-    body: () => emptyState({ icon: "shop", title: "No hay productos de datos", text: "Cree un nuevo producto de datos para empezar a compartir conjuntos de datos aprobados con su organización.", action: "+ Agregar" }),
-  },
-
-  calidad: {
-    title: "Calidad de los datos",
-    body: () => `
-      <div class="q-subtabs"><button class="q-subtab active">Tipos semánticos</button><button class="q-subtab">Reglas de validación</button><button class="q-subtab">Puntuación de confianza</button></div>
-      ${filterBar(["Tipo", "Creador"], { right: `<button class="q-filter-chip">Modificado por última vez ▾</button>` })}
-      <table class="q-table">
-        <thead><tr><th><input type="checkbox" /></th><th>Nombre</th><th>Tipo</th><th>Clasificación</th><th>Usado en</th><th>Creador</th><th>Modificado</th></tr></thead>
-        <tbody>
-          ${[
-            ["Bebida (desactivado)", "Diccionario", ""],
-            ["Compañía", "Diccionario", ""],
-            ["Título religioso cristiano", "Diccionario", "SPI · PII"],
-            ["Territorio Provincia CA", "Diccionario", ""],
-            ["Número de ruta bancaria", "Patrón", ""],
-            ["Tarjeta Amex", "Patrón", "PCI · SPI"],
-            ["Civilidad", "Diccionario", "PII"],
-            ["Código de continente", "Diccionario", ""],
-          ].map((r) => `<tr><td><input type="checkbox" /></td><td class="q-td-name">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2] ? r[2].split(" · ").map((t) => `<span class="q-tag">${esc(t)}</span>`).join(" ") : ""}</td><td></td><td>◍ DataSense</td><td class="q-muted">25 feb 2026</td></tr>`).join("")}
-        </tbody>
-      </table>
-      <p class="q-p-hint">Los tipos semánticos permiten clasificar y validar los datos automáticamente. La edición completa llegará ${SOON.toLowerCase()}.</p>`,
-  },
-
+  // Todas las aplicaciones que el usuario puede ver, filtrables por etapa (Personal · Desarrollo · Producción).
   analizar: {
     title: "Analizar",
-    headerRight: () => `<button class="q-btn primary">+ Crear nuevo ▾</button>`,
-    body: () => createCards([
-      { icon: "app", title: "Aplicación", desc: "Cree una aplicación para visualizar y presentar sus datos.", href: "catalogo.html" },
-      { icon: "upload", title: "Cargar", desc: "Cargue aplicaciones y scripts en DataSense.", soon: true },
-      { icon: "conn", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", soon: true },
-      { icon: "dataset", title: "Conjunto de datos", desc: "Cargue un archivo de datos o registre datos externos.", soon: true },
-      { icon: "note", title: "Nota", desc: "Cree un análisis personal o compartido.", soon: true },
-    ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
-      `<div class="q-apps-grid" id="appsGrid"></div>`,
+    body: () => `
+      <div class="q-filterbar">
+        <div class="q-filter-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="appsSearch" placeholder="Filtrar por nombre" /></div>
+        <div class="ds-stage-filter" id="stageFilter" role="group" aria-label="Filtrar por etapa">
+          <button type="button" class="ds-stage-f on" data-stage="">Todas</button>
+          <button type="button" class="ds-stage-f" data-stage="personal">Personal</button>
+          <button type="button" class="ds-stage-f" data-stage="desarrollo">Desarrollo</button>
+          <button type="button" class="ds-stage-f" data-stage="produccion">Producción</button>
+        </div>
+      </div>
+      <div class="q-apps-grid" id="appsGrid"></div>`,
     mount: mountAnalyzeApps,
-  },
-
-  preparar: {
-    title: "Preparación de datos",
-    headerRight: () => `<button class="q-btn primary">+ Crear nuevo ▾</button>`,
-    body: () => createCards([
-      { icon: "recipe", title: "Receta de tabla", desc: "Cree una receta para preparar los datos de una sola tabla.", soon: true },
-      { icon: "flow", title: "Flujo de datos", desc: "Cree un flujo para preparar sus datos sin código.", soon: true },
-      { icon: "script", title: "Guion", desc: "Cree un script para cargar, transformar y exportar sus datos.", href: "catalogo.html" },
-      { icon: "upload", title: "Cargar", desc: "Cargue aplicaciones y scripts en DataSense.", soon: true },
-      { icon: "conn", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", soon: true },
-    ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
-      emptyState({ icon: "empty", title: "Aún no hay elementos de preparación de datos.", text: "Use el Editor de carga dentro de una aplicación para transformar sus datos con script." }),
-  },
-
-  prediccion: {
-    title: "Predicción",
-    headerRight: () => `<button class="q-btn primary">+ Crear nuevo ▾</button>`,
-    body: () => createCards([
-      { icon: "ml", title: "Experimento de ML", desc: "Cree un experimento sobre sus datos y entrene, compare y pruebe modelos.", href: "experimentos.html?new=1" },
-      { icon: "dataset", title: "Conjunto de datos", desc: "Cargue un archivo de datos o registre datos externos.", soon: true },
-    ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
-      emptyState({ icon: "chart", title: "No se encontraron resultados", text: "El aprendizaje automático (AutoML) estará disponible " + SOON.toLowerCase() + "." }),
-  },
-
-  asistentes: {
-    title: "Asistentes",
-    headerRight: () => `<button class="q-btn primary">+ Crear nuevo ▾</button>`,
-    body: () => createCards([
-      { icon: "robot", title: "Asistente", desc: "Cree un asistente de chat personalizado para responder preguntas usando información.", soon: true },
-      { icon: "knowledge", title: "Base de conocimientos", desc: "Fuentes orgánicas y archivos de datos no estructurados para que los utilice un asistente.", soon: true },
-      { icon: "upload", title: "Cargar archivos de conocimiento", desc: "Cargue un archivo no estructurado para utilizarlo en las bases de conocimientos.", soon: true },
-      { icon: "conn", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", soon: true },
-    ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
-      emptyState({ icon: "chart", title: "No se encontraron resultados", text: "Los asistentes de IA (chat y bases de conocimiento) estarán disponibles " + SOON.toLowerCase() + "." }),
   },
 
   // Apariencia real de DataSense: la aplica js/theme.js (preferencias por navegador).
@@ -508,23 +403,45 @@ async function mountThemes(main) {
   } catch {}
 }
 
+const STAGE_LABEL = { personal: "Personal", desarrollo: "Desarrollo", produccion: "Producción" };
+
 async function mountAnalyzeApps(main) {
   const grid = main.querySelector("#appsGrid");
   if (!grid) return;
   grid.innerHTML = `<div class="q-muted" style="padding:16px">Cargando aplicaciones…</div>`;
+  let apps = [];
   try {
     const api = await import("./api.js");
-    const apps = await api.listApps();
-    if (!apps.length) { grid.innerHTML = emptyState({ icon: "empty", title: "No hay aplicaciones.", text: "Cree una desde el Catálogo.", action: "Ir al Catálogo" }); grid.querySelector(".q-btn")?.addEventListener("click", () => location.href = "catalogo.html"); return; }
-    grid.innerHTML = apps.map((a) => `
+    apps = await api.listApps();
+  } catch (e) {
+    grid.innerHTML = `<div class="q-muted" style="padding:16px">No se pudieron cargar las aplicaciones: ${esc(e.message)}</div>`;
+    return;
+  }
+  let stage = "", q = "";
+  const draw = () => {
+    const list = apps.filter((a) => (!stage || a.stage === stage) && (!q || a.name.toLowerCase().includes(q)));
+    if (!list.length) {
+      grid.innerHTML = emptyState({ icon: "empty", title: apps.length ? "Ninguna aplicación coincide." : "No hay aplicaciones para ti todavía.",
+        text: apps.length ? "Cambia el filtro de etapa o la búsqueda." : "Las aplicaciones aparecen aquí según su etapa: un visualizador solo ve las que están en Producción." });
+      return;
+    }
+    grid.innerHTML = list.map((a) => `
       <a class="q-app-card" href="app.html?app=${encodeURIComponent(a.id)}">
         <div class="q-app-thumb">${icon("app")}</div>
         <div class="q-app-name">${esc(a.name)}</div>
-        <div class="q-app-meta q-muted">Creado: ${esc((a.created_at || "").slice(0, 10))}</div>
+        <div class="q-app-meta q-muted"><span class="ds-stage ${esc(a.stage)}"><span class="ds-stage-dot"></span>${esc(STAGE_LABEL[a.stage] || a.stage)}</span>
+          ${a.sheets ? ` · ${a.published}/${a.sheets} hojas publicadas` : " · sin hojas"}${a.owner_name ? ` · ${esc(a.owner_name)}` : ""}</div>
       </a>`).join("");
-  } catch (e) {
-    grid.innerHTML = `<div class="q-muted" style="padding:16px">No se pudieron cargar las aplicaciones: ${esc(e.message)}</div>`;
-  }
+  };
+  main.querySelector("#stageFilter")?.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-stage]");
+    if (!b) return;
+    stage = b.dataset.stage;
+    main.querySelectorAll("#stageFilter .ds-stage-f").forEach((x) => x.classList.toggle("on", x === b));
+    draw();
+  });
+  main.querySelector("#appsSearch")?.addEventListener("input", (e) => { q = e.target.value.trim().toLowerCase(); draw(); });
+  draw();
 }
 
 /* -------------------------------------------------------------------------
@@ -537,7 +454,9 @@ function renderAvatar() {
 
 function currentPageKey() {
   const p = new URLSearchParams(location.search).get("page");
-  return PAGES[p] ? p : "paginas";
+  // Páginas retiradas en la depuración (Páginas, Alimentar, Mercado…): a Inicio, no a una pantalla vacía.
+  if (!PAGES[p]) location.replace("inicio.html");
+  return PAGES[p] ? p : "colecciones";
 }
 
 function render() {

@@ -8,7 +8,7 @@
 
 import { svg } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
-import { getApp } from "./api.js";
+import { getApp, setAppStage } from "./api.js";
 import { mountSheetMenu } from "./sheet-menu.js";
 
 if (!authService.isAuthenticated()) location.replace("index.html");
@@ -17,39 +17,30 @@ const params = new URLSearchParams(location.search);
 const APP_ID = params.get("app");
 if (!APP_ID) location.replace("catalogo.html");
 
+// «perm»: permiso que exige la vista. Quien no lo tiene ni la ve en el selector (el servidor también lo exige).
 const VIEW_GROUPS = [
-  { label: "Inicio", views: [{ key: "general", label: "General", icon: "home", shortcut: "O" }] },
   { label: "Analizar", views: [{ key: "hoja", label: "Hoja", icon: "pages", shortcut: "A", module: "./app-hoja.js" }] },
-  {
-    label: "Narrar",
-    views: [
-      { key: "narracion", label: "Narración", icon: "feed", shortcut: "Y" },
-      { key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" },
-    ],
-  },
+  { label: "Narrar", views: [{ key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" }] },
   {
     label: "Ciencia de datos",
-    views: [
-      { key: "lab", label: "Experimentos de ML", icon: "predict", shortcut: "L", module: "./app-lab.js" },
-    ],
+    views: [{ key: "lab", label: "Experimentos de ML", icon: "predict", shortcut: "L", module: "./app-lab.js", perm: "ml:run" }],
   },
   {
     label: "Preparar",
     views: [
-      { key: "datos", label: "Gestor de datos", icon: "database", shortcut: "D", module: "./app-datos.js" },
-      { key: "editor", label: "Editor de carga de datos", icon: "script", shortcut: "E", module: "./app-editor.js" },
-      { key: "modelo", label: "Visor del modelo de datos", icon: "model", shortcut: "M", module: "./app-modelo.js" },
+      { key: "datos", label: "Gestor de datos", icon: "database", shortcut: "D", module: "./app-datos.js", perm: "data:import" },
+      { key: "editor", label: "Editor de carga de datos", icon: "script", shortcut: "E", module: "./app-editor.js", perm: "data:import" },
+      { key: "modelo", label: "Visor del modelo de datos", icon: "model", shortcut: "M", module: "./app-modelo.js", perm: "data:import" },
     ],
   },
   {
     label: "Lógica de negocio",
-    views: [
-      { key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G", module: "./app-logico.js" },
-      { key: "vocabulario", label: "Vocabulario", icon: "book", shortcut: "V" },
-    ],
+    views: [{ key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G", module: "./app-logico.js", perm: "charts:edit" }],
   },
 ];
-const ALL_VIEWS = VIEW_GROUPS.flatMap((g) => g.views);
+const allowed = (v) => !v.perm || authService.can(v.perm);
+const VISIBLE_GROUPS = VIEW_GROUPS.map((g) => ({ ...g, views: g.views.filter(allowed) })).filter((g) => g.views.length);
+const ALL_VIEWS = VISIBLE_GROUPS.flatMap((g) => g.views);
 const DEFAULT_VIEW = "hoja";
 
 const ctx = { appId: APP_ID, can: (perm) => authService.can(perm) };
@@ -78,7 +69,7 @@ function renderViewSelect(activeKey) {
       <span class="q-view-select-caret">▾</span>
     </button>
     <div class="q-view-select-pop q-vs-grouped" id="viewSelectPop" hidden>
-      ${VIEW_GROUPS.map((g) => `
+      ${VISIBLE_GROUPS.map((g) => `
         <div class="q-vs-group">${g.label}</div>
         ${g.views.map((v) => `
           <button class="q-view-select-row ${v.key === active.key ? "active" : ""} ${v.module ? "" : "soon"}"
@@ -122,9 +113,9 @@ function renderProfile() {
     <div class="q-prof-avatar">${initials}</div>
     <div class="q-prof-name">${user.name || "Usuario"}</div>
     <div class="q-prof-mail">${user.email || ""}</div>
-    <button class="q-prof-cfg" disabled title="Próximamente">Configuración</button>
     <div class="q-prof-row">Rol: <strong>${user.role || "-"}</strong></div>
     <button class="q-prof-item" id="profCatalog">Ir al catálogo</button>
+    <button class="q-prof-item" id="profAccount">Mi cuenta</button>
     <button class="q-prof-item" id="profLogout">Cerrar sesión</button>`;
   avatar.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -133,7 +124,74 @@ function renderProfile() {
   });
   document.addEventListener("click", (e) => { if (!pop.contains(e.target) && e.target !== avatar) pop.hidden = true; });
   pop.querySelector("#profCatalog").addEventListener("click", () => { location.href = "catalogo.html"; });
+  pop.querySelector("#profAccount").addEventListener("click", () => { location.href = "configuracion.html?tab=cuenta"; });
   pop.querySelector("#profLogout").addEventListener("click", () => { authService.logout(); location.replace("index.html"); });
+}
+
+/* ----------------------- Etapa de la app (Personal · Desarrollo · Producción) ----------------------- */
+const STAGES = [
+  { id: "personal", label: "Personal", desc: "Solo la ves tú" },
+  { id: "desarrollo", label: "Desarrollo", desc: "El equipo técnico construye y prueba" },
+  { id: "produccion", label: "Producción", desc: "Publicada: los visualizadores ven las hojas publicadas" },
+];
+
+/** Sustituye el «Personal» fijo de la miga por la etapa real, con selector si el usuario puede cambiarla. */
+function mountStageChip(app) {
+  const host = document.querySelector(".q-app-space");
+  if (!host) return;
+  const stageOf = (id) => STAGES.find((s) => s.id === id) || STAGES[0];
+  const canChange = (target) => {
+    const touchesProd = target === "produccion" || app.stage === "produccion";
+    return touchesProd ? authService.can("apps:publish") : authService.can("charts:edit");
+  };
+  const editable = STAGES.some((s) => s.id !== app.stage && canChange(s.id));
+  host.className = `q-app-space ds-stage ${app.stage}`;
+  host.title = stageOf(app.stage).desc;
+  const label = `<span class="ds-stage-dot"></span>${stageOf(app.stage).label}${editable ? ' <span class="ds-stage-caret">▾</span>' : ""}`;
+  host.innerHTML = label;
+  if (!editable) return;
+  host.tabIndex = 0;
+  host.setAttribute("role", "button");
+  host.style.cursor = "pointer";
+  const pop = document.createElement("div");
+  pop.className = "ds-stage-pop";
+  pop.hidden = true;
+  document.body.appendChild(pop);
+  const close = () => { pop.hidden = true; };
+  const render = () => {
+    pop.innerHTML = `<div class="ds-stage-pop-h">Etapa de la aplicación</div>` + STAGES.map((s) => {
+      const dis = s.id === app.stage || !canChange(s.id);
+      return `<button type="button" class="ds-stage-opt ${s.id === app.stage ? "on" : ""}" data-s="${s.id}" ${dis ? "disabled" : ""}>
+        <span class="ds-stage ${s.id}"><span class="ds-stage-dot"></span>${s.label}</span><small>${s.desc}${!dis || s.id === app.stage ? "" : " · requiere permiso"}</small></button>`;
+    }).join("") + `<div class="ds-stage-note">Las hojas se publican por separado (menú «···» de la hoja). Un visualizador solo ve apps en Producción y sus hojas publicadas.</div>`;
+  };
+  const open = () => {
+    render();
+    const r = host.getBoundingClientRect();
+    pop.style.top = `${r.bottom + 8}px`;
+    pop.style.left = `${Math.max(8, r.left)}px`;
+    pop.hidden = false;
+  };
+  host.addEventListener("click", (e) => { e.stopPropagation(); pop.hidden ? open() : close(); });
+  document.addEventListener("click", (e) => { if (!pop.contains(e.target)) close(); });
+  pop.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-s]");
+    if (!b || b.disabled) return;
+    const target = b.dataset.s;
+    if (target === "produccion" && !(app.published > 0) && !confirm("Esta app no tiene ninguna hoja publicada: los visualizadores la verán vacía. ¿Pasarla a Producción de todos modos?")) return;
+    b.disabled = true;
+    try {
+      const updated = await setAppStage(APP_ID, target);
+      Object.assign(app, updated);
+      close();
+      mountStageChip(app);
+      pop.remove();
+    } catch (err) {
+      pop.querySelector(".ds-stage-note").textContent = err.message;
+      pop.querySelector(".ds-stage-note").classList.add("err");
+      b.disabled = false;
+    }
+  });
 }
 
 /* ----------------------- Router ----------------------- */
@@ -177,6 +235,7 @@ async function boot() {
     document.getElementById("appName").textContent = app.name || "Aplicación";
     document.title = `DataSense · ${app.name || "Aplicación"}`;
     ctx.app = app;
+    mountStageChip(app);
   } catch (err) {
     document.getElementById("appView").innerHTML =
       `<p style="color:#c0392b;padding:18px 26px;">No se pudo abrir la aplicación: ${err.message}</p>`;

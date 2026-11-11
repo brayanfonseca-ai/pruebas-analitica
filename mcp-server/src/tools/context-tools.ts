@@ -27,7 +27,8 @@ export const contextTools: ContextTool[] = [
     name: "list_apps",
     title: "Listar aplicaciones",
     description:
-      "Lista todas las aplicaciones de DataSense. Devuelve AppOut[] = [{id, name, created_at}]. GET /api/v1/apps.",
+      "Lista las aplicaciones que el usuario del MCP puede ver. Devuelve AppOut[] = [{id, name, created_at, stage (personal|desarrollo|produccion), " +
+      "owner_id, owner_name, sheets, published}]. GET /api/v1/apps.",
     inputShape: {},
     handler: async () => toToolText(await get("/api/v1/apps")),
   },
@@ -35,7 +36,7 @@ export const contextTools: ContextTool[] = [
     name: "get_app",
     title: "Detalle de aplicacion",
     description:
-      "Obtiene el detalle de una aplicacion por su appId. Devuelve AppOut {id, name, created_at}. GET /api/v1/apps/{appId}.",
+      "Obtiene el detalle de una aplicacion por su appId. Devuelve AppOut {id, name, created_at, stage, owner_id, owner_name, sheets, published}. GET /api/v1/apps/{appId}.",
     inputShape: appIdShape,
     handler: async (args) =>
       toToolText(await get(`/api/v1/apps/${encodeURIComponent(String(args.appId))}`)),

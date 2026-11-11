@@ -36,81 +36,47 @@ function appCardHtml(a) {
             <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" fill-opacity=".15"/><path d="M3 9h18M9 9v12"/>
           </svg>
         </span>
-        <button class="q-create-add" title="Eliminar" data-del="${esc(a.id)}">✕</button>
+        ${authService.can("apps:delete") ? `<button class="q-create-add" title="Eliminar" data-del="${esc(a.id)}">✕</button>` : ""}
       </div>
       <h3 class="q-create-card-title" title="${esc(a.name)}">${esc(a.name)}</h3>
-      <p class="q-create-card-desc">Creada: ${fmtDate(a.created_at)}</p>
+      <p class="q-create-card-desc"><span class="ds-stage ${esc(a.stage)}"><span class="ds-stage-dot"></span>${esc(STAGE_LABEL[a.stage] || a.stage)}</span>
+        ${a.sheets ? ` ${a.published}/${a.sheets} hojas publicadas` : " Sin hojas"}</p>
+      <p class="q-create-card-desc">${a.owner_name ? `${esc(a.owner_name)} · ` : ""}Creada: ${fmtDate(a.created_at)}</p>
       <a href="app.html?app=${encodeURIComponent(a.id)}" class="q-create-more">Abrir aplicación →</a>
     </article>`;
 }
 
-// Filtros activos (replican los desplegables de Qlik; en DataSense el único
-// tipo con datos reales es "Aplicaciones", por eso al elegir otro tipo no hay
-// resultados — honesto, no inventa contenido).
-const catFilter = { type: null, owner: "any" };
-
-const CONTENT_TYPES = [
-  "Aplicaciones", "Asistentes", "Automatizaciones", "Bases de conocimientos",
-  "Conjuntos de datos", "Contratos de API", "Enlaces", "Experimentos de ML",
-  "Flujos de datos", "Glosarios", "Gráficos", "Implementaciones de ML",
-  "Notas", "Productos de datos", "Recetas de tabla", "Scripts",
-];
-
-let catMenu = null;
-function closeCatMenu() { if (catMenu) { catMenu.remove(); catMenu = null; } }
-document.addEventListener("pointerdown", (e) => { if (catMenu && !catMenu.contains(e.target) && !e.target.closest("[data-cat-filter]")) closeCatMenu(); }, true);
-
-function openCatMenu(anchor, html, onMount) {
-  closeCatMenu();
-  const m = document.createElement("div");
-  m.className = "q-dropdown";
-  m.innerHTML = html;
-  document.body.appendChild(m);
-  const r = anchor.getBoundingClientRect();
-  m.style.left = `${r.left}px`;
-  m.style.top = `${r.bottom + 4}px`;
-  catMenu = m;
-  if (onMount) onMount(m);
-}
-
-function wireCatFilters() {
-  document.querySelectorAll("[data-cat-filter]").forEach((chip) => {
-    chip.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const kind = chip.dataset.catFilter;
-      if (kind === "tipos") {
-        openCatMenu(chip, `<div class="q-dd-list">${CONTENT_TYPES.map((t) =>
-          `<label class="q-dd-check"><input type="radio" name="cattype" value="${esc(t)}" ${catFilter.type === t ? "checked" : ""}/> <span>${esc(t)}</span></label>`).join("")}</div>`,
-          (m) => m.querySelectorAll('input[name="cattype"]').forEach((r) => r.addEventListener("change", () => { catFilter.type = r.value; closeCatMenu(); render(); })));
-      } else if (kind === "propietario") {
-        openCatMenu(chip, `<div class="q-dd-pad">
-          <input class="q-dd-search" placeholder="Buscar usuarios" />
-          ${[["any", "Cualquiera"], ["me", "Tú"], ["others", "Otros"]].map(([v, l]) =>
-            `<label class="q-dd-radio"><input type="radio" name="catowner" value="${v}" ${catFilter.owner === v ? "checked" : ""}/> <span>${l}</span></label>`).join("")}</div>`,
-          (m) => m.querySelectorAll('input[name="catowner"]').forEach((r) => r.addEventListener("change", () => { catFilter.owner = r.value; closeCatMenu(); render(); })));
-      } else if (kind === "espacios") {
-        openCatMenu(chip, `<div class="q-dd-pad"><label class="q-dd-radio"><input type="radio" name="catspace" checked/> <span>Todos</span></label>
-          <label class="q-dd-radio"><input type="radio" name="catspace"/> <span>Personal</span></label></div>`);
-      } else {
-        catFilter.type = null; catFilter.owner = "any"; render();
-      }
-    });
-  });
-}
+const STAGE_LABEL = { personal: "Personal", desarrollo: "Desarrollo", produccion: "Producción" };
+// Filtros reales: etapa (Personal · Desarrollo · Producción) y «solo mías».
+const catFilter = { stage: "", mine: false };
 
 function render() {
   const q = (searchInput?.value || "").trim().toLowerCase();
-  let filtered = q ? apps.filter((a) => (a.name || "").toLowerCase().includes(q)) : apps;
-  // Tipo: solo "Aplicaciones" tiene contenido real; otros tipos → sin resultados.
-  if (catFilter.type && catFilter.type !== "Aplicaciones") filtered = [];
-  // Propietario "Otros" → nada (todas son del usuario local).
-  if (catFilter.owner === "others") filtered = [];
+  const me = authService.current()?.userId;
+  const filtered = apps.filter((a) =>
+    (!q || (a.name || "").toLowerCase().includes(q)) &&
+    (!catFilter.stage || a.stage === catFilter.stage) &&
+    (!catFilter.mine || a.owner_id === me));
   if (!filtered.length) {
-    grid.innerHTML = `<p style="color:var(--q-muted);">No hay aplicaciones todavía. Pulsa “Crear aplicación” para empezar.</p>`;
+    const canCreate = authService.can("apps:create");
+    grid.innerHTML = `<p style="color:var(--q-muted);">${apps.length
+      ? "Ninguna aplicación coincide con el filtro."
+      : canCreate ? "No hay aplicaciones todavía. Pulsa “Crear aplicación” para empezar."
+        : "Todavía no hay aplicaciones publicadas para ti. Cuando un administrador publique una en Producción, aparecerá aquí."}</p>`;
     return;
   }
   grid.innerHTML = filtered.map(appCardHtml).join("");
 }
+
+document.getElementById("stageFilter")?.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-stage]");
+  if (!b) return;
+  catFilter.stage = b.dataset.stage;
+  document.querySelectorAll("#stageFilter .ds-stage-f").forEach((x) => x.classList.toggle("on", x === b));
+  render();
+});
+document.getElementById("onlyMine")?.addEventListener("change", (e) => { catFilter.mine = e.target.checked; render(); });
+if (!authService.can("apps:create")) document.getElementById("newAppBtn")?.remove();
 
 async function load() {
   grid.innerHTML = `<p style="color:var(--q-muted);">Cargando…</p>`;
@@ -160,7 +126,7 @@ function openModal() {
 }
 function closeModal() { modal.backdrop.hidden = true; }
 
-document.getElementById("newAppBtn").addEventListener("click", openModal);
+document.getElementById("newAppBtn")?.addEventListener("click", openModal);
 document.getElementById("createX").addEventListener("click", closeModal);
 document.getElementById("createCancel").addEventListener("click", closeModal);
 modal.backdrop.addEventListener("click", (e) => { if (e.target === modal.backdrop) closeModal(); });
@@ -187,5 +153,4 @@ searchInput?.addEventListener("input", render);
 renderNav("nav", { active: "catalogo" });
 wireAppsButton();
 renderProfileMenu(authService);
-wireCatFilters();
 load();

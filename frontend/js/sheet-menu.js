@@ -64,8 +64,9 @@ function buildActions(ctx) {
     { id: "details", label: "Detalles", icon: "info", enabled: hasSheet, run: () => ctx.openDetails() },
     { sep: true },
     {
-      id: "public", label: isPublic ? "Hacer la hoja privada" : "Hacer la hoja pública", icon: "public",
-      enabled: hasSheet && canEdit,
+      id: "public", label: isPublic ? "Despublicar hoja (volver a borrador)" : "Publicar hoja (visible en Producción)", icon: "public",
+      enabled: hasSheet && ctx.can("apps:publish"),
+      badge: hasSheet && !ctx.can("apps:publish") ? "Requiere permiso" : undefined,
       run: () => ctx.setVisibility(isPublic ? "privada" : "publica"),
     },
     {

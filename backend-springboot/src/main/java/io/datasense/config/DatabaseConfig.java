@@ -220,6 +220,39 @@ public class DatabaseConfig {
                     id TEXT PRIMARY KEY,
                     read_at TEXT NOT NULL
                 )""");
+            // Seguridad: usuarios (contraseña con PBKDF2), sesiones (solo el SHA-256 del token) y,
+            // en apps, dueño y etapa (personal | desarrollo | produccion).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL UNIQUE,
+                    name TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1,
+                    permissions_json TEXT NOT NULL DEFAULT '{}',
+                    password_hash TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    last_login TEXT
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS sessions (
+                    token_hash TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    expires_at INTEGER NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                )""");
+            addColumn("apps", "owner_id", "TEXT");
+            // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
+            addColumn("apps", "stage", "TEXT NOT NULL DEFAULT 'desarrollo'");
+        }
+
+        /** ALTER TABLE ... ADD COLUMN solo si la columna aún no existe (SQLite no tiene IF NOT EXISTS aquí). */
+        private void addColumn(String table, String column, String ddl) {
+            boolean exists = jdbc.queryForList("PRAGMA table_info(" + table + ")").stream()
+                    .anyMatch(r -> column.equalsIgnoreCase(String.valueOf(r.get("name"))));
+            if (!exists) jdbc.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + ddl);
         }
     }
 }

@@ -7,8 +7,18 @@
 
 const BASE = "/api/v1";
 
+/** Cabecera Authorization con el token de la sesión (lo emite POST /auth/login). */
+export function authHeader() {
+  try {
+    const s = JSON.parse(localStorage.getItem("ds.session") || "null");
+    return s && s.token ? { Authorization: `Bearer ${s.token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 async function request(path, { method = "GET", body, isForm = false } = {}) {
-  const opts = { method, headers: {} };
+  const opts = { method, headers: { ...authHeader() } };
   if (body !== undefined) {
     if (isForm) {
       opts.body = body; // FormData: el navegador fija el Content-Type (boundary).
@@ -33,6 +43,12 @@ async function request(path, { method = "GET", body, isForm = false } = {}) {
     data = await res.json().catch(() => null);
   }
 
+  if (res.status === 401 && path !== "/auth/login") {
+    // Sesión vencida o revocada (p. ej. un admin desactivó la cuenta): volver al login.
+    try { localStorage.removeItem("ds.session"); } catch { /* sin storage */ }
+    if (!location.pathname.endsWith("/index.html")) location.replace("/pages/index.html");
+  }
+
   if (!res.ok) {
     const detail = (data && (data.detail || data.message)) || `Error ${res.status}`;
     const err = new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
@@ -46,6 +62,21 @@ async function request(path, { method = "GET", body, isForm = false } = {}) {
 /* ----------------------- Apps ----------------------- */
 export const listApps = () => request("/apps");
 export const createApp = (name) => request("/apps", { method: "POST", body: { name } });
+/** Cambia la etapa de una app: personal | desarrollo | produccion (ownerId solo lo aplica un admin). */
+export const setAppStage = (appId, stage, ownerId) =>
+  request(`/apps/${encodeURIComponent(appId)}/stage`, { method: "PUT", body: ownerId ? { stage, owner_id: ownerId } : { stage } });
+
+/* ----------------------- Sesión, usuarios y permisos ----------------------- */
+export const apiLogin = (email, password) => request("/auth/login", { method: "POST", body: { email, password } });
+export const apiLogout = () => request("/auth/logout", { method: "POST" });
+export const authMe = () => request("/auth/me");
+export const authCatalog = () => request("/auth/catalog");
+export const changeMyPassword = (current, password) => request("/auth/password", { method: "PUT", body: { current, password } });
+export const listUsers = () => request("/users");
+export const createUser = (user) => request("/users", { method: "POST", body: user });
+export const updateUser = (id, patch) => request(`/users/${encodeURIComponent(id)}`, { method: "PUT", body: patch });
+export const resetUserPassword = (id, password) => request(`/users/${encodeURIComponent(id)}/password`, { method: "PUT", body: { password } });
+export const deleteUser = (id) => request(`/users/${encodeURIComponent(id)}`, { method: "DELETE" });
 export const getApp = (appId) => request(`/apps/${encodeURIComponent(appId)}`);
 export const deleteApp = (appId) => request(`/apps/${encodeURIComponent(appId)}`, { method: "DELETE" });
 

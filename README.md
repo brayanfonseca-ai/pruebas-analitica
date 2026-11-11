@@ -94,6 +94,20 @@ Detalle en [`docs/arquitectura.md`](./docs/arquitectura.md).
 | editor | editor@datasense.io  | editor123  |
 | viewer | viewer@datasense.io  | viewer123  |
 
+Cámbialas en **Configuración → Usuarios** (menú lateral, al pie).
+
+## Configuración: usuarios, permisos y etapas
+
+La autenticación es real: contraseñas con PBKDF2, sesiones por token y permisos validados por el servidor en
+cada petición. **Configuración** (solo administradores) permite crear, editar, activar/desactivar y eliminar
+usuarios, asignarles un rol (Administrador · Desarrollador · Visualizador) y conceder o quitar permisos sueltos.
+
+Cada aplicación tiene una **etapa**: *Personal* (solo su dueño) → *Desarrollo* (equipo técnico) →
+*Producción* (publicada). Un visualizador solo ve apps en Producción y, dentro de ellas, **las hojas
+publicadas**. Detalle y reglas en [`docs/modulos/12-configuracion-seguridad.md`](./docs/modulos/12-configuracion-seguridad.md).
+
+> Si usas el servidor MCP y cambias la contraseña del administrador, actualiza `DATASENSE_PASSWORD` en `mcp.json`.
+
 La autenticación del cliente solo proyecta permisos en la interfaz; no es seguridad real.
 
 ## Módulos dentro de una aplicación

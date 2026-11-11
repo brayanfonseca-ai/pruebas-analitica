@@ -63,53 +63,74 @@ async function doFetch(url: string, init: RequestInit): Promise<Response> {
   }
 }
 
-export async function get(path: string): Promise<unknown> {
-  const res = await doFetch(buildUrl(path), {
-    method: "GET",
+/* ------------------------------------------------------------------------
+ * Autenticación. El backend exige sesión (Bearer) en toda /api/v1/**. El MCP inicia sesión con las
+ * credenciales de DATASENSE_USER / DATASENSE_PASSWORD (por defecto la cuenta administradora de
+ * demostración) y reutiliza el token; si caduca (401) vuelve a iniciar sesión una sola vez.
+ * Con un usuario sin permisos, el servidor responde 403 con el motivo (el MCP lo respeta).
+ * ---------------------------------------------------------------------- */
+let cachedToken: string | null = null;
+
+async function login(): Promise<string> {
+  const email = process.env.DATASENSE_USER ?? "admin@datasense.io";
+  const password = process.env.DATASENSE_PASSWORD ?? "admin123";
+  const res = await doFetch(buildUrl("/api/v1/auth/login"), {
+    method: "POST",
     headers: JSON_HEADERS,
+    body: JSON.stringify({ email, password }),
   });
+  const data = (await handleResponse(res)) as { token?: string };
+  if (!data?.token) throw new Error("El backend no devolvió un token de sesión.");
+  cachedToken = data.token;
+  return data.token;
+}
+
+/** Ejecuta la petición con el token de sesión; reintenta una vez si la sesión venció. */
+async function send(path: string, init: RequestInit): Promise<unknown> {
+  const run = async (): Promise<Response> => {
+    const token = cachedToken ?? (await login());
+    return doFetch(buildUrl(path), { ...init, headers: { ...(init.headers as Record<string, string>), Authorization: `Bearer ${token}` } });
+  };
+  let res = await run();
+  if (res.status === 401) {
+    cachedToken = null;
+    res = await run();
+  }
   return handleResponse(res);
 }
 
+export async function get(path: string): Promise<unknown> {
+  return send(path, { method: "GET", headers: JSON_HEADERS });
+}
+
 export async function post(path: string, body?: unknown): Promise<unknown> {
-  const res = await doFetch(buildUrl(path), {
+  return send(path, {
     method: "POST",
     headers: JSON_HEADERS,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  return handleResponse(res);
 }
 
 export async function put(path: string, body?: unknown): Promise<unknown> {
-  const res = await doFetch(buildUrl(path), {
+  return send(path, {
     method: "PUT",
     headers: JSON_HEADERS,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  return handleResponse(res);
 }
 
 /**
  * POST multipart/form-data (subida de archivos). fetch fija el boundary.
  */
 export async function postForm(path: string, form: FormData): Promise<unknown> {
-  const res = await doFetch(buildUrl(path), {
-    method: "POST",
-    headers: { Accept: "application/json" },
-    body: form,
-  });
-  return handleResponse(res);
+  return send(path, { method: "POST", headers: { Accept: "application/json" }, body: form });
 }
 
 /**
  * DELETE tolera 204 No Content (sin cuerpo).
  */
 export async function del(path: string): Promise<unknown> {
-  const res = await doFetch(buildUrl(path), {
-    method: "DELETE",
-    headers: JSON_HEADERS,
-  });
-  return handleResponse(res);
+  return send(path, { method: "DELETE", headers: JSON_HEADERS });
 }
 
 /**

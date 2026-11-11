@@ -17,11 +17,15 @@
         },
         {
           "titulo": "Navegación general",
-          "cuerpo": "- **Barra superior**: botón de aplicaciones (9 puntos), buscador, Crear, **Ayuda (?)**, **Notificaciones**, modo claro/oscuro y tu perfil.\n- **Menú lateral**: se pliega con el botón **☰** de la barra superior; plegado muestra solo los iconos (pasa el cursor para ver el nombre). La elección se recuerda.\n- Dentro de una app, el **selector de vista** cambia entre Hoja, Informes, Experimentos de ML, Gestor de datos, Editor de carga, Visor del modelo y Modelo lógico (atajos `Alt + Shift + letra`).\n- **Ctrl + K** abre la paleta de comandos en cualquier página."
+          "cuerpo": "- **Barra superior**: botón de aplicaciones (9 puntos), buscador, Crear, **Ayuda (?)**, **Notificaciones**, modo claro/oscuro y tu perfil.\n- **Menú lateral**: Inicio, Crear, Colecciones, Catálogo, Analizar y Experimentos de ML; **Temas** y **Configuración** quedan al pie. Solo ves las opciones para las que tienes permiso. Se pliega con el botón **☰**; plegado muestra solo los iconos. La elección se recuerda.\n- Dentro de una app, el **selector de vista** cambia entre Hoja, Informes, Experimentos de ML, Gestor de datos, Editor de carga, Visor del modelo y Modelo lógico (atajos `Alt + Shift + letra`).\n- **Ctrl + K** abre la paleta de comandos en cualquier página."
         },
         {
-          "titulo": "Cuentas y roles",
-          "cuerpo": "Cuenta de demostración: `admin@datasense.io` / `admin123`.\n\nLos roles (admin, editor, viewer) **solo proyectan permisos en la interfaz**: ocultan o deshabilitan acciones. No son una capa de seguridad real; el proyecto está pensado para uso local."
+          "titulo": "Cuentas, roles y permisos",
+          "cuerpo": "Cuentas de demostración (cámbialas en **Configuración → Usuarios**): `admin@datasense.io` / `admin123`, `editor@datasense.io` / `editor123`, `viewer@datasense.io` / `viewer123`.\n\n- **Administrador**: todo, incluida la Configuración.\n- **Desarrollador (editor)**: construye aplicaciones, datos, hojas y modelos de ML; no publica ni administra.\n- **Visualizador (viewer)**: solo ve lo que está publicado.\n\nA cada persona se le pueden **conceder o quitar permisos sueltos** sobre los de su rol. El servidor valida la sesión y los permisos en cada petición."
+        },
+        {
+          "titulo": "Etapas: Personal, Desarrollo y Producción",
+          "cuerpo": "Cada aplicación tiene una **etapa**, visible junto a su nombre en la barra superior:\n\n- **Personal**: solo la ve su dueño. Toda app nueva nace aquí.\n- **Desarrollo**: la ve el equipo técnico para construir y probar.\n- **Producción**: publicada. La ven los visualizadores, pero **solo las hojas publicadas**.\n\nPara que un visualizador vea un tablero deben cumplirse dos cosas: la app está en *Producción* **y** la hoja está *publicada* (menú «···» de la hoja). Pasar una app a Producción o publicar hojas requiere el permiso **Publicar**. Todo se gestiona también en **Configuración → Etapas y publicación**."
         }
       ]
     },
@@ -68,7 +72,7 @@
         },
         {
           "titulo": "Servidor MCP",
-          "cuerpo": "`mcp-server/` expone la plataforma como herramientas para agentes de IA (crear apps, cargar datos, consultar, hojas, conexiones, ML, notificaciones, ayuda…). Se compila con `npm run build` y se registra en `~/.kiro/settings/mcp.json`. **Regla del proyecto**: todo lo que hace DataSense debe poder hacerse también desde el MCP."
+          "cuerpo": "`mcp-server/` expone la plataforma como herramientas para agentes de IA (apps, datos, consultas, hojas, conexiones, ML, usuarios y permisos, etapas, notificaciones, ayuda…). Se compila con `npm run build` y se registra en `~/.kiro/settings/mcp.json`. El MCP inicia sesión con las variables de entorno `DATASENSE_USER` y `DATASENSE_PASSWORD` (por defecto, la cuenta administradora de demostración): si cambias esa contraseña, actualízalas en `mcp.json`. **Regla del proyecto**: todo lo que hace DataSense debe poder hacerse también desde el MCP."
         },
         {
           "titulo": "Notificaciones",
@@ -98,6 +102,10 @@
         { "titulo": "¿Cómo comparto una hoja?", "cuerpo": "Cambia su visibilidad (privada/pública) desde el menú de la hoja. Para un PDF usa **Informes → Desde una hoja**." },
         { "titulo": "¿Cómo exporto los resultados de un modelo de ML?", "cuerpo": "En el resultado de la ejecución usa **Exportar CSV**, o **Asociar a…** para llevarlo a una app como tabla del modelo con su hoja." },
         { "titulo": "¿Qué significan los colores de las métricas de ML?", "cuerpo": "Verde = buena calidad, ámbar = aceptable, rojo = débil. Por ejemplo, una silueta mayor a 0,5 indica grupos bien separados." },
+        { "titulo": "Un visualizador no ve mi tablero", "cuerpo": "Revisa las dos condiciones: 1) la aplicación debe estar en **Producción** (barra superior de la app o Configuración → Etapas y publicación) y 2) la **hoja** debe estar publicada (menú «···» de la hoja → Publicar hoja). Una app en Personal o Desarrollo, o una hoja en borrador, no se muestra a los visualizadores." },
+        { "titulo": "¿Cómo creo un usuario y le doy permisos?", "cuerpo": "**Configuración → Usuarios → Nuevo usuario** (solo administradores). Elige nombre, correo, rol y una contraseña de 8+ caracteres. En *Permisos* puedes marcar o desmarcar permisos sueltos: se guardan como «extra» o «quitado» sobre los del rol. Para cambiar el acceso de alguien basta editarlo; sus sesiones abiertas se cierran." },
+        { "titulo": "Olvidé mi contraseña", "cuerpo": "Pídele a un administrador que la restablezca en **Configuración → Usuarios → candado**. Para cambiarla tú, usa **Mi cuenta** en el menú de tu perfil." },
+        { "titulo": "Me dice «No tienes permiso para esta acción»", "cuerpo": "Tu rol o tus permisos individuales no incluyen esa acción (por ejemplo, publicar). Revisa en **Mi cuenta** qué permisos tienes y pide a un administrador que te los conceda." },
         { "titulo": "¿Las notificaciones borran algo?", "cuerpo": "No. *Marcar como leídas* y *Vaciar* solo cambian el estado del panel; las apps, hojas y datos siguen intactos." },
         { "titulo": "¿Dónde se guardan mis preferencias de apariencia?", "cuerpo": "En el `localStorage` de tu navegador (modo, acento, fondo, animaciones y menú plegado). Otro navegador o equipo empieza con los valores por defecto." },
         { "titulo": "¿Cómo reinicio todos los datos?", "cuerpo": "Detén el servidor, mueve o renombra `backend-springboot/data/` y vuelve a arrancar. Es irreversible si no guardas una copia." }

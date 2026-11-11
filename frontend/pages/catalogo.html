@@ -48,10 +48,13 @@
       </div>
 
       <div class="q-filterbar" id="catFilters">
-        <button class="q-filter-chip" data-cat-filter="espacios">Espacios <span class="q-caret">▾</span></button>
-        <button class="q-filter-chip" data-cat-filter="tipos">Tipos <span class="q-caret">▾</span></button>
-        <button class="q-filter-chip" data-cat-filter="propietario">Propietario <span class="q-caret">▾</span></button>
-        <button class="q-filter-chip" data-cat-filter="todos">Todos los filtros</button>
+        <div class="ds-stage-filter" id="stageFilter" role="group" aria-label="Filtrar por etapa">
+          <button type="button" class="ds-stage-f on" data-stage="">Todas</button>
+          <button type="button" class="ds-stage-f" data-stage="personal">Personal</button>
+          <button type="button" class="ds-stage-f" data-stage="desarrollo">Desarrollo</button>
+          <button type="button" class="ds-stage-f" data-stage="produccion">Producción</button>
+        </div>
+        <label class="ds-check"><input type="checkbox" id="onlyMine" /> Solo mías</label>
       </div>
 
       <p class="q-muted" id="catalogHint" style="color:var(--q-muted);margin:0 0 18px;">

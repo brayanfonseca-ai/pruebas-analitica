@@ -2748,7 +2748,7 @@ export async function render(mount, ctx) {
           st.sheet.visibility = saved.visibility;
           const i = st.sheets.findIndex((s) => s.id === st.sheet.id);
           if (i >= 0) st.sheets[i] = saved;
-          status(v === "publica" ? "Hoja marcada como pública." : "Hoja marcada como privada.");
+          status(v === "publica" ? "Hoja publicada: los visualizadores la verán cuando la app esté en Producción." : "Hoja devuelta a borrador.");
         } catch (e) { status("No se pudo cambiar la visibilidad: " + e.message, true); }
       },
       openDetails: () => openSheetDetails(),
@@ -2768,7 +2768,7 @@ export async function render(mount, ctx) {
         <dl class="ho-details">
           <dt>Título</dt><dd>${esc(s.title)}</dd>
           <dt>Descripción</dt><dd>${esc(s.description || "—")}</dd>
-          <dt>Visibilidad</dt><dd>${s.visibility === "publica" ? "Pública" : "Privada"}</dd>
+          <dt>Estado</dt><dd>${s.visibility === "publica" ? "Publicada" : "Borrador"}</dd>
           <dt>Objetos</dt><dd>${s.objects.length}</dd>
           <dt>Aplicación</dt><dd>${esc(ctx.app?.name || ctx.appId)}</dd>
         </dl>

@@ -392,7 +392,9 @@ export const platformTools: ContextTool[] = [
   {
     name: "set_sheet_visibility",
     title: "Publicar / privatizar hoja",
-    description: "visibility = privada|publica|comunidad. PUT /api/v1/apps/{appId}/sheets/{sheetId}/visibility.",
+    description:
+      "visibility = privada (borrador) | publica (publicada). Un visualizador solo ve hojas publicadas de apps en produccion (ver set_app_stage). " +
+      "Requiere el permiso apps:publish. PUT /api/v1/apps/{appId}/sheets/{sheetId}/visibility.",
     inputShape: { ...appId, sheetId: id("Id de la hoja."), visibility: id("privada|publica|comunidad") },
     handler: async (a) => toToolText(await put(`${A(a.appId)}/sheets/${E(a.sheetId)}/visibility`, { visibility: String(a.visibility) })),
   },
@@ -567,6 +569,92 @@ export const platformTools: ContextTool[] = [
     description: "Oculta del panel todas las notificaciones actuales; NO borra apps, hojas ni datos. POST /api/v1/notifications/clear.",
     inputShape: {},
     handler: async () => toToolText(await post("/api/v1/notifications/clear")),
+  },
+
+  /* ============================ Usuarios, roles, permisos y etapas ============================ */
+  {
+    name: "get_current_user",
+    title: "Usuario con el que opera el MCP",
+    description: "Usuario autenticado (rol y permisos efectivos). GET /api/v1/auth/me. Las credenciales salen de DATASENSE_USER / DATASENSE_PASSWORD.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/auth/me")),
+  },
+  {
+    name: "get_security_catalog",
+    title: "Catalogo de roles, permisos y etapas",
+    description:
+      "Roles (admin, editor, viewer) con sus permisos, catálogo de permisos y las etapas de una app " +
+      "(personal → desarrollo → produccion). GET /api/v1/auth/catalog.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/auth/catalog")),
+  },
+  {
+    name: "list_users",
+    title: "Usuarios",
+    description: "Lista los usuarios con rol, estado y permisos efectivos (requiere users:manage). GET /api/v1/users.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/users")),
+  },
+  {
+    name: "create_user",
+    title: "Crear usuario",
+    description:
+      "{email, name?, password (8+), role: admin|editor|viewer, active?, grant?: [permisos extra], deny?: [permisos quitados]}. " +
+      "POST /api/v1/users. Permisos válidos: ver get_security_catalog.",
+    inputShape: {
+      email: id("Correo (único)."),
+      name: z.string().optional().describe("Nombre visible."),
+      password: z.string().min(8).describe("Contraseña inicial (mínimo 8 caracteres)."),
+      role: z.enum(["admin", "editor", "viewer"]).describe("Rol base."),
+      active: z.boolean().optional(),
+      grant: z.array(z.string()).optional().describe("Permisos extra sobre los del rol."),
+      deny: z.array(z.string()).optional().describe("Permisos que se le quitan aunque su rol los tenga."),
+    },
+    handler: async (a) => toToolText(await post("/api/v1/users", pick(a, ["email", "name", "password", "role", "active", "grant", "deny"]))),
+  },
+  {
+    name: "update_user",
+    title: "Editar usuario",
+    description:
+      "Cambia nombre, correo, rol, estado o permisos individuales (solo lo enviado). Al cambiar acceso se cierran sus sesiones. " +
+      "Nunca deja la plataforma sin un administrador activo. PUT /api/v1/users/{id}.",
+    inputShape: {
+      userId: id("Id del usuario."),
+      email: z.string().optional(), name: z.string().optional(),
+      role: z.enum(["admin", "editor", "viewer"]).optional(), active: z.boolean().optional(),
+      grant: z.array(z.string()).optional(), deny: z.array(z.string()).optional(),
+    },
+    handler: async (a) => toToolText(await put(`/api/v1/users/${E(a.userId)}`, pick(a, ["email", "name", "role", "active", "grant", "deny"]))),
+  },
+  {
+    name: "reset_user_password",
+    title: "Restablecer contrasena",
+    description: "Fija una nueva contraseña (8+) y cierra las sesiones de ese usuario. PUT /api/v1/users/{id}/password.",
+    inputShape: { userId: id("Id del usuario."), password: z.string().min(8).describe("Nueva contraseña.") },
+    handler: async (a) => toToolText(await put(`/api/v1/users/${E(a.userId)}/password`, { password: a.password })),
+  },
+  {
+    name: "delete_user",
+    title: "Eliminar usuario",
+    description:
+      "ACCION DESTRUCTIVA: elimina al usuario; sus aplicaciones pasan a quien ejecuta la acción. No permite borrar la propia cuenta " +
+      "ni al último administrador. DELETE /api/v1/users/{id}.",
+    inputShape: { userId: id("Id del usuario.") },
+    handler: async (a) => toToolText(await del(`/api/v1/users/${E(a.userId)}`)),
+  },
+  {
+    name: "set_app_stage",
+    title: "Etapa de una aplicacion",
+    description:
+      "Mueve una app entre personal | desarrollo | produccion (y opcionalmente cambia su dueño con ownerId, solo admin). Entrar o salir de " +
+      "produccion exige el permiso apps:publish. Un visualizador solo ve apps en produccion y sus hojas publicadas " +
+      "(set_sheet_visibility publica/privada). PUT /api/v1/apps/{appId}/stage.",
+    inputShape: {
+      ...appId,
+      stage: z.enum(["personal", "desarrollo", "produccion"]).describe("Etapa de destino."),
+      ownerId: z.string().optional().describe("Nuevo dueño (id de usuario). Solo administradores."),
+    },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/stage`, a.ownerId ? { stage: a.stage, owner_id: a.ownerId } : { stage: a.stage })),
   },
 
   /* ============================ Centro de ayuda ============================ */

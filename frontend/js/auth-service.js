@@ -1,107 +1,83 @@
-// auth-service.js — autenticación y autorización (demo local).
-// Valida contra la lista de usuarios de store.users y emite una sesión con rol.
-// En un backend real: POST /api/v1/auth/login -> JWT con claims de rol; la autz
-// verdadera vive en el backend (guards). Aquí solo proyectamos permisos en la UI.
+// auth-service.js — sesión y permisos del cliente.
+//
+// La autenticación y la autorización REALES viven en el backend: POST /api/v1/auth/login valida la
+// contraseña (PBKDF2) y emite un token; cada petición a /api/v1/** lo lleva en Authorization y el
+// servidor aplica rol, permisos individuales y la etapa de la app (js/api.js). Aquí solo se guarda la
+// sesión en localStorage y se proyectan los permisos efectivos en la interfaz (ocultar/deshabilitar),
+// nunca como única barrera.
 
-import { session, users, ROLES } from "./store.js";
+import { session } from "./store.js";
+import { apiLogin, authMe, authHeader } from "./api.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TTL_MS = 1000 * 60 * 60 * 8; // 8 horas
-const SEED_ADMIN_EMAIL = "admin@datasense.io";
 
-// Matriz de permisos por rol (lo que la UI habilita/oculta).
-const PERMISSIONS = {
-  admin: ["dashboard:view", "charts:edit", "data:import", "users:manage"],
-  editor: ["dashboard:view", "charts:edit", "data:import"],
-  viewer: ["dashboard:view"],
-};
-
-function fakeToken(email) {
-  return btoa(`${email}:${Date.now()}:${Math.random().toString(36).slice(2)}`);
-}
-
-// Migra/cura sesiones de versiones viejas que se guardaron SIN rol (rol UNDEFINED).
-// Re-deriva el rol del usuario guardado; si tampoco lo tiene, aplica respaldo
-// (el admin sembrado o el único usuario -> admin) y reescribe sesión y usuario.
-// Devuelve la sesión (posiblemente actualizada) o null.
-function healSession() {
-  const s = session.get();
-  if (!s || !s.email) return s;
-
-  // Repara una sesión sin exp (versiones viejas) dándole una nueva caducidad,
-  // para que isValid() no rechace una sesión por lo demás válida.
-  if (!s.exp) {
-    s.exp = Date.now() + TTL_MS;
-    session.set(s);
-  }
-
-  if (ROLES.includes(s.role)) return s; // ya tiene rol válido
-
-  const list = users.all();
-  let user = users.findByEmail(s.email);
-  let role = user && ROLES.includes(user.role) ? user.role : null;
-
-  if (!role) {
-    // Respaldo: admin sembrado, o si solo hay un usuario, es admin.
-    if (s.email === SEED_ADMIN_EMAIL || list.length === 1) role = "admin";
-    else role = "viewer";
-
-    // Persistir el rol en el usuario (si existe) para que sea consistente.
-    if (user && !ROLES.includes(user.role)) {
-      users.updateRole(user.id, role);
-    }
-  }
-
-  const healed = { ...s, role, userId: s.userId ?? user?.id };
-  session.set(healed);
-  return healed;
+function toSession(token, expiresAt, user) {
+  return {
+    token,
+    exp: expiresAt,
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    permissions: user.permissions || [],
+  };
 }
 
 export const authService = {
-  login(email, password) {
+  /** Inicia sesión contra el backend. Devuelve {ok} o {ok:false, error}. */
+  async login(email, password) {
     email = (email || "").trim().toLowerCase();
-    if (!EMAIL_RE.test(email)) {
-      return { ok: false, error: "Ingresa un correo válido." };
+    if (!EMAIL_RE.test(email)) return { ok: false, error: "Ingresa un correo válido." };
+    try {
+      const r = await apiLogin(email, password);
+      session.set(toSession(r.token, r.expires_at, r.user));
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e.message || "Correo o contraseña incorrectos." };
     }
-    const user = users.findByEmail(email);
-    if (!user || user.password !== password) {
-      return { ok: false, error: "Correo o contraseña incorrectos." };
-    }
-    session.set({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      token: fakeToken(user.email),
-      exp: Date.now() + TTL_MS,
-    });
-    return { ok: true };
   },
 
+  /** Cierra la sesión: borra la local al instante y avisa al servidor (keepalive sobrevive a la navegación). */
   logout() {
+    const headers = authHeader();
     session.clear();
+    try { fetch("/api/v1/auth/logout", { method: "POST", headers, keepalive: true }).catch(() => {}); } catch { /* sin red */ }
   },
 
+  /** Sesión local (sin red). */
   current() {
-    return healSession();
+    return session.get();
   },
 
   isAuthenticated() {
-    healSession(); // repara exp/rol ANTES de validar, para no rechazar sesiones viejas
-    if (!session.isValid()) return false;
-    return true;
+    return session.isValid();
+  },
+
+  /**
+   * Vuelve a pedir el usuario al servidor (rol y permisos pueden haber cambiado) y actualiza la sesión.
+   * Si el servidor responde 401, api.js limpia la sesión y vuelve al login.
+   */
+  async refresh() {
+    const s = session.get();
+    if (!s || !s.token) return null;
+    try {
+      const u = await authMe();
+      session.set({ ...s, userId: u.id, email: u.email, name: u.name, role: u.role, permissions: u.permissions || [] });
+      return session.get();
+    } catch {
+      return s;
+    }
   },
 
   role() {
     return this.current()?.role ?? null;
   },
 
+  /** ¿Tiene el permiso? (el administrador siempre puede; el servidor es quien manda). */
   can(permission) {
-    const r = this.role();
-    if (!r) return false;
-    if (r === "admin") return true; // admin: permisos absolutos, siempre todo
-    return (PERMISSIONS[r] || []).includes(permission);
+    const s = this.current();
+    if (!s) return false;
+    if (s.role === "admin") return true;
+    return (s.permissions || []).includes(permission);
   },
 };
-
-export { PERMISSIONS };

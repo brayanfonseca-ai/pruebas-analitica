@@ -4,13 +4,30 @@ Base: `http://localhost:8080/api/v1`. Todas las respuestas son JSON. Los errores
 de negocio devuelven códigos claros (400/404); la IA y las conexiones degradan a
 `{ok:false, message}` con 200 en lugar de 500.
 
+**Autenticación**: toda la API (salvo `POST /auth/login`) exige `Authorization: Bearer <token>`. Sin sesión → 401;
+sin el permiso de la ruta → 403; una app que el usuario no puede ver (por su etapa) → 404. Errores con forma `{detail}`.
+Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulos/12-configuracion-seguridad.md).
+
+## Sesión, usuarios y permisos
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/auth/login` | `{email, password}` → `{token, expires_at, user}` (público). 401 si falla; 429 tras 5 intentos fallidos. |
+| GET | `/auth/me` | Usuario actual con `permissions` efectivos. |
+| POST | `/auth/logout` | Cierra la sesión. |
+| PUT | `/auth/password` | `{current, password}` cambia la contraseña propia → `{token}` nuevo. |
+| GET | `/auth/catalog` | Roles (con permisos), catálogo de permisos y etapas. |
+| GET/POST | `/users` | (`users:manage`) Lista / crea `{email, name, password, role, active?, grant?, deny?}`. |
+| GET/PUT/DELETE | `/users/{id}` | Detalle / edita `{email?, name?, role?, active?, grant?, deny?}` / elimina (sus apps pasan a quien borra). |
+| PUT | `/users/{id}/password` | `{password}` restablece y cierra sus sesiones. |
+
 ## Apps
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/apps` | Lista apps `[{id, name, created_at}]`. |
-| POST | `/apps` | Crea app `{name}` → 201 `AppOut`. |
+| GET | `/apps` | Apps que el usuario puede ver: `[{id, name, created_at, stage, owner_id, owner_name, sheets, published}]`. |
+| POST | `/apps` | Crea app `{name}` → 201 `AppOut` (etapa `personal`, dueño el creador). |
 | GET | `/apps/{appId}` | Detalle de una app. |
-| DELETE | `/apps/{appId}` | Elimina la app y su contenido. |
+| PUT | `/apps/{appId}/stage` | `{stage: personal\|desarrollo\|produccion, owner_id?}`. Entrar/salir de `produccion` exige `apps:publish`. |
+| DELETE | `/apps/{appId}` | Elimina la app y su contenido (`apps:delete`). |
 
 ## Tablas y datos
 | Método | Ruta | Descripción |

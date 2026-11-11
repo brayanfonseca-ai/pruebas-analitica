@@ -153,6 +153,8 @@
     { label: "Colecciones", hint: "Página", href: "/pages/hub.html?page=colecciones" },
     { label: "Analizar (todas las apps)", hint: "Página", href: "/pages/hub.html?page=analizar" },
     { label: "Temas · personalizar apariencia", hint: "Página", href: "/pages/hub.html?page=temas" },
+    { label: "Configuración · usuarios, permisos y etapas", hint: "Página", href: "/pages/configuracion.html" },
+    { label: "Mi cuenta · cambiar contraseña", hint: "Página", href: "/pages/configuracion.html?tab=cuenta" },
   ];
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var norm = function (s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
@@ -255,7 +257,8 @@
     renderPal();
     input.focus();
     if (!appsCache) {
-      fetch("/api/v1/apps").then(function (r) { return r.ok ? r.json() : []; }).then(function (a) {
+      var tok = ""; try { tok = (JSON.parse(localStorage.getItem("ds.session") || "null") || {}).token || ""; } catch (e) { /* sin sesión */ }
+      fetch("/api/v1/apps", { headers: tok ? { Authorization: "Bearer " + tok } : {} }).then(function (r) { return r.ok ? r.json() : []; }).then(function (a) {
         appsCache = Array.isArray(a) ? a : [];
         renderPal();
       }).catch(function () { appsCache = []; });

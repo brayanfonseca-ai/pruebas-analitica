@@ -51,7 +51,7 @@ ready(() => {
   document.getElementById("forgot")?.addEventListener("click", (e) => {
     e.preventDefault();
     setError("");
-    if (errorEl) { errorEl.style.color = "var(--muted)"; errorEl.textContent = "Entorno local: restablece la contraseña desde la administración de usuarios."; }
+    if (errorEl) { errorEl.style.color = "var(--muted)"; errorEl.textContent = "Pídele a un administrador que restablezca tu contraseña en Configuración → Usuarios."; }
   });
 
   // Animación count-up de los KPIs del panel de analítica (solo estético).
@@ -83,15 +83,12 @@ ready(() => {
     btn.classList.add("loading");
     btn.disabled = true;
 
-    setTimeout(() => {
+    (async () => {
       let result;
       try {
-        result = authService.login(email, password);
+        result = await authService.login(email, password);
       } catch (e) {
-        btn.classList.remove("loading");
-        btn.disabled = false;
-        setError("No se pudo iniciar sesión. Inténtalo de nuevo.");
-        return;
+        result = { ok: false, error: "No se pudo iniciar sesión. Inténtalo de nuevo." };
       }
       if (!result || !result.ok) {
         btn.classList.remove("loading");
@@ -102,7 +99,7 @@ ready(() => {
       }
       // Éxito → al hub.
       location.href = "inicio.html";
-    }, 250);
+    })();
   }
 
   form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });

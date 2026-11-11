@@ -16,7 +16,12 @@ public final class AppModels {
     // ---- apps ----
     public record AppCreate(@NotBlank String name) {}
 
-    public record AppOut(String id, String name, String created_at) {}
+    /**
+     * Aplicación. {@code stage}: personal | desarrollo | produccion. {@code sheets}/{@code published}:
+     * total de hojas y cuántas están publicadas (visibles para un visualizador en Producción).
+     */
+    public record AppOut(String id, String name, String created_at, String stage, String owner_id,
+                         String owner_name, int sheets, int published) {}
 
     // ---- collections ----
     public record CollectionCreate(@NotBlank String name, String description, String visibility) {}

@@ -1,7 +1,10 @@
 package io.datasense.web;
 
+import io.datasense.auth.AccessService;
 import io.datasense.repo.AppRepository;
 import io.datasense.repo.SheetRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +21,12 @@ public class SheetController {
 
     private final AppRepository apps;
     private final SheetRepository sheets;
+    private final AccessService access;
 
-    public SheetController(AppRepository apps, SheetRepository sheets) {
+    public SheetController(AppRepository apps, SheetRepository sheets, AccessService access) {
         this.apps = apps;
         this.sheets = sheets;
+        this.access = access;
     }
 
     private void requireApp(String appId) {
@@ -29,10 +34,11 @@ public class SheetController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "App no encontrada: " + appId));
     }
 
+    /** Un visualizador solo recibe las hojas publicadas; quien edita recibe todas. */
     @GetMapping
-    public List<Map<String, Object>> list(@PathVariable String appId) {
+    public List<Map<String, Object>> list(@PathVariable String appId, HttpServletRequest req) {
         requireApp(appId);
-        return sheets.list(appId);
+        return access.visibleSheets(AccessService.current(req), sheets.list(appId));
     }
 
     @PostMapping

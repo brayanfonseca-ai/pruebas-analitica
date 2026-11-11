@@ -27,6 +27,7 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/09-asistente-ia.md`](./modulos/09-asistente-ia.md) | Asistente "estrellita" (Bedrock Nova Micro). |
 | [`modulos/10-mcp.md`](./modulos/10-mcp.md) | Servidor MCP (TypeScript). |
 | [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Experimentos de ML: 24 algoritmos, historial, comparación y AutoML. |
+| [`modulos/12-configuracion-seguridad.md`](./modulos/12-configuracion-seguridad.md) | Configuración: usuarios, roles, permisos, etapas (Personal/Desarrollo/Producción) y publicación de hojas. |
 
 ---
 
@@ -62,6 +63,7 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Experimentos de ML | ✅ 24 algoritmos verificados con datos de verdad conocida y QA en navegador. **Asociar a**: el resultado pasa a una app como tabla del modelo + hoja nueva que el analista IA explica |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |
+| Configuración: usuarios, permisos y etapas | ✅ CRUD de usuarios, roles, permisos individuales, etapas Personal/Desarrollo/Producción y hojas publicadas; validado por el servidor (ver [12](./modulos/12-configuracion-seguridad.md)) |
 | Identidad visual «Neon Grid» + Temas | ✅ modo claro/oscuro/sistema (botón junto a la campana), página **Temas** (acento, fondo, animaciones) y paleta de comandos **Ctrl+K** (ver [arquitectura](./arquitectura.md)) |
 
 Esta documentación se actualiza junto con cada cambio funcional o de estructura del repositorio.
