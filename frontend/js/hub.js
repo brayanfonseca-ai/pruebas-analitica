@@ -7,7 +7,7 @@
 // barra de filtros y estado vacío) y se renderiza según ?page=<key>. Las
 // funciones enterprise que aún no tienen motor se marcan con «Próximamente».
 
-import { renderNav, wireAppsButton, renderProfileMenu, svg } from "./hub-nav.js";
+import { renderNav, wireAppsButton, renderProfileMenu, svg, DUO as D, BRAIN } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
 
 if (!authService.isAuthenticated()) location.replace("index.html");
@@ -84,17 +84,17 @@ function spacesMenu() {
 
 /* Iconos extra para las tarjetas de creación (además de los de hub-nav). */
 const EXTRA_ICON = {
-  app: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 15v-3M12 15V9M16 15v-5"/>',
-  ml: '<path d="M9 3h6v4l-3 3-3-3z"/><path d="M12 10v6"/><path d="M8 20h8l-2-4h-4z"/>',
-  autoflow: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M8 6h8M6 8v4a4 4 0 0 0 4 4M18 8v4a4 4 0 0 1-4 4"/>',
-  conn: '<path d="M8 7a4 4 0 0 0 0 8M16 7a4 4 0 0 1 0 8M9 11h6"/>',
-  flow: '<rect x="3" y="4" width="6" height="5" rx="1"/><rect x="15" y="15" width="6" height="5" rx="1"/><path d="M6 9v4a3 3 0 0 0 3 3h6"/>',
-  note: '<path d="M5 3h10l4 4v14H5z"/><path d="M15 3v4h4M8 12h8M8 16h8"/>',
-  upload: '<path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v4h16v-4"/>',
-  dataset: '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v14c0 1.6 3.1 3 7 3s7-1.4 7-3V5"/>',
-  recipe: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 8h6M9 12h6M9 16h4"/>',
-  robot: '<rect x="5" y="8" width="14" height="10" rx="2"/><path d="M12 8V4M8 13h.01M16 13h.01M9 18v2M15 18v2"/>',
-  knowledge: '<path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 0-2 2z"/><path d="M9 7h6M9 11h6"/>',
+  app: `<rect ${D} x="3" y="3" width="18" height="18" rx="3"/><path d="M8 16v-4M12 16V8M16 16v-6"/>`,
+  ml: BRAIN,
+  autoflow: `<circle ${D} cx="6.5" cy="6.5" r="3"/><circle ${D} cx="17.5" cy="17.5" r="3"/><path d="M9.5 6.5H15a2.5 2.5 0 0 1 2.5 2.5v5.5M6.5 9.5V15A2.5 2.5 0 0 0 9 17.5h5.5"/>`,
+  conn: `<rect ${D} x="4" y="3.5" width="6" height="7" rx="1.6" transform="rotate(45 7 7)"/><rect ${D} x="14" y="13.5" width="6" height="7" rx="1.6" transform="rotate(45 17 17)"/><path d="m9.5 14.5 5-5"/>`,
+  flow: `<rect ${D} x="3" y="3.5" width="7" height="5.5" rx="1.4"/><rect ${D} x="14" y="14.5" width="7" height="5.5" rx="1.4"/><path d="M6.5 9v3.5a3 3 0 0 0 3 3H14"/>`,
+  note: `<path ${D} d="M5 4.5A1.5 1.5 0 0 1 6.5 3h11A1.5 1.5 0 0 1 19 4.5V15l-4.5 5.5h-8A1.5 1.5 0 0 1 5 19z"/><path d="M19 15h-3.5a1 1 0 0 0-1 1v4.5M9 8h6M9 11.5h6"/>`,
+  upload: `<path ${D} d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15z"/><path d="M12 15V4.5M8 8.2l4-4 4 4"/>`,
+  dataset: `<ellipse ${D} cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>`,
+  recipe: `<rect ${D} x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M9 9.5V20M15 9.5V20"/>`,
+  robot: `<rect ${D} x="4" y="8" width="16" height="11.5" rx="3.5"/><path d="M12 8V5.2M2.5 12.5v3M21.5 12.5v3"/><circle cx="12" cy="4" r="1.3"/><circle cx="9" cy="13.5" r="1.1" fill="currentColor"/><circle cx="15" cy="13.5" r="1.1" fill="currentColor"/><path d="M9.5 17h5"/>`,
+  knowledge: `<path ${D} d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9.5 7.5h6M9.5 11h4"/>`,
 };
 
 function icon(name, cls = "") {

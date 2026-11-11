@@ -57,13 +57,13 @@ const SOON = "Próximamente";
 const RAIL = [
   { key: "hojas", label: "Hojas", icon: "pages" },
   { key: "marcadores", label: "Marcadores", icon: "star" },
-  { key: "disparadores", label: "Disparadores de información", icon: "predict" },
+  { key: "disparadores", label: "Disparadores de información", icon: "auto" },
   { key: "campos", label: "Campos", icon: "database" },
-  { key: "maestros", label: "Elementos maestros", icon: "book" },
+  { key: "maestros", label: "Elementos maestros", icon: "box" },
   { key: "graficos", label: "Gráficos", icon: "analyze" },
   { key: "analisis", label: "Análisis", icon: "assist" },
-  { key: "objetos", label: "Objetos personalizados", icon: "box" },
-  { key: "variables", label: "Variables", icon: "sub" },
+  { key: "objetos", label: "Objetos personalizados", icon: "predict" },
+  { key: "variables", label: "Variables", icon: "script" },
 ];
 
 const ANALYSES = [

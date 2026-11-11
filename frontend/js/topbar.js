@@ -10,14 +10,15 @@
 
 import { authService } from "./auth-service.js";
 import { ALGOS, ALGO_BY_BACKEND } from "./ml-catalog.js";
+import { ICON, DUO, BRAIN } from "./hub-nav.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const isTyping = (e) => { const t = e.target; return t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.closest?.(".CodeMirror")); };
 
 const SVG = {
-  help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3"/><circle cx="12" cy="17" r="0.6" fill="currentColor"/></svg>',
-  bell: '<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+  help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".15"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.8.9c0 1.6-2.4 2-2.4 3.5"/><circle cx="12" cy="17" r=".9" fill="currentColor"/></svg>',
+  bell: '<svg viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z" fill="currentColor" fill-opacity=".15"/><path d="M10 20.6a2 2 0 0 0 4 0"/></svg>',
   burger: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="l1" d="M4 7h16"/><path class="l2" d="M4 12h16"/><path class="l3" d="M4 17h16"/></svg>',
   close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   search: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
@@ -111,6 +112,9 @@ function ensureTopButtons() {
   if (!help) { help = mk("Ayuda", SVG.help); bar.insertBefore(help, bell || anchor || null); }
   if (!bell) { bell = mk("Notificaciones", SVG.bell); help.insertAdjacentElement("afterend", bell); }
   [help, bell].forEach((b) => { b.disabled = false; b.removeAttribute("disabled"); b.type = "button"; });
+  // Mismo set corporativo en todas las páginas (las maquetas traen iconos antiguos).
+  help.innerHTML = SVG.help;
+  bell.innerHTML = SVG.bell;
   // El contador estático de las maquetas se sustituye por el real.
   bell.querySelectorAll(".q-badge-dot").forEach((d) => d.remove());
   help.dataset.ds = "help";
@@ -268,14 +272,14 @@ function closeHelp() {
    4. Notificaciones
    ========================================================================= */
 const KIND = {
-  app: { label: "Nueva aplicación", group: "apps", color: "#6366f1", icon: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 15v-3M12 15V9M16 15v-5"/>' },
-  table: { label: "Datos cargados", group: "datos", color: "#06b6d4", icon: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>' },
-  sheet: { label: "Nueva hoja", group: "hojas", color: "#8b5cf6", icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/>' },
-  collection: { label: "Nueva colección", group: "apps", color: "#f59e0b", icon: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/>' },
-  master: { label: "Nuevo elemento maestro", group: "hojas", color: "#ec4899", icon: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12v9M4 7.5l8 4.5 8-4.5"/>' },
-  connection: { label: "Nueva conexión", group: "datos", color: "#0ea5e9", icon: '<path d="M9 7H6a4 4 0 0 0 0 8h3M15 7h3a4 4 0 0 1 0 8h-3M8 11h8"/>' },
-  experiment: { label: "Nuevo experimento de ML", group: "ml", color: "#10b981", icon: '<path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/>' },
-  run: { label: "Modelo entrenado", group: "ml", color: "#22c55e", icon: '<path d="M4 17c3-6 6-6 8-3s5 3 8-4"/><circle cx="20" cy="7" r="1.6"/>' },
+  app: { label: "Nueva aplicación", group: "apps", color: "#6366f1", icon: ICON.analyze },
+  table: { label: "Datos cargados", group: "datos", color: "#06b6d4", icon: ICON.database },
+  sheet: { label: "Nueva hoja", group: "hojas", color: "#8b5cf6", icon: ICON.pages },
+  collection: { label: "Nueva colección", group: "apps", color: "#f59e0b", icon: ICON.book },
+  master: { label: "Nuevo elemento maestro", group: "hojas", color: "#ec4899", icon: ICON.box },
+  connection: { label: "Nueva conexión", group: "datos", color: "#0ea5e9", icon: `<rect ${DUO} x="4" y="3.5" width="6" height="7" rx="1.6" transform="rotate(45 7 7)"/><rect ${DUO} x="14" y="13.5" width="6" height="7" rx="1.6" transform="rotate(45 17 17)"/><path d="m9.5 14.5 5-5"/>` },
+  experiment: { label: "Nuevo experimento de ML", group: "ml", color: "#10b981", icon: BRAIN },
+  run: { label: "Modelo entrenado", group: "ml", color: "#22c55e", icon: `<path ${DUO} stroke="none" d="M3 17c3-6 6-6 8-3s6 3 10-4v11H3z"/><path d="M3 17c3-6 6-6 8-3s6 3 10-4"/><circle cx="21" cy="10" r="1.4" fill="currentColor"/>` },
 };
 const FILTERS = [
   { id: "all", label: "Todas" }, { id: "unread", label: "No leídas" }, { id: "apps", label: "Apps" },

@@ -703,3 +703,17 @@ html[data-theme="dark"] .ds-notif-more { color: var(--ds-a-hi); }
 @keyframes ds-toast-in { from { opacity: 0; transform: translateX(30px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes ds-toast-out { to { opacity: 0; transform: translateX(30px); } }
 @keyframes ds-toast-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* ======================= 21. Iconos corporativos (duotono) ======================= */
+/* Los iconos de navegación traen su relleno al 15 % en el propio SVG (hub-nav.js, DUO);
+   los glifos de gráficos (typeIcon) lo reciben aquí: formas cerradas con relleno suave. */
+.ds-ico rect, .ds-ico ellipse, .ds-ico circle:not([fill]) { fill: currentColor; fill-opacity: .14; }
+.ds-ico [fill-opacity] { fill-opacity: .15; }
+.q-nav-ico svg, .q-create-ico svg, .q-view-select-ico svg, .mx-fam-ico svg, .ml-empty-ico svg { stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.q-nav-ico svg { stroke-width: 1.7; transition: transform .25s cubic-bezier(.2, .8, .2, 1), filter .25s; }
+.q-nav-item:hover .q-nav-ico svg { transform: scale(1.12); }
+.q-nav-item.active .q-nav-ico svg { stroke-width: 1.9; }
+.q-nav-item.active .q-nav-ico svg [fill-opacity] { fill-opacity: .3; }
+.q-create-ico svg { stroke-width: 1.5; }
+.ml-empty-ico { color: var(--ds-a); filter: drop-shadow(0 0 14px rgba(var(--ds-a-rgb), .35)); }
+html[data-theme="dark"] .ml-empty-ico { color: var(--ds-a-hi); }

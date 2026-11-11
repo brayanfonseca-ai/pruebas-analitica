@@ -4,7 +4,7 @@
 // Ejecuciones (historial guardado, reabrir, comparar, eliminar).
 
 import { authService } from "./auth-service.js";
-import { renderProfileMenu, wireAppsButton } from "./hub-nav.js";
+import { renderProfileMenu, wireAppsButton, DUO as D, BRAIN } from "./hub-nav.js";
 import * as api from "./api.js";
 import { FAMILIES, ALGOS, ALGO_BY_BACKEND, defaultsFor, validateCfg, payloadFor } from "./ml-catalog.js";
 import { renderResult, exportRows, downloadCsv, keyMetrics, num, COLORS } from "./ml-render.js";
@@ -20,13 +20,13 @@ const I = {
   back: SV(`<path d="M15 6l-6 6 6 6"/>`), play: SV(`<path d="M7 5l12 7-12 7z"/>`), edit: SV(`<path d="M4 20h4L19 9l-4-4L4 16v4z"/>`),
   download: SV(`<path d="M12 4v11M8 11l4 4 4-4"/><path d="M4 19h16"/>`), trash: SV(`<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>`),
   alert: SV(`<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/>`), search: SV(`<circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4.5 4.5"/>`),
-  open: SV(`<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>`), flask: SV(`<path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7.5 15h9"/>`),
-  segment: SV(`<circle cx="6.5" cy="7.5" r="2.4"/><circle cx="17.5" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/><path d="M8.6 8.9 10.3 14.8M15.4 8.9 13.6 14.8M9 7.3h6"/>`),
-  explore: SV(`<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/>`),
-  regression: SV(`<path d="M4 20V4M4 20h16"/><path d="M6.5 16.5 18 7.5"/><circle cx="8" cy="15" r="1"/><circle cx="12" cy="12.5" r="1"/><circle cx="16" cy="9" r="1"/>`),
-  classification: SV(`<path d="M3 19c7 0 7-14 18-14"/><path d="M3 12h18" stroke-dasharray="2 3"/>`),
-  series: SV(`<path d="M3 17l5-5 4 3 4-6"/><path d="M16 9l5-4" stroke-dasharray="2 2.5"/><path d="M3 21h18"/>`),
-  automl: SV(`<path d="M4 18h4V9H4zM10 18h4V5h-4zM16 18h4v-6h-4z"/>`),
+  open: SV(`<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>`), flask: SV(BRAIN),
+  segment: SV(`<circle ${D} cx="6.5" cy="7.5" r="2.8"/><circle ${D} cx="17.5" cy="7" r="2.8"/><circle ${D} cx="12" cy="17" r="2.8"/><path d="M9 8.6 10.6 14.4M15 8.6l-1.6 5.8M9.3 7.3h5.4"/>`),
+  explore: SV(`<rect ${D} x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 9.3h16M4 14.7h16M9.3 4v16M14.7 4v16"/>`),
+  regression: SV(`<path d="M4 4v16h16"/><path d="M6.5 16.5 18 7.5"/><circle ${D} cx="8.5" cy="15" r="1.4"/><circle ${D} cx="12.5" cy="13" r="1.4"/><circle ${D} cx="16.5" cy="8.5" r="1.4"/>`),
+  classification: SV(`<path ${D} stroke="none" d="M3 19c7 0 7-14 18-14v14z"/><path d="M3 19c7 0 7-14 18-14"/>`),
+  series: SV(`<path ${D} stroke="none" d="M3 17l5-5 4 3 4-6v10H3z"/><path d="M3 17l5-5 4 3 4-6"/><path d="M16 9l5-4" stroke-dasharray="2 2.5"/>`),
+  automl: SV(`<rect ${D} x="4" y="11" width="4" height="8" rx="1.2"/><rect ${D} x="10" y="5" width="4" height="14" rx="1.2"/><rect ${D} x="16" y="9" width="4" height="10" rx="1.2"/>`),
   link: SV(`<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>`),
 };
 

@@ -84,6 +84,15 @@ hub-nav.js / inicio.js / hub.js / crear.js / catalogo.js   Hub
 theme.js          Apariencia (modo, acento, fondo, animaciones), botón junto a la campana, paleta de comandos Ctrl+K, brillo de tarjetas y recoloreo de Chart.js
 ```
 
+### Iconos corporativos (`frontend/js/hub-nav.js`)
+
+Set único «duotono» de 24 px: trazo de 1.7 px con esquinas redondeadas y el cuerpo principal relleno al 15 %
+(`DUO`). `ICON` alimenta el menú lateral, el selector de vista de la app y el riel del editor de hoja;
+`BRAIN` (cerebro con circuitos) es el símbolo de IA / Machine Learning y se reutiliza en Experimentos de ML,
+las tarjetas de Crear, los estados vacíos y las notificaciones de ML. Los glifos de gráficos
+(`chart-types.js`, `typeIcon`) llevan la clase `ds-ico`, que `theme.css` rellena con el mismo tono suave.
+Para añadir un icono basta una entrada en `ICON` usando `${DUO}` en la forma principal.
+
 ### Barra superior: hamburguesa, ayuda y notificaciones (`frontend/js/topbar.js`)
 
 Módulo ES cargado en todas las páginas con barra superior.

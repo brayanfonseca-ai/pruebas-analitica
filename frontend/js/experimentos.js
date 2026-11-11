@@ -3,7 +3,7 @@
 // ?new=1 abre el modal de creación directamente (Crear → Experimento de ML).
 // ?app=<id> preselecciona la aplicación.
 
-import { renderNav, wireAppsButton, renderProfileMenu } from "./hub-nav.js";
+import { renderNav, wireAppsButton, renderProfileMenu, DUO as D, BRAIN } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
 import { listExperiments, createExperiment, deleteExperiment, listApps, listTables } from "./api.js";
 import { ALGOS, ALGO_BY_BACKEND } from "./ml-catalog.js";
@@ -15,14 +15,14 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
 const fmtDate = (iso) => { if (!iso) return "—"; const d = new Date(iso); return isNaN(d) ? "—" : d.toLocaleString("es", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); };
 const SV = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const I = {
-  flask: SV(`<path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7.5 15h9"/>`),
+  flask: SV(BRAIN),
   plus: SV(`<path d="M12 5v14M5 12h14"/>`),
   trash: SV(`<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>`),
-  seg: SV(`<circle cx="6.5" cy="7.5" r="2.4"/><circle cx="17.5" cy="7" r="2.4"/><circle cx="12" cy="17" r="2.4"/>`),
-  reg: SV(`<path d="M4 20V4M4 20h16"/><path d="M6.5 16.5 18 7.5"/>`),
-  cls: SV(`<path d="M3 19c7 0 7-14 18-14"/><path d="M3 12h18" stroke-dasharray="2 3"/>`),
-  ts: SV(`<path d="M3 17l5-5 4 3 4-6"/><path d="M16 9l5-4" stroke-dasharray="2 2.5"/>`),
-  auto: SV(`<path d="M4 18h4V9H4zM10 18h4V5h-4zM16 18h4v-6h-4z"/>`),
+  seg: SV(`<circle ${D} cx="6.5" cy="7.5" r="2.8"/><circle ${D} cx="17.5" cy="7" r="2.8"/><circle ${D} cx="12" cy="17" r="2.8"/><path d="M9 8.6 10.6 14.4M15 8.6l-1.6 5.8M9.3 7.3h5.4"/>`),
+  reg: SV(`<path d="M4 4v16h16"/><path d="M6.5 16.5 18 7.5"/><circle ${D} cx="8.5" cy="15" r="1.4"/><circle ${D} cx="12.5" cy="13" r="1.4"/><circle ${D} cx="16.5" cy="8.5" r="1.4"/>`),
+  cls: SV(`<path ${D} stroke="none" d="M3 19c7 0 7-14 18-14v14z"/><path d="M3 19c7 0 7-14 18-14"/>`),
+  ts: SV(`<path ${D} stroke="none" d="M3 17l5-5 4 3 4-6v10H3z"/><path d="M3 17l5-5 4 3 4-6"/><path d="M16 9l5-4" stroke-dasharray="2 2.5"/>`),
+  auto: SV(`<rect ${D} x="4" y="11" width="4" height="8" rx="1.2"/><rect ${D} x="10" y="5" width="4" height="14" rx="1.2"/><rect ${D} x="16" y="9" width="4" height="10" rx="1.2"/>`),
 };
 
 renderNav("nav", { active: "prediccion" });

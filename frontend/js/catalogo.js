@@ -33,7 +33,7 @@ function appCardHtml(a) {
         <span class="q-create-ico">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
             stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
+            <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" fill-opacity=".15"/><path d="M3 9h18M9 9v12"/>
           </svg>
         </span>
         <button class="q-create-add" title="Eliminar" data-del="${esc(a.id)}">✕</button>

@@ -19,8 +19,8 @@ const NF = new Intl.NumberFormat("es-CO");
 
 const SV = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const ICON = {
-  table: SV(`<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>`),
-  upload: SV(`<path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>`),
+  table: SV(`<rect x="3" y="4" width="18" height="16" rx="2.5" fill="currentColor" fill-opacity=".15"/><path d="M3 10h18M9 10v10"/>`),
+  upload: SV(`<path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15z" fill="currentColor" fill-opacity=".15"/><path d="M12 15V4.5M8 8.2l4-4 4 4"/>`),
   trash: SV(`<path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>`),
   close: SV(`<path d="M6 6l12 12M18 6 6 18"/>`),
   edit: SV(`<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>`),
@@ -30,8 +30,8 @@ const ICON = {
   list: SV(`<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>`),
   text: SV(`<path d="M4 7V5h16v2M12 5v14M9 19h6"/>`),
   number: SV(`<path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/>`),
-  date: SV(`<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>`),
-  empty: SV(`<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>`),
+  date: SV(`<rect x="3" y="5" width="18" height="16" rx="2.5" fill="currentColor" fill-opacity=".15"/><path d="M3 10h18M8 3v4M16 3v4"/>`),
+  empty: SV(`<ellipse cx="12" cy="5.5" rx="8" ry="3" fill="currentColor" fill-opacity=".15"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>`),
 };
 
 const TYPE_LABEL = { text: "Texto", number: "Número", date: "Fecha" };

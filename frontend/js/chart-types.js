@@ -30,18 +30,18 @@ const I = {
   box: '<rect x="6" y="7" width="12" height="10"/><path d="M12 3v4M12 17v4M6 12h12"/>',
   dist: '<circle cx="6" cy="8" r="1.4"/><circle cx="11" cy="14" r="1.4"/><circle cx="16" cy="9" r="1.4"/><path d="M3 20h18"/>',
   combo: '<path d="M5 20V12M10 20V8M15 20v-6"/><path d="M3 9l6-4 5 5 7-6"/>',
-  bar: '<path d="M5 20V10M10 20V5M15 20v-8M20 20v-4"/>',
+  bar: '<rect x="4" y="11" width="3.6" height="9" rx="1"/><rect x="10.2" y="4" width="3.6" height="16" rx="1"/><rect x="16.4" y="8" width="3.6" height="12" rx="1"/>',
   block: '<rect x="3" y="3" width="10" height="11"/><rect x="13" y="3" width="8" height="7"/><rect x="13" y="10" width="8" height="11"/><rect x="3" y="14" width="10" height="7"/>',
   grid: '<circle cx="6" cy="6" r="1.6"/><circle cx="12" cy="6" r="1.6"/><circle cx="18" cy="6" r="2.4"/><circle cx="6" cy="12" r="2.4"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="18" r="1.6"/>',
   scatter: '<circle cx="7" cy="16" r="1.8"/><circle cx="11" cy="9" r="1.8"/><circle cx="16" cy="13" r="1.8"/><circle cx="18" cy="6" r="1.8"/><path d="M3 3v18h18"/>',
-  funnel: '<path d="M3 4h18l-7 8v7l-4 2v-9z"/>',
-  line: '<path d="M3 17l5-6 4 3 8-9"/><path d="M3 21h18"/>',
-  pie: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>',
+  funnel: '<path d="M3 4h18l-7 8v7l-4 2v-9z" fill="currentColor" fill-opacity=".15"/>',
+  line: '<path d="M3 17l5-6 4 3 8-9v13H3z" fill="currentColor" fill-opacity=".15" stroke="none"/><path d="M3 17l5-6 4 3 8-9"/><path d="M3 21h18"/>',
+  pie: '<path d="M12 3a9 9 0 1 0 9 9h-9z" fill="currentColor" fill-opacity=".15"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/>',
   bullet: '<path d="M3 8h18M3 16h18"/><rect x="3" y="10" width="11" height="4"/>',
   waterfall: '<path d="M4 20V12M9 12V6M14 6v5M19 11v9"/>',
   mekko: '<rect x="3" y="4" width="6" height="16"/><rect x="9" y="4" width="8" height="16"/><rect x="17" y="4" width="4" height="16"/><path d="M3 11h6M9 14h8M17 9h4"/>',
-  histo: '<path d="M4 20v-6h4v6M8 20V8h4v12M12 20v-9h4v9M16 20v-4h4v4"/>',
-  gauge: '<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
+  histo: '<rect x="4" y="14" width="4" height="6" rx=".8"/><rect x="8.7" y="8" width="3.8" height="12" rx=".8"/><rect x="13" y="11" width="3.8" height="9" rx=".8"/><rect x="17.3" y="16" width="3" height="4" rx=".8"/>',
+  gauge: '<path d="M4 17a8 8 0 1 1 16 0z" fill="currentColor" fill-opacity=".15"/><path d="M12 17l4-5"/>',
   kpi: '<path d="M5 8h2v8M5 16h4M12 8h4l-3 8"/><path d="M19 8v8"/>',
   map: '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>',
   org: '<rect x="9" y="3" width="6" height="4"/><rect x="3" y="15" width="6" height="4"/><rect x="15" y="15" width="6" height="4"/><path d="M12 7v4M6 15v-4h12v4"/>',
@@ -85,11 +85,11 @@ const I = {
   mlanom: '<path d="M4 20v-5h3v5M7 20V9h3v11M10 20v-7h3v7M13 20v-3h3v3"/><circle cx="20" cy="6" r="1.8"/>',
   mlrules: '<path d="M4 7h6M14 7h6M10 7l4 0"/><path d="M12 5l2 2-2 2"/><path d="M4 15h6M14 15h6"/><path d="M12 13l2 2-2 2"/>',
   mlmetrics: '<rect x="3" y="6" width="5" height="12" rx="1"/><rect x="10" y="6" width="5" height="12" rx="1"/><rect x="17" y="6" width="4" height="12" rx="1"/>',
-  mlinsight: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/>',
+  mlinsight: '<path d="M9 18.5h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z" fill="currentColor" fill-opacity=".15"/>',
 };
 
 export function typeIcon(name) {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+  return `<svg class="ds-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || I.bar}</svg>`;
 }
 
