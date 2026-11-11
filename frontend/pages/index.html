@@ -8,9 +8,11 @@
   <title>DataSense · Iniciar sesión</title>
   <style>
     :root {
-      --green:#172983; --green-dark:#101d5e; --green-soft:#e8ebf7;
-      --border:#e3e6ea; --text:#1f242b; --muted:#6b7280; --danger:#c0392b;
+      --green:var(--ds-a,#6366f1); --green-dark:var(--ds-a-lo,#3730a3); --green-soft:rgba(99,102,241,.12);
+      --border:#e2e6f1; --text:#0f172a; --muted:#5b6b85; --danger:#e11d48;
+      --a2:var(--ds-b,#06b6d4);
     }
+    html[data-theme="dark"] { --border:#2a3658; --text:#e6ebf5; --muted:#94a3b8; --green-soft:rgba(99,102,241,.22); }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
@@ -21,19 +23,27 @@
     .hero {
       position:relative; overflow:hidden; color:#fff; padding:56px 52px;
       display:flex; flex-direction:column; justify-content:space-between;
-      background: radial-gradient(1200px 600px at 10% -10%, #2a3fa0 0%, transparent 55%),
-                  radial-gradient(900px 500px at 110% 120%, #101d5e 0%, transparent 60%),
-                  linear-gradient(135deg, #172983 0%, #0b1545 100%);
+      background: radial-gradient(900px 600px at 0% -10%, rgba(99,102,241,.75) 0%, transparent 55%),
+                  radial-gradient(800px 520px at 110% 110%, rgba(6,182,212,.55) 0%, transparent 60%),
+                  radial-gradient(600px 420px at 80% 10%, rgba(168,85,247,.45) 0%, transparent 60%),
+                  linear-gradient(135deg, #0b1022 0%, #070a16 100%);
     }
+    .hero::before {
+      content:""; position:absolute; left:0; right:0; bottom:0; height:2px; z-index:2;
+      background:linear-gradient(90deg, transparent, #6366f1 25%, #06b6d4 60%, transparent); background-size:200% 100%;
+      animation:neon 8s linear infinite;
+    }
+    @keyframes neon { from { background-position:0 0; } to { background-position:-200% 0; } }
     .hero::after {
-      content:""; position:absolute; inset:0; opacity:.14;
+      content:""; position:absolute; inset:0; opacity:.16;
       background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
                         linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
       background-size: 38px 38px; mask-image: radial-gradient(600px 400px at 70% 30%, #000 0%, transparent 75%);
     }
     .hero > * { position:relative; z-index:1; }
     .hero .logo { display:flex; align-items:center; gap:12px; font-size:1.35rem; font-weight:700; letter-spacing:.3px; }
-    .hero .logo .mark { font-size:1.5rem; }
+    .hero .logo .mark { font-size:1.5rem; background:linear-gradient(135deg,#a5b4fc,#22d3ee); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 10px rgba(34,211,238,.8)); }
+    .hero .pitch h2 { background:linear-gradient(90deg,#fff 0%,#c7d2fe 60%,#a5f3fc 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
     .hero .pitch h2 { font-size:2.1rem; line-height:1.15; margin:0 0 14px; font-weight:700; }
     .hero .pitch p { margin:0; color:rgba(255,255,255,.85); font-size:1rem; max-width:34ch; line-height:1.55; }
     .hero .feats { display:flex; flex-direction:column; gap:12px; margin-top:26px; }
@@ -43,7 +53,17 @@
     .hero .foot { font-size:.78rem; color:rgba(255,255,255,.65); }
 
     /* ---------- Panel derecho (formulario) ---------- */
-    .pane { display:grid; place-items:center; padding:24px; background:linear-gradient(135deg,#f6f9f7,#eef2f6); }
+    .pane { display:grid; place-items:center; padding:24px;
+      background: linear-gradient(rgba(99,102,241,.06) 1px, transparent 1px) 0 0/26px 26px,
+                  linear-gradient(90deg, rgba(99,102,241,.06) 1px, transparent 1px) 0 0/26px 26px,
+                  radial-gradient(600px 400px at 100% 0%, rgba(6,182,212,.12), transparent 60%),
+                  linear-gradient(135deg,#f5f7fd,#eceffa); }
+    html[data-theme="dark"] .pane {
+      background: linear-gradient(rgba(148,163,184,.06) 1px, transparent 1px) 0 0/26px 26px,
+                  linear-gradient(90deg, rgba(148,163,184,.06) 1px, transparent 1px) 0 0/26px 26px,
+                  radial-gradient(600px 400px at 100% 0%, rgba(99,102,241,.25), transparent 60%), #070b16; }
+    html[data-theme="dark"] input { background:#0c1324; color:var(--text); }
+    .card h1 { background:linear-gradient(90deg,var(--text) 40%,var(--green) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
     .card { width:100%; max-width:400px; }
     .card h1 { font-size:1.55rem; margin:0 0 6px; }
     .card .sub { color:var(--muted); font-size:.92rem; margin:0 0 24px; }
@@ -67,7 +87,10 @@
       background:var(--green); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
       transition:background .15s, transform .05s;
     }
-    .btn:hover { background:var(--green-dark); }
+    .btn { background:linear-gradient(110deg,var(--green) 0%,var(--a2) 60%,var(--green) 100%); background-size:220% 100%;
+      box-shadow:0 10px 24px -10px rgba(99,102,241,.9); transition:background-position .5s, transform .05s; }
+    .btn:hover { background-position:100% 0; }
+    input:focus { box-shadow:0 0 0 3px rgba(99,102,241,.2) !important; }
     .btn:active { transform:translateY(1px); }
     .btn[disabled] { opacity:.75; cursor:default; }
     .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
@@ -100,7 +123,7 @@
     .viz-bars { display:flex; align-items:flex-end; gap:12px; height:88px; }
     .viz-bars .bar {
       position:relative; flex:1; height:var(--h); min-height:8px; border-radius:6px 6px 0 0;
-      background:linear-gradient(180deg,#aeb9f0,#3d55c8); transform-origin:bottom; animation:grow .9s cubic-bezier(.2,.8,.2,1) both;
+      background:linear-gradient(180deg,#22d3ee,#6366f1); box-shadow:0 0 14px rgba(99,102,241,.55); transform-origin:bottom; animation:grow .9s cubic-bezier(.2,.8,.2,1) both;
     }
     .viz-bars .bar:nth-child(2){animation-delay:.08s} .viz-bars .bar:nth-child(3){animation-delay:.16s}
     .viz-bars .bar:nth-child(4){animation-delay:.24s} .viz-bars .bar:nth-child(5){animation-delay:.32s}
@@ -113,6 +136,7 @@
       .hero { display:none; }
     }
   </style>
+  <script src="../js/theme.js"></script>
 </head>
 <body>
   <!-- ===================== PANEL MARCA ===================== -->
@@ -120,7 +144,7 @@
     <div class="logo"><span class="mark">◆</span> DataSense</div>
     <div class="pitch">
       <h2>Convierte tus datos<br/>en decisiones.</h2>
-      <p>Carga Excel o CSV, modela asociaciones y construye dashboards interactivos al estilo Qlik Sense.</p>
+      <p>Carga Excel o CSV, modela asociaciones y construye dashboards interactivos, entrena modelos de ML y conversa con tus datos.</p>
 
       <!-- Mini-panel de analítica (mockup animado, puro CSS/SVG) -->
       <div class="viz" aria-hidden="true">
@@ -144,7 +168,7 @@
 
       <div class="feats">
         <div class="feat"><span class="dot">✓</span> Motor asociativo con filtrado en vivo</div>
-        <div class="feat"><span class="dot">✓</span> Hojas y gráficos al estilo Qlik</div>
+        <div class="feat"><span class="dot">✓</span> Hojas, gráficos y Machine Learning en un solo lugar</div>
       </div>
     </div>
     <div class="foot">DataSense · entorno local · Spring Boot + JavaScript</div>

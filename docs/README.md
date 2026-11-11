@@ -62,6 +62,6 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Experimentos de ML | ✅ 24 algoritmos verificados con datos de verdad conocida y QA en navegador. **Asociar a**: el resultado pasa a una app como tabla del modelo + hoja nueva que el analista IA explica |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |
-| Identidad visual + modo claro/oscuro | ✅ tema propio índigo/cian; botón junto a la campana, recuerda la elección (ver [arquitectura](./arquitectura.md#identidad-visual-y-temas-frontendcssthemecss)) |
+| Identidad visual «Neon Grid» + Temas | ✅ modo claro/oscuro/sistema (botón junto a la campana), página **Temas** (acento, fondo, animaciones) y paleta de comandos **Ctrl+K** (ver [arquitectura](./arquitectura.md)) |
 
 Esta documentación se actualiza junto con cada cambio funcional o de estructura del repositorio.

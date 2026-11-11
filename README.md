@@ -66,9 +66,16 @@ frontend basta **Ctrl+F5**; los cambios en Java requieren reiniciar.
 
 ## Apariencia: modo claro / oscuro
 
-Identidad visual propia (índigo + cian, superficies de vidrio, fondo con rejilla). El botón
-de **sol/luna** junto a la campana de notificaciones cambia entre modo claro y oscuro y la
-elección se recuerda en el navegador. Detalle en [`docs/arquitectura.md`](./docs/arquitectura.md).
+Identidad visual propia «Neon Grid»: marco oscuro con línea de neón, fondo con rejilla y
+aurora, tarjetas con miniaturas generativas y brillo que sigue al cursor.
+
+- Botón **sol/luna** junto a la campana: modo claro / oscuro (se recuerda en el navegador).
+- Menú lateral **Temas**: modo (claro, oscuro, sistema), 5 colores de acento, 3 fondos y
+  animaciones activables.
+- **Ctrl + K** en cualquier página: paleta de comandos para abrir apps, ir a páginas y
+  cambiar la apariencia.
+
+Detalle en [`docs/arquitectura.md`](./docs/arquitectura.md).
 
 ## Cuentas de demostración
 

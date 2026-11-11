@@ -319,7 +319,84 @@ const PAGES = {
     ]) + filterBar(["Espacios", "Tipos", "Propietario", "Todos los filtros"]) +
       emptyState({ icon: "chart", title: "No se encontraron resultados", text: "Los asistentes de IA (chat y bases de conocimiento) estarán disponibles " + SOON.toLowerCase() + "." }),
   },
+
+  // Apariencia real de DataSense: la aplica js/theme.js (preferencias por navegador).
+  temas: {
+    title: "Temas",
+    body: () => temasHtml(),
+    mount: (main) => mountTemas(main),
+  },
 };
+
+/* -------------------------------------------------------------------------
+   Página «Temas»: modo, color de acento, fondo y animaciones
+   ------------------------------------------------------------------------- */
+const TM_MODES = [
+  { v: "light", label: "Claro", desc: "Contenido claro con marco oscuro de neón." },
+  { v: "dark", label: "Oscuro", desc: "Todo oscuro, ideal para salas y de noche." },
+  { v: "system", label: "Sistema", desc: "Sigue el modo de Windows automáticamente." },
+];
+const TM_BG_DESC = { grid: "Rejilla técnica con aurora de color.", aurora: "Solo resplandores de color difuminados.", plain: "Fondo limpio, sin decoración." };
+
+function temasHtml() {
+  const T = window.DSTheme;
+  if (!T) return emptyState({ icon: "chart", title: "Tema no disponible", text: "Recargue la página." });
+  const modeCards = TM_MODES.map((m) => `
+    <button type="button" class="ds-tm-card" data-k="theme" data-v="${m.v}">
+      <div class="ds-tm-prev ${m.v}" aria-hidden="true"><i class="t"></i><i class="s"></i><div class="c"><i></i><i></i><i></i><i></i></div></div>
+      <strong>${esc(m.label)}</strong><span class="ds-tm-desc">${esc(m.desc)}</span>
+    </button>`).join("");
+  const swatches = T.accents.map((a) => `
+    <button type="button" class="ds-tm-sw" data-k="accent" data-v="${esc(a.id)}">
+      <b style="background:linear-gradient(135deg, ${esc(a.color)}, ${esc(a.second)})"></b>${esc(a.label)}
+    </button>`).join("");
+  const bgCards = T.backgrounds.map((b) => `
+    <button type="button" class="ds-tm-card" data-k="bg" data-v="${esc(b.id)}">
+      <div class="ds-tm-prev bg bg-${esc(b.id)}" aria-hidden="true"></div>
+      <strong>${esc(b.label)}</strong><span class="ds-tm-desc">${esc(TM_BG_DESC[b.id] || "")}</span>
+    </button>`).join("");
+  return `
+    <div class="ds-tm">
+      <section class="ds-tm-sec"><h2>Modo</h2><p>Elige cómo se ve DataSense. También puedes cambiarlo con el botón junto a la campana.</p>
+        <div class="ds-tm-grid">${modeCards}</div></section>
+      <section class="ds-tm-sec"><h2>Color de acento</h2><p>Botones, enlaces, brillos y el marco de neón usan este color.</p>
+        <div class="ds-tm-sws">${swatches}</div></section>
+      <section class="ds-tm-sec"><h2>Fondo</h2><p>Decoración del fondo de todas las páginas.</p>
+        <div class="ds-tm-grid">${bgCards}</div></section>
+      <section class="ds-tm-sec"><h2>Movimiento y atajos</h2><p>Preferencias de este navegador.</p>
+        <div class="ds-tm-row"><div><strong>Animaciones</strong><small>Aurora, línea de neón, elevación de tarjetas y transiciones.</small></div>
+          <button type="button" class="ds-tm-switch" role="switch" id="dsTmMotion" aria-label="Animaciones"></button></div>
+        <div class="ds-tm-row"><div><strong>Paleta de comandos</strong><small class="ds-tm-kbd">Pulsa <kbd>Ctrl</kbd> + <kbd>K</kbd> en cualquier página para buscar apps, páginas y acciones.</small></div>
+          <button type="button" class="q-btn primary" id="dsTmPalette">Abrir paleta</button></div>
+        <div class="ds-tm-row"><div><strong>Restablecer apariencia</strong><small>Vuelve a modo sistema, acento Índigo, rejilla y animaciones activadas.</small></div>
+          <button type="button" class="q-btn" id="dsTmReset">Restablecer</button></div>
+      </section>
+    </div>`;
+}
+
+function mountTemas(main) {
+  const T = window.DSTheme;
+  if (!T) return;
+  const sync = () => {
+    const p = T.prefs();
+    main.querySelectorAll("[data-k]").forEach((el) => {
+      const on = p[el.dataset.k] === el.dataset.v;
+      el.classList.toggle("on", on);
+      el.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    const sw = main.querySelector("#dsTmMotion");
+    if (sw) sw.setAttribute("aria-checked", p.motion === "on" ? "true" : "false");
+  };
+  main.querySelectorAll("[data-k]").forEach((el) => el.addEventListener("click", () => T.setPref(el.dataset.k, el.dataset.v)));
+  main.querySelector("#dsTmMotion")?.addEventListener("click", () => T.setPref("motion", T.prefs().motion === "on" ? "off" : "on"));
+  main.querySelector("#dsTmPalette")?.addEventListener("click", () => T.openPalette());
+  main.querySelector("#dsTmReset")?.addEventListener("click", () => {
+    ["theme", "accent", "bg", "motion"].forEach((k) => { try { localStorage.removeItem("ds." + k); } catch { /* sin storage */ } });
+    T.setPref("theme", "system");
+  });
+  window.addEventListener("ds-theme", sync);
+  sync();
+}
 
 /* -------------------------------------------------------------------------
    Montajes dinámicos (contenido real donde existe motor)
