@@ -208,6 +208,18 @@ public class DatabaseConfig {
                     created_at TEXT NOT NULL,
                     FOREIGN KEY (experiment_id) REFERENCES ml_experiments (id) ON DELETE CASCADE
                 )""");
+            // Notificaciones: se derivan de las tablas anteriores (created_at); aquí solo
+            // se guarda el estado de lectura (marcas globales + leídas una a una).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS notification_state (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS notification_reads (
+                    id TEXT PRIMARY KEY,
+                    read_at TEXT NOT NULL
+                )""");
         }
     }
 }

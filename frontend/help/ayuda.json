@@ -1,0 +1,124 @@
+{
+  "version": "2026.11",
+  "titulo": "Centro de ayuda de DataSense",
+  "secciones": [
+    {
+      "id": "inicio",
+      "titulo": "Primeros pasos",
+      "tipo": "guia",
+      "items": [
+        {
+          "titulo": "¿Qué es DataSense?",
+          "cuerpo": "DataSense es una plataforma de analítica **local y autocontenida**: cargas datos (Excel, CSV o conexiones reales como Amazon S3 y Athena), construyes un modelo asociativo, diseñas hojas interactivas, generas informes PDF, entrenas modelos de Machine Learning y conversas con un asistente de IA que lee tus datos reales.\n\nTodo corre en tu equipo: el backend guarda la información en `backend-springboot/data/` y el navegador solo muestra lo que el servidor calcula."
+        },
+        {
+          "titulo": "Tu primera aplicación en 5 pasos",
+          "cuerpo": "- **Crear → Aplicación** y ponle un nombre.\n- Dentro de la app abre **Preparar → Editor de carga de datos** y sube un Excel o CSV desde *Añadir datos* (o usa una conexión).\n- Pulsa **Cargar datos**: el motor perfila los campos y arma el modelo.\n- Revisa el modelo en **Visor del modelo de datos** (las tablas se asocian por nombres de campo iguales).\n- Ve a **Analizar → Hoja**, pulsa **Editar hoja** y arrastra gráficos, KPIs, tablas y filtros."
+        },
+        {
+          "titulo": "Navegación general",
+          "cuerpo": "- **Barra superior**: botón de aplicaciones (9 puntos), buscador, Crear, **Ayuda (?)**, **Notificaciones**, modo claro/oscuro y tu perfil.\n- **Menú lateral**: se pliega con el botón **☰** de la barra superior; plegado muestra solo los iconos (pasa el cursor para ver el nombre). La elección se recuerda.\n- Dentro de una app, el **selector de vista** cambia entre Hoja, Informes, Experimentos de ML, Gestor de datos, Editor de carga, Visor del modelo y Modelo lógico (atajos `Alt + Shift + letra`).\n- **Ctrl + K** abre la paleta de comandos en cualquier página."
+        },
+        {
+          "titulo": "Cuentas y roles",
+          "cuerpo": "Cuenta de demostración: `admin@datasense.io` / `admin123`.\n\nLos roles (admin, editor, viewer) **solo proyectan permisos en la interfaz**: ocultan o deshabilitan acciones. No son una capa de seguridad real; el proyecto está pensado para uso local."
+        }
+      ]
+    },
+    {
+      "id": "manual",
+      "titulo": "Manual técnico",
+      "tipo": "manual",
+      "items": [
+        {
+          "titulo": "Arquitectura",
+          "cuerpo": "Aplicación **cliente-servidor monolítica local**:\n\n- **Backend**: Spring Boot 3 sobre Java 21. API REST en `/api/v1/**`, sirve el frontend estático y es la única fuente de verdad. Persiste en **SQLite** (`data/datasense.db`) y guarda cada tabla como **CSV** en `data/tables/<appId>/<tableId>.csv`.\n- **Frontend**: HTML + CSS + JavaScript vanilla (módulos ES) en `frontend/`, sin paso de build. Chart.js, jsPDF y SheetJS por CDN.\n- **IA**: Amazon Bedrock (Nova Micro, `us-east-2`) vía la API Converse; credenciales desde `~/.aws`, nunca en el navegador.\n- **MCP**: servidor TypeScript en `mcp-server/` que expone toda la plataforma como herramientas para agentes."
+        },
+        {
+          "titulo": "Arrancar y detener el servidor",
+          "cuerpo": "Desde `backend-springboot/` con JDK 21 y Maven:\n\n- `mvn -q -DskipTests spring-boot:run`\n- Abre `http://localhost:8080/` (la raíz redirige al login).\n- Detener con **Ctrl + C**.\n\nLos cambios en el frontend se ven con **Ctrl + F5** (no hay caché); los cambios en Java requieren reiniciar."
+        },
+        {
+          "titulo": "Carga de datos y script",
+          "cuerpo": "El **Editor de carga** guarda un script por app (`GET/PUT /api/v1/apps/{id}/script`) y lo ejecuta con `POST /script/run`.\n\n- Archivos: `LOAD campo1, campo2 AS alias FROM [lib://DataFiles/archivo.csv];`\n- Conexiones: `LIB CONNECT TO 'nombre';` seguido de `SQL SELECT ...;`\n- Los cambios del Gestor de datos (renombrar, cambiar tipo, ocultar) se reflejan como `AS` y campos omitidos.\n- El **selector de datos** (estilo Power Query) permite elegir columnas, limpiar nulos, cambiar tipos, renombrar, filtrar y crear columnas calculadas, con modos de extracción **Todo**, **Parcial** o **Muestra**. Los pasos aplicados se ven y editan como script (*Ver script* / *Editar script*)."
+        },
+        {
+          "titulo": "Modelo asociativo",
+          "cuerpo": "Las tablas se asocian **automáticamente cuando comparten nombres de campo**. Si dos tablas comparten más de un campo se crea una **clave sintética**, que conviene resolver renombrando o concatenando campos.\n\nAl seleccionar valores en una hoja, el motor filtra todas las tablas asociadas (verde = seleccionado, blanco = posible, gris = excluido). El cálculo lo hace siempre el backend (`QueryEngine`, `AssociativeJoin`)."
+        },
+        {
+          "titulo": "Hojas y objetos",
+          "cuerpo": "Una hoja es una rejilla de 24 columnas con objetos: KPI, barras, líneas, área, tarta/dona, dispersión, tabla, tabla dinámica, filtro, texto, imagen y los **gráficos de ML**.\n\n- **Editar hoja** muestra el riel de recursos (campos, elementos maestros, gráficos, objetos personalizados).\n- Cada objeto tiene **Datos** (dimensiones y medidas) y **Aspecto** (presentación, colores, título).\n- Los **elementos maestros** son dimensiones y medidas reutilizables definidas una sola vez por app."
+        },
+        {
+          "titulo": "Conexiones de datos",
+          "cuerpo": "Conectores reales verificados: **Amazon S3** y **Amazon Athena**; además JDBC (PostgreSQL, MySQL, SQL Server…) y HTTP.\n\n- Se crean desde *Añadir datos → Conexiones de datos* o desde **Crear → Conexión de datos**.\n- **Probar conexión** valida credenciales antes de guardar.\n- **Conexiones realizadas** reúne las conexiones de todas las apps, permite explorar y previsualizar la extracción y genera el script de carga.\n- Las credenciales se guardan en la base local: no subas `data/` a un repositorio."
+        },
+        {
+          "titulo": "Informes PDF",
+          "cuerpo": "Vista **Narrar → Informes** con tres modos: **Plantillas** (un clic), **Desde una hoja** (replica sus KPIs y gráficos) y **Asistente** conversacional con vista previa en vivo.\n\nCuando hay un campo de ingresos, el informe añade margen, rentabilidad por dimensión, Pareto 80/20 y variación mes a mes, con un análisis escrito a partir de las cifras reales."
+        },
+        {
+          "titulo": "Experimentos de Machine Learning",
+          "cuerpo": "Módulo propio (**Crear → Experimento de ML** o menú **Experimentos de ML**) con 24 algoritmos en Java puro: segmentación (K-Means, jerárquico, DBSCAN), exploración (PCA, correlaciones, anomalías, reglas de asociación), regresión, clasificación, pronóstico y **AutoML**.\n\n- Cada ejecución se guarda en el historial y se puede comparar.\n- **Probar un caso** estima el resultado para valores nuevos.\n- **Asociar a…** lleva el resultado a una app: crea una tabla `ML_…` enlazada por la clave y una hoja con gráficos de ML que el agente analista puede explicar."
+        },
+        {
+          "titulo": "Asistente de IA",
+          "cuerpo": "El botón flotante (estrella) abre un asistente que cambia de rol según la vista: **analista** en las hojas, **ingeniero de datos** en el editor de carga, diseñador en informes. Lee los datos reales de la app (nunca inventa cifras) y usa Amazon Bedrock con tus credenciales locales de AWS."
+        },
+        {
+          "titulo": "Servidor MCP",
+          "cuerpo": "`mcp-server/` expone la plataforma como herramientas para agentes de IA (crear apps, cargar datos, consultar, hojas, conexiones, ML, notificaciones, ayuda…). Se compila con `npm run build` y se registra en `~/.kiro/settings/mcp.json`. **Regla del proyecto**: todo lo que hace DataSense debe poder hacerse también desde el MCP."
+        },
+        {
+          "titulo": "Notificaciones",
+          "cuerpo": "La campana muestra la **actividad de la plataforma** para el administrador: nuevas aplicaciones, datos cargados, hojas, colecciones, elementos maestros, conexiones, experimentos y ejecuciones de ML.\n\nNo hay una tabla de eventos aparte: el feed se deriva de lo que ya existe, así que cualquier creación (desde la interfaz, la API o el MCP) aparece sola. Se pueden marcar como leídas, filtrar por tipo y vaciar el panel sin borrar datos.\n\nAPI: `GET /api/v1/notifications`, `POST /read-all`, `POST /{id}/read`, `POST /clear`."
+        },
+        {
+          "titulo": "Apariencia y temas",
+          "cuerpo": "Botón sol/luna junto a la campana para modo claro u oscuro. En **Temas** (menú lateral) eliges modo (claro, oscuro, sistema), 5 colores de acento, 3 fondos y si quieres animaciones. Son preferencias de tu navegador."
+        },
+        {
+          "titulo": "Datos y archivos en disco",
+          "cuerpo": "- `backend-springboot/data/datasense.db`: apps, hojas, modelo, conexiones, experimentos.\n- `backend-springboot/data/tables/`: los CSV materializados.\n- Para empezar de cero detén el servidor y mueve la carpeta `data/` (se vuelve a crear vacía).\n- Haz copia de `data/` antes de cambios grandes."
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "titulo": "Preguntas frecuentes",
+      "tipo": "faq",
+      "items": [
+        { "titulo": "Cargué un archivo pero no veo la tabla en la hoja", "cuerpo": "Después de subir el archivo pulsa **Cargar datos** en el Editor de carga: es lo que ejecuta el script y reconstruye el modelo. Luego recarga la hoja." },
+        { "titulo": "Me aparece una clave sintética, ¿qué hago?", "cuerpo": "Dos tablas comparten más de un campo con el mismo nombre. Renombra en el **Gestor de datos** los campos que no deben asociar (quedan como `AS` en el script) o crea una clave compuesta. Revisa el resultado en el **Visor del modelo**." },
+        { "titulo": "¿Por qué un campo numérico sale como texto?", "cuerpo": "El perfilador infiere el tipo con los valores reales; si hay celdas con texto o separadores raros lo clasifica como texto. Cámbialo en el **Gestor de datos** (tipo forzado) o en el selector de datos (paso *Cambiar tipo*)." },
+        { "titulo": "La conexión a Athena falla", "cuerpo": "Revisa región, base de datos y **workgroup**: el workgroup debe tener una *ubicación de salida* S3 configurada (el workgroup `primary` a veces no la tiene). Comprueba que tus credenciales IAM tengan permisos de Athena, Glue y S3." },
+        { "titulo": "El asistente de IA no responde", "cuerpo": "Necesita credenciales válidas en `~/.aws` con acceso a Bedrock en `us-east-2`. Si tu sesión expiró, vuelve a autenticarte en AWS y repite la pregunta. Los informes tienen un respaldo determinista y no se bloquean." },
+        { "titulo": "Hice cambios en el código y no se ven", "cuerpo": "Frontend: **Ctrl + F5**. Backend (Java): reinicia el servidor. MCP: `npm run build` en `mcp-server/` y reconecta el servidor `datasense` en el panel MCP de Kiro." },
+        { "titulo": "¿Cómo comparto una hoja?", "cuerpo": "Cambia su visibilidad (privada/pública) desde el menú de la hoja. Para un PDF usa **Informes → Desde una hoja**." },
+        { "titulo": "¿Cómo exporto los resultados de un modelo de ML?", "cuerpo": "En el resultado de la ejecución usa **Exportar CSV**, o **Asociar a…** para llevarlo a una app como tabla del modelo con su hoja." },
+        { "titulo": "¿Qué significan los colores de las métricas de ML?", "cuerpo": "Verde = buena calidad, ámbar = aceptable, rojo = débil. Por ejemplo, una silueta mayor a 0,5 indica grupos bien separados." },
+        { "titulo": "¿Las notificaciones borran algo?", "cuerpo": "No. *Marcar como leídas* y *Vaciar* solo cambian el estado del panel; las apps, hojas y datos siguen intactos." },
+        { "titulo": "¿Dónde se guardan mis preferencias de apariencia?", "cuerpo": "En el `localStorage` de tu navegador (modo, acento, fondo, animaciones y menú plegado). Otro navegador o equipo empieza con los valores por defecto." },
+        { "titulo": "¿Cómo reinicio todos los datos?", "cuerpo": "Detén el servidor, mueve o renombra `backend-springboot/data/` y vuelve a arrancar. Es irreversible si no guardas una copia." }
+      ]
+    },
+    {
+      "id": "atajos",
+      "titulo": "Atajos de teclado",
+      "tipo": "atajos",
+      "items": [
+        { "titulo": "Ctrl + K", "cuerpo": "Paleta de comandos: abrir apps, ir a páginas, cambiar apariencia." },
+        { "titulo": "F1 o ?", "cuerpo": "Abrir este centro de ayuda (fuera de un campo de texto)." },
+        { "titulo": "Esc", "cuerpo": "Cerrar paneles, menús y ventanas." },
+        { "titulo": "Alt + Shift + A", "cuerpo": "Dentro de una app: vista Hoja." },
+        { "titulo": "Alt + Shift + E", "cuerpo": "Dentro de una app: Editor de carga de datos." },
+        { "titulo": "Alt + Shift + D", "cuerpo": "Dentro de una app: Gestor de datos." },
+        { "titulo": "Alt + Shift + M", "cuerpo": "Dentro de una app: Visor del modelo de datos." },
+        { "titulo": "Alt + Shift + G", "cuerpo": "Dentro de una app: Modelo lógico." },
+        { "titulo": "Alt + Shift + R", "cuerpo": "Dentro de una app: Informes." },
+        { "titulo": "Alt + Shift + L", "cuerpo": "Dentro de una app: Experimentos de ML." }
+      ]
+    }
+  ]
+}

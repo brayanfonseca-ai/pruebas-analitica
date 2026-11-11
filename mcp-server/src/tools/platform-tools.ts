@@ -528,4 +528,68 @@ export const platformTools: ContextTool[] = [
     inputShape: { collectionId: id("Id de la coleccion.") },
     handler: async (a) => toToolText(await del(`/api/v1/collections/${E(a.collectionId)}`)),
   },
+
+  /* ============================ Notificaciones ============================ */
+  {
+    name: "list_notifications",
+    title: "Notificaciones de actividad",
+    description:
+      "Actividad de la plataforma para el administrador (lo que muestra la campana): nuevas apps, datos cargados, hojas, " +
+      "colecciones, elementos maestros, conexiones, experimentos y ejecuciones de ML. Devuelve {items:[{id, kind, title, " +
+      "detail, app_id, ref_id, extra, created_at, read, link}], unread, total}. GET /api/v1/notifications?limit=&unread=.",
+    inputShape: {
+      limit: z.number().int().min(1).max(200).optional().describe("Máximo de notificaciones (por defecto 50)."),
+      unreadOnly: z.boolean().optional().describe("Solo las no leídas."),
+    },
+    handler: async (a) => {
+      const qs = new URLSearchParams();
+      if (a.limit !== undefined) qs.set("limit", String(a.limit));
+      if (a.unreadOnly) qs.set("unread", "true");
+      const q = qs.toString();
+      return toToolText(await get(`/api/v1/notifications${q ? `?${q}` : ""}`));
+    },
+  },
+  {
+    name: "mark_notifications_read",
+    title: "Marcar notificaciones como leídas",
+    description:
+      "Sin notificationId marca TODAS como leídas (POST /api/v1/notifications/read-all); con notificationId " +
+      "(p. ej. 'sheet:<id>') marca solo esa (POST /api/v1/notifications/{id}/read).",
+    inputShape: { notificationId: z.string().optional().describe("Id de la notificación (kind:id). Omitir para todas.") },
+    handler: async (a) =>
+      toToolText(a.notificationId
+        ? (await post(`/api/v1/notifications/${E(a.notificationId)}/read`)) ?? { ok: true }
+        : await post("/api/v1/notifications/read-all")),
+  },
+  {
+    name: "clear_notifications",
+    title: "Vaciar el panel de notificaciones",
+    description: "Oculta del panel todas las notificaciones actuales; NO borra apps, hojas ni datos. POST /api/v1/notifications/clear.",
+    inputShape: {},
+    handler: async () => toToolText(await post("/api/v1/notifications/clear")),
+  },
+
+  /* ============================ Centro de ayuda ============================ */
+  {
+    name: "get_help",
+    title: "Centro de ayuda (manual técnico y FAQ)",
+    description:
+      "Contenido del centro de ayuda de DataSense (botón «?»): primeros pasos, manual técnico, preguntas frecuentes y " +
+      "atajos. Con 'query' devuelve solo los artículos que contienen todas las palabras; con 'section' (inicio | manual | " +
+      "faq | atajos) solo esa sección. Fuente: GET /help/ayuda.json.",
+    inputShape: {
+      query: z.string().optional().describe("Palabras a buscar (sin distinguir tildes ni mayúsculas)."),
+      section: z.enum(["inicio", "manual", "faq", "atajos"]).optional().describe("Sección concreta."),
+    },
+    handler: async (a) => {
+      const data = (await get("/help/ayuda.json")) as { secciones: Array<{ id: string; titulo: string; items: Array<{ titulo: string; cuerpo: string }> }> };
+      const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const words = a.query ? norm(String(a.query)).split(/\s+/).filter(Boolean) : [];
+      const secciones = data.secciones
+        .filter((s) => !a.section || s.id === a.section)
+        .map((s) => ({ ...s, items: s.items.filter((it) => words.every((w) => norm(`${it.titulo} ${it.cuerpo}`).includes(w))) }))
+        .filter((s) => s.items.length);
+      return toToolText({ resultados: secciones.reduce((n, s) => n + s.items.length, 0), secciones });
+    },
+  },
 ];

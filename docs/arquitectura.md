@@ -84,6 +84,14 @@ hub-nav.js / inicio.js / hub.js / crear.js / catalogo.js   Hub
 theme.js          Apariencia (modo, acento, fondo, animaciones), botón junto a la campana, paleta de comandos Ctrl+K, brillo de tarjetas y recoloreo de Chart.js
 ```
 
+### Barra superior: hamburguesa, ayuda y notificaciones (`frontend/js/topbar.js`)
+
+Módulo ES cargado en todas las páginas con barra superior.
+
+- **Menú plegable**: `data-side="collapsed"` en `<html>` (clave `ds.side`); 210 px → 68 px solo iconos, con tooltip.
+- **Centro de ayuda**: panel lateral que lee `frontend/help/ayuda.json` (secciones `inicio`, `manual`, `faq`, `atajos`). Para ampliar el manual basta editar ese JSON; el MCP (`get_help`) lo lee también. Se abre con el botón «?», `F1` o `?`.
+- **Notificaciones**: `NotificationRepository` **deriva** el feed de las tablas existentes (`apps`, `tables`, `app_sheets`, `collections`, `master_items`, `connections`, `ml_experiments`, `ml_runs`) por su `created_at`; solo se guarda el estado de lectura (`notification_state`, `notification_reads`). API: `GET /api/v1/notifications`, `POST /read-all`, `POST /{id}/read`, `POST /clear`. Solo el rol admin ve el contador y el feed; se refresca cada minuto y al volver a la pestaña.
+
 ### Identidad visual y temas (`frontend/css/theme.css` + `frontend/js/theme.js`)
 
 `theme.css` se carga **después** del resto de hojas en todas las páginas y define la

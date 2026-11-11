@@ -77,6 +77,15 @@ aurora, tarjetas con miniaturas generativas y brillo que sigue al cursor.
 
 Detalle en [`docs/arquitectura.md`](./docs/arquitectura.md).
 
+## Barra superior: menú, ayuda y notificaciones
+
+- **☰ (hamburguesa)**: pliega el menú lateral a una columna de iconos con tooltip; se recuerda.
+- **? (Ayuda, también F1)**: centro de ayuda con guía de primeros pasos, manual técnico, preguntas
+  frecuentes y atajos, con buscador. Contenido editable en [`frontend/help/ayuda.json`](./frontend/help/ayuda.json).
+- **Campana (Notificaciones)**: actividad de la plataforma para el administrador (nuevas apps, datos
+  cargados, hojas, colecciones, elementos maestros, conexiones, experimentos y modelos de ML), con
+  contador real, filtros, agrupado por día, avisos emergentes y «Marcar todo como leído» / «Vaciar».
+
 ## Cuentas de demostración
 
 | Rol    | Correo               | Contraseña |

@@ -91,6 +91,8 @@
     root.setAttribute("data-accent", p.accent);
     root.setAttribute("data-bg", p.bg);
     root.setAttribute("data-motion", p.motion);
+    // Menú lateral plegado (lo cambia el botón hamburguesa de js/topbar.js).
+    root.setAttribute("data-side", read("ds.side", "open") === "collapsed" ? "collapsed" : "open");
     syncButton();
     themeCharts(mode);
     try { window.dispatchEvent(new CustomEvent("ds-theme", { detail: { theme: mode, prefs: p } })); } catch (e) { /* noop */ }
@@ -114,7 +116,7 @@
     b.id = "dsThemeBtn";
     b.className = "q-top-ico ds-theme-btn";
     b.addEventListener("click", function () { setPref("theme", current() === "dark" ? "light" : "dark"); });
-    var bell = bar.querySelector('[title="Notificaciones"]');
+    var bell = bar.querySelector('[data-ds="bell"], [title="Notificaciones"]');
     if (bell) bell.insertAdjacentElement("afterend", b);
     else {
       var av = bar.querySelector(".q-avatar");
@@ -168,6 +170,9 @@
       if (b.id !== p.bg) list.push({ group: "Acciones", label: "Fondo: " + b.label, hint: "Apariencia", run: function () { setPref("bg", b.id); } });
     });
     list.push({ group: "Acciones", label: p.motion === "on" ? "Desactivar animaciones" : "Activar animaciones", hint: "Apariencia", run: function () { setPref("motion", p.motion === "on" ? "off" : "on"); } });
+    if (window.DSHelp) list.push({ group: "Acciones", label: "Centro de ayuda · manual y preguntas frecuentes", hint: "Ayuda", run: function () { window.DSHelp.open(); } });
+    if (window.DSNotifications) list.push({ group: "Acciones", label: "Ver notificaciones", hint: "Actividad", run: function () { window.DSNotifications.open(); } });
+    if (window.DSSide && document.querySelector(".q-side")) list.push({ group: "Acciones", label: window.DSSide.collapsed() ? "Desplegar menú lateral" : "Plegar menú lateral", hint: "Menú", run: function () { window.DSSide.toggle(); } });
     PAGES.forEach(function (g) { list.push({ group: "Ir a", label: g.label, hint: g.hint, href: g.href }); });
     return list;
   }

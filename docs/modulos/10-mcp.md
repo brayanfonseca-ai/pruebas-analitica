@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **64 herramientas**: cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **68 herramientas**: cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -25,6 +25,8 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Hojas | `delete_sheet`, `set_sheet_visibility`, `add_ml_chart` (valida que el gráfico aplique a la ejecución y busca hueco libre) |
 | Experimentos de ML | `list_experiments`, `create_experiment`, `get_experiment`, `update_experiment`, `delete_experiment`, `train_model`, `get_ml_run`, `delete_ml_run`, `associate_ml_run` (tabla ML_ + hoja con gráficos), `ml_datasets` |
 | Colecciones | `list_collections`, `create_collection`, `delete_collection` |
+| Notificaciones | `list_notifications` (`GET /api/v1/notifications`), `mark_notifications_read` (una o todas), `clear_notifications` (vacía el panel, no borra datos) |
+| Centro de ayuda | `get_help` (manual técnico, FAQ y atajos de `/help/ayuda.json`, con búsqueda y filtro por sección) |
 
 - Verificado por stdio con un cliente MCP real: conexión Athena → explorar → vista previa → cargar → subir CSV → script con LIB CONNECT → recarga → experimento → K-Means y AutoML → Asociar a → añadir gráficos ML → hoja libre con `ml-elbow` + barras → limpieza.
 - Manejo de error legible por herramienta; el server no cae si el backend falla.
