@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class RootController {
 
-    @GetMapping("/")
+    @GetMapping({"/", "/index.html", "/login", "/login.html"})
     public String root() {
         return "redirect:/pages/index.html";
     }
