@@ -1,0 +1,23 @@
+/* embed.css — página incrustable /embed/<token>: solo el tablero, sin cromo de la plataforma. */
+html, body.ds-embed { height: 100%; margin: 0; }
+body.ds-embed { overflow: hidden; background: var(--q-bg, #0b1022); }
+.ds-embed-view { height: 100vh; display: flex; flex-direction: column; min-height: 0; }
+.ds-embed-view > .ho { flex: 1; min-height: 0; height: 100%; }
+.ds-embed-loading { color: var(--q-muted, #94a3b8); padding: 22px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+
+/* Solo lectura: fuera barra de herramientas, paneles y zona de extensión. */
+.ds-embed .ho-toolbar,
+.ds-embed .ho-rail,
+.ds-embed .ho-assets,
+.ds-embed .ho-props,
+.ds-embed .ho-extend-zone { display: none !important; }
+
+/* Opciones del embed. */
+.ds-embed-no-title .ho-sheet-title { display: none !important; }
+.ds-embed-no-sel .ho-selbar { display: none !important; }
+
+.ds-embed-msg { margin: 12vh auto 0; max-width: 420px; text-align: center; padding: 26px; border-radius: 16px;
+  border: 1px solid var(--q-line, #222e4d); background: var(--q-panel, #10182c); color: var(--q-text, #e6ebf5);
+  font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
+.ds-embed-msg b { display: block; font-size: 1.05rem; margin-bottom: 8px; }
+.ds-embed-msg p { margin: 0; color: var(--q-muted, #94a3b8); }

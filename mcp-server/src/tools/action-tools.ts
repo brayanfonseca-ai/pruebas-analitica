@@ -126,7 +126,7 @@ export const actionTools: ContextTool[] = [
     name: "create_connection",
     title: "Crear conexion de datos",
     description:
-      "Crea una conexion de datos real (ej. aws, postgres, csv) en una aplicacion. Devuelve 201 con la conexion. POST /api/v1/apps/{appId}/connections con {name, connector, space?, config}.",
+      "Crea una conexion de datos (s3, athena, postgres, mysql, mariadb, sqlserver, oracle, redshift, webfile, rest, etc.). Las conexiones son del USUARIO que las crea (la cuenta con la que entra el MCP): privadas hasta que se comparten con share_connection, y reutilizables en todos sus proyectos. Los conectores sin ejecutor real (vista previa) guardan la config pero al probar/cargar devuelven un aviso honesto. Devuelve 201 con la conexion. POST /api/v1/connections con {name, connector, space?, config}. Requiere connections:manage.",
     inputShape: createConnectionShape,
     handler: async (args) => {
       const body: Record<string, unknown> = {
@@ -135,18 +135,18 @@ export const actionTools: ContextTool[] = [
         config: args.config,
       };
       if (args.space !== undefined) body.space = args.space;
-      return toToolText(await post(`${appPath(args.appId)}/connections`, body));
+      return toToolText(await post("/api/v1/connections", body));
     },
   },
   {
     name: "test_connection",
     title: "Probar conexion de datos",
     description:
-      "Prueba una conexion de datos sin crearla. Devuelve {ok:boolean, message:string}. POST /api/v1/apps/{appId}/connections/test con {connector, config}.",
+      "Prueba una conexion de datos sin crearla. Devuelve {ok:boolean, message:string}. POST /api/v1/connections/test con {connector, config}.",
     inputShape: testConnectionShape,
     handler: async (args) =>
       toToolText(
-        await post(`${appPath(args.appId)}/connections/test`, {
+        await post("/api/v1/connections/test", {
           connector: args.connector,
           config: args.config,
         }),

@@ -43,6 +43,16 @@ public class AuthBootstrap {
         if (adminId != null) {
             int n = jdbc.update("UPDATE apps SET owner_id = ? WHERE owner_id IS NULL", adminId);
             if (n > 0) log.info("{} aplicaciones existentes asignadas al administrador (etapa Desarrollo).", n);
+
+            // Las conexiones eran de cada app: pasan a ser del dueño de esa app (privadas, compartibles).
+            boolean legacy = !jdbc.queryForList("SELECT name FROM sqlite_master WHERE type='table' AND name='connections'").isEmpty();
+            if (legacy) {
+                int moved = jdbc.update("INSERT OR IGNORE INTO data_connections (id, owner_id, name, connector, space, description, config_json, created_at, updated_at) "
+                        + "SELECT c.id, COALESCE(a.owner_id, ?), c.name, c.connector, c.space, '', c.config_json, c.created_at, c.updated_at "
+                        + "FROM connections c LEFT JOIN apps a ON a.id = c.app_id", adminId);
+                jdbc.execute("ALTER TABLE connections RENAME TO connections_legacy");
+                log.info("{} conexiones migradas a conexiones por usuario (tabla antigua: connections_legacy).", moved);
+            }
         }
     }
 }

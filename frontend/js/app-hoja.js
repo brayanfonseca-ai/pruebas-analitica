@@ -2833,15 +2833,15 @@ export async function render(mount, ctx) {
   await Promise.all([loadFields(), loadMasters()]);
   try { st.sheets = await api.listSheets(ctx.appId); } catch (e) { st.sheets = []; status(`No se pudieron cargar las hojas: ${e.message}`, true); }
   // ?sheet=<id> (p. ej. al venir de "Asociar a" en Experimentos de ML) gana sobre la última abierta.
-  const wanted = new URLSearchParams(location.search).get("sheet");
+  const wanted = ctx.sheetId || new URLSearchParams(location.search).get("sheet");
   const lastId = localStorage.getItem(LS("last"));
   openSheet(st.sheets.find((s) => s.id === wanted) || st.sheets.find((s) => s.id === lastId) || st.sheets[0] || null, { quiet: true });
 
   // Registrar el menú "···" del crumb (acciones de la hoja activa).
-  registerSheetMenu();
+  if (!ctx.embed) registerSheetMenu();
 
-  // Estrellita: una sola instancia; su personalidad depende de st.edit.
-  unmountStar = mountEstrellita({
+  // Estrellita: una sola instancia; su personalidad depende de st.edit. (Sin ella en embedding.)
+  if (!ctx.embed) unmountStar = mountEstrellita({
     appId: ctx.appId,
     persona: "analista de datos",
     title: "Analista",

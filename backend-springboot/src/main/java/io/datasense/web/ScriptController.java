@@ -125,8 +125,9 @@ public class ScriptController {
 
     @SuppressWarnings("unchecked")
     @PostMapping("/script/run")
-    public Map<String, Object> run(@PathVariable String appId) {
+    public Map<String, Object> run(@PathVariable String appId, jakarta.servlet.http.HttpServletRequest request) {
         requireApp(appId);
+        io.datasense.auth.UserRecord user = io.datasense.auth.AccessService.current(request);
         List<String> log = new ArrayList<>();
         List<Map<String, Object>> summary = new ArrayList<>();
         log.add("Reconstruyendo el modelo desde las tablas cargadas…");
@@ -139,9 +140,13 @@ public class ScriptController {
             if (src != null) {
                 // Re-extracción real desde la conexión de origen (mismos parámetros).
                 String connName = (String) src.get("conn_name");
-                var conn = connections.getRaw((String) src.get("conn_id"));
+                // Solo se usa una conexión propia o compartida contigo: las conexiones son privadas de su dueño.
+                var conn = connections.getRawFor(user.id(), (String) src.get("conn_id"));
                 ConnectionExecutor exec = executors.get((String) src.get("connector"));
-                if (conn.isEmpty() || exec == null) {
+                if (conn.isEmpty() && connections.exists((String) src.get("conn_id"))) {
+                    log.add("ADVERTENCIA: no tienes acceso a la conexión '" + connName + "' (es privada de otra persona); " + name
+                            + " conserva los datos de la última carga. Pide a su dueño que te la comparta.");
+                } else if (conn.isEmpty() || exec == null) {
                     log.add("ADVERTENCIA: la conexión '" + connName + "' ya no existe; " + name + " conserva los datos de la última carga.");
                 } else {
                     log.add("LIB CONNECT TO '" + connName + "' → extrayendo " + name + "…");

@@ -127,7 +127,7 @@ export const contextTools: ContextTool[] = [
     name: "list_connections",
     title: "Listar conexiones",
     description:
-      "Lista las conexiones de datos de una aplicacion. Devuelve Map[]. GET /api/v1/apps/{appId}/connections.",
+      "Lista las conexiones de datos de la cuenta del MCP (propias y compartidas con ella; las conexiones son del usuario, no de una app). Equivale a list_all_connections. GET /api/v1/apps/{appId}/connections.",
     inputShape: appIdShape,
     handler: async (args) =>
       toToolText(

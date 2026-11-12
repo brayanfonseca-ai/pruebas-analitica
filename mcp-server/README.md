@@ -95,8 +95,8 @@ En JSON los backslash de Windows se escapan como doble backslash (`\\`).
 | `run_script` | Ejecuta el script y recarga el modelo. | `POST /api/v1/apps/{appId}/script/run` |
 | `create_sheet` | Crea una hoja/dashboard con objetos de visualizacion. | `POST /api/v1/apps/{appId}/sheets` |
 | `update_sheet` | Actualiza una hoja existente. | `PUT /api/v1/apps/{appId}/sheets/{sheetId}` |
-| `create_connection` | Crea una conexion de datos real (aws, postgres, csv...). | `POST /api/v1/apps/{appId}/connections` |
-| `test_connection` | Prueba una conexion sin crearla. | `POST /api/v1/apps/{appId}/connections/test` |
+| `create_connection` | Crea una conexion de datos (del usuario del MCP, privada hasta compartirla). | `POST /api/v1/connections` |
+| `test_connection` | Prueba una conexion sin crearla. | `POST /api/v1/connections/test` |
 | `ai_modelar` | IA: propone un modelado de datos. | `POST /api/v1/ai/modelar` |
 | `ai_analizar` | IA: responde una pregunta sobre los datos. | `POST /api/v1/ai/analizar` |
 | `ai_disenar` | IA: propone el diseno de un dashboard. | `POST /api/v1/ai/disenar` |
@@ -105,11 +105,14 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (76 tools en total):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (88 tools en total):
 
 | Grupo | Tools |
 |---|---|
 | Catalogos | `list_chart_types`, `list_ml_algorithms` |
+| Conexiones por usuario (privadas; se comparten) | `update_connection`, `get_connection_share_targets`, `share_connection` (más `create_connection`, `test_connection` y `delete_connection`, que ahora son del usuario) |
+| Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes` |
+| Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed` |
 | Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (mode + transform), `delete_connection` |
 | Datos | `upload_table`, `delete_table`, `get_field_overrides`, `set_field_overrides` |
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |

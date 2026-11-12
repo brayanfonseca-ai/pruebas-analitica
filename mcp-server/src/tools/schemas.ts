@@ -150,7 +150,7 @@ export const updateSheetShape = {
 
 /** create_connection {appId, name, connector, space?, config}. */
 export const createConnectionShape = {
-  appId: z.string().min(1).describe("Identificador de la aplicacion (appId)."),
+  appId: z.string().min(1).optional().describe("Opcional y solo por compatibilidad: las conexiones son del USUARIO, no de una app."),
   name: z.string().min(1).describe("Nombre de la conexion."),
   connector: z
     .string()
@@ -164,7 +164,7 @@ export const createConnectionShape = {
 
 /** test_connection {appId, connector, config}. */
 export const testConnectionShape = {
-  appId: z.string().min(1).describe("Identificador de la aplicacion (appId)."),
+  appId: z.string().min(1).optional().describe("Opcional y solo por compatibilidad: probar una conexion no depende de una app."),
   connector: z.string().min(1).describe("Tipo de conector a probar."),
   config: z
     .record(z.string(), z.any())

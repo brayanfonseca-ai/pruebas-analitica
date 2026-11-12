@@ -10,6 +10,7 @@
 // MySQL, SQL Server, ODBC, REST) tienen sus campos típicos.
 
 import * as api from "./api.js";
+import { svg } from "./hub-nav.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -76,6 +77,7 @@ export const CONNECTORS = {
     { id: "postgres", name: "PostgreSQL", icon: "db", fields: DB_FIELDS(5432) },
     { id: "mysql", name: "MySQL", icon: "db", fields: DB_FIELDS(3306) },
     { id: "sqlserver", name: "Microsoft SQL Server", icon: "db", fields: DB_FIELDS(1433) },
+    { id: "mariadb", name: "MariaDB", icon: "db", fields: DB_FIELDS(3306) },
     { id: "oracle", name: "Oracle", icon: "db", fields: DB_FIELDS(1521) },
     { id: "snowflake", name: "Snowflake", icon: "db", fields: [
       F("account", "Cuenta", { required: true, placeholder: "org-account" }),
@@ -148,58 +150,118 @@ function AWS_REGIONS() {
     .map((r) => [r, r]);
 }
 
-function allConnectors() {
+export function allConnectors() {
   const out = [];
   Object.entries(CONNECTORS).forEach(([group, items]) => items.forEach((c) => out.push({ ...c, group })));
   return out;
+}
+export const connectorById = (id) => allConnectors().find((c) => c.id === id) || null;
+
+/* ---------------------------------------------------------------------------
+   Proveedores: así se organiza el catálogo en la pantalla Conexiones y en el asistente.
+   «ready» = conectores con ejecutor REAL en el servidor (probar, explorar y cargar datos).
+   El resto guarda la configuración, pero al probar/cargar responde con un aviso honesto
+   («Vista previa»): no finge conectarse.
+   --------------------------------------------------------------------------- */
+export const READY = new Set(["s3", "athena", "postgres", "mysql", "mariadb", "sqlserver", "oracle", "redshift", "webfile", "rest"]);
+export const isReady = (id) => READY.has(id);
+
+export const PROVIDERS = [
+  { id: "aws", label: "Amazon Web Services", hint: "Almacenamiento, bases de datos e IA de AWS", color: "#ff9900",
+    items: ["s3", "athena", "redshift", "rds", "dynamodb", "bedrock", "sagemaker", "comprehend"] },
+  { id: "microsoft", label: "Microsoft", hint: "SQL Server, OneDrive, SharePoint, Azure", color: "#0078d4",
+    items: ["sqlserver", "onedrive", "sharepoint", "azureblob", "azureopenai"] },
+  { id: "google", label: "Google", hint: "Drive, Cloud Storage y BigQuery", color: "#4285f4",
+    items: ["gdrive", "gcs", "bigquery"] },
+  { id: "db", label: "Bases de datos", hint: "PostgreSQL, MySQL, Oracle y más", color: "#2f6fed",
+    items: ["postgres", "mysql", "mariadb", "oracle", "snowflake", "databricks", "mongodb", "odbc"] },
+  { id: "web", label: "APIs y archivos web", hint: "REST, GraphQL, OData, URL y Dropbox", color: "#7a3ff2",
+    items: ["rest", "graphql", "odata", "webfile", "dropbox"] },
+  { id: "ai", label: "IA y agentes (MCP)", hint: "OpenAI y servidores MCP para agentes", color: "#d4651b",
+    items: ["openai", "mcp-stdio", "mcp-http"] },
+];
+
+/** Glifo (nombre de icono de hub-nav) por conector. */
+const GLYPH = {
+  s3: "bucket", gcs: "bucket", azureblob: "bucket", athena: "analyze", redshift: "database", rds: "database", dynamodb: "database",
+  bedrock: "predict", sagemaker: "predict", comprehend: "predict", openai: "predict", azureopenai: "predict",
+  sqlserver: "database", postgres: "database", mysql: "database", mariadb: "database", oracle: "database",
+  snowflake: "database", databricks: "database", mongodb: "database", odbc: "database", bigquery: "database",
+  onedrive: "cloud", sharepoint: "cloud", gdrive: "cloud", dropbox: "cloud",
+  rest: "api", graphql: "api", odata: "api", webfile: "link", "mcp-stdio": "plug", "mcp-http": "plug",
+};
+export const providerOf = (connectorId) => PROVIDERS.find((p) => p.items.includes(connectorId)) || null;
+
+/** Icono cuadrado de color con el glifo del conector (se tiñe con el color del proveedor). */
+export function connectorTile(connectorId, size = "") {
+  const p = providerOf(connectorId);
+  const color = p ? p.color : "#64748b";
+  return `<span class="cn-tile ${size}" style="--cn-c:${color}">${svg(GLYPH[connectorId] || "plug")}</span>`;
 }
 
 /* ---------------------------------------------------------------------------
    Diálogo. `host` debe exponer openModal(title, bodyHTML, footHTML) -> modalEl,
    closeModal(), y toast(msg, kind). Devuelve el elemento del modal.
+
+   · appId = null  → conexión del USUARIO (API /connections): es la forma normal.
+   · appId = "..." → atajo del editor de carga (API /apps/{id}/connections): la conexión se crea
+     igualmente a nombre del usuario; la app solo decide dónde se muestra.
+   · opts.connection → modo EDICIÓN (PUT /connections/{id}); los secretos enmascarados se conservan.
+   · opts.connector  → salta la lista y abre directamente el formulario de ese conector.
    --------------------------------------------------------------------------- */
-export function openConnectionWizard(appId, host, onCreated) {
-  let step = "pick";          // pick | form
-  let current = null;         // conector elegido
-  let space = host.space || "DEV_MODELOS_IA";
+export function openConnectionWizard(appId, host, onCreated, opts = {}) {
+  const editing = opts.connection || null;
+  let current = editing ? connectorById(editing.connector) : (opts.connector ? connectorById(opts.connector) : null);
+  let space = (editing && editing.space) || host.space || "DEV_MODELOS_IA";
+
+  const testFn = (body) => (appId ? api.testConnection(appId, body) : api.testConnectionGlobal(body));
+  const createFn = (body) => (appId ? api.createConnection(appId, body) : api.createConnectionGlobal(body));
 
   function renderPick(filter = "") {
     const q = filter.trim().toLowerCase();
-    const groups = Object.entries(CONNECTORS).map(([group, items]) => {
-      const vis = items.filter((c) => !q || c.name.toLowerCase().includes(q));
+    const sections = PROVIDERS.map((p) => {
+      const vis = p.items.map(connectorById).filter((c) => c && (!q || c.name.toLowerCase().includes(q) || p.label.toLowerCase().includes(q)));
       if (!vis.length) return "";
-      return `<div class="cn-col"><div class="cn-col-title">${esc(group)}</div>
-        ${vis.map((c) => `<button class="cn-opt" data-conn="${c.id}"><span class="cn-ic cn-ic-${c.icon}"></span>${esc(c.name)}</button>`).join("")}</div>`;
+      return `<section class="cn-prov" style="--cn-c:${p.color}">
+        <header class="cn-prov-h"><span class="cn-prov-dot"></span><strong>${esc(p.label)}</strong><small>${esc(p.hint)}</small></header>
+        <div class="cn-tiles">${vis.map((c) => `
+          <button type="button" class="cn-pick" data-conn="${c.id}">
+            ${connectorTile(c.id)}
+            <span class="cn-pick-t"><b>${esc(c.name)}</b>
+              <i class="cn-badge ${isReady(c.id) ? "ready" : "soon"}">${isReady(c.id) ? "Disponible" : "Vista previa"}</i></span>
+          </button>`).join("")}</div>
+      </section>`;
     }).join("");
     const body = `
       <label class="ed-field"><span>Espacio</span><input id="cnSpace" value="${esc(space)}" /></label>
-      <div class="ed-ad-sub">Conectores de datos</div>
       <input class="ed-ad-search" id="cnSearch" placeholder="Buscar fuentes de datos" value="${esc(filter)}" />
-      <div class="cn-grid">${groups || `<p class="ed-muted">Sin resultados.</p>`}</div>`;
+      <div class="cn-provs">${sections || `<p class="ed-muted">Sin resultados.</p>`}</div>`;
     const m = host.openModal("Crear conexión de datos", body, `<button class="ho-btn" data-close>Cancelar</button>`);
     const search = m.querySelector("#cnSearch");
-    search.addEventListener("input", () => { space = m.querySelector("#cnSpace").value; renderPick(search.value); setTimeout(()=>m.querySelector("#cnSearch")?.focus(),0); });
+    search.addEventListener("input", () => { space = m.querySelector("#cnSpace").value; renderPick(search.value); setTimeout(() => m.querySelector("#cnSearch")?.focus(), 0); });
     m.querySelectorAll("[data-conn]").forEach((b) => b.addEventListener("click", () => {
       space = m.querySelector("#cnSpace").value;
-      current = allConnectors().find((c) => c.id === b.dataset.conn);
-      step = "form"; renderForm();
+      current = connectorById(b.dataset.conn);
+      renderForm();
     }));
   }
 
-  function fieldHtml(f) {
+  function fieldHtml(f, saved) {
     const id = "cn_" + f.name;
     const req = f.required ? '<span class="cn-req">*</span>' : "";
+    const has = saved && saved[f.name] !== undefined && saved[f.name] !== null;
+    const val = has ? saved[f.name] : f.value;
     if (f.type === "select") {
       return `<label class="ed-field"><span>${esc(f.label)}${req}</span>
-        <select id="${id}" data-field="${f.name}">${f.options.map(([v,l]) => `<option value="${esc(v)}" ${String(f.value)===String(v)?"selected":""}>${esc(l)}</option>`).join("")}</select>
-        ${f.help?`<small class="cn-help">${esc(f.help)}</small>`:""}</label>`;
+        <select id="${id}" data-field="${f.name}">${f.options.map(([v, l]) => `<option value="${esc(v)}" ${String(val) === String(v) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+        ${f.help ? `<small class="cn-help">${esc(f.help)}</small>` : ""}</label>`;
     }
     if (f.type === "checkbox") {
-      return `<label class="cn-check"><input type="checkbox" id="${id}" data-field="${f.name}" ${f.value?"checked":""}/> ${esc(f.label)}</label>`;
+      return `<label class="cn-check"><input type="checkbox" id="${id}" data-field="${f.name}" ${val === true || val === "true" ? "checked" : ""}/> ${esc(f.label)}</label>`;
     }
     return `<label class="ed-field"><span>${esc(f.label)}${req}</span>
-      <input id="${id}" data-field="${f.name}" type="${f.type}" placeholder="${esc(f.placeholder)}" value="${f.value!==undefined?esc(f.value):""}" />
-      ${f.help?`<small class="cn-help">${esc(f.help)}</small>`:""}</label>`;
+      <input id="${id}" data-field="${f.name}" type="${f.type}" placeholder="${esc(f.placeholder)}" value="${val !== undefined && val !== null ? esc(val) : ""}" />
+      ${f.help ? `<small class="cn-help">${esc(f.help)}</small>` : ""}</label>`;
   }
 
   function collect(m) {
@@ -211,18 +273,25 @@ export function openConnectionWizard(appId, host, onCreated) {
   }
 
   function renderForm() {
+    const saved = editing ? editing.config || {} : null;
+    const notReady = !isReady(current.id);
     const body = `
-      <button class="cn-back" id="cnBack">‹ Elegir otro conector</button>
-      <div class="cn-form-head"><span class="cn-ic cn-ic-${current.icon}"></span><strong>${esc(current.name)}</strong></div>
+      ${editing ? "" : `<button class="cn-back" id="cnBack">‹ Elegir otro conector</button>`}
+      <div class="cn-form-head">${connectorTile(current.id, "lg")}<div><strong>${esc(current.name)}</strong>
+        <small>${esc(providerOf(current.id)?.label || "")}</small></div>
+        <i class="cn-badge ${notReady ? "soon" : "ready"}">${notReady ? "Vista previa" : "Disponible"}</i></div>
+      ${notReady ? `<p class="cn-note">Este conector guarda su configuración, pero todavía no se conecta de verdad: al probar o cargar datos verás un aviso en lugar de un resultado falso.</p>` : ""}
       <label class="ed-field"><span>Nombre de la conexión <span class="cn-req">*</span></span>
-        <input id="cnName" value="${esc(current.name)} - ${esc(space)}" /></label>
-      <div class="cn-fields">${current.fields.map(fieldHtml).join("")}</div>
+        <input id="cnName" value="${esc(editing ? editing.name : `${current.name} - ${space}`)}" /></label>
+      <div class="cn-fields">${current.fields.map((f) => fieldHtml(f, saved)).join("")}</div>
+      ${editing ? `<p class="cn-help">Los secretos guardados se muestran enmascarados: déjalos como están para conservarlos.</p>` : ""}
       <p class="cn-status" id="cnStatus"></p>`;
     const foot = `<button class="ho-btn" data-close>Cancelar</button>
       <button class="ho-btn" id="cnTest">Probar conexión</button>
-      <button class="ho-btn primary" id="cnCreate">Crear</button>`;
-    const m = host.openModal("Crear conexión · " + current.name, body, foot);
-    m.querySelector("#cnBack").addEventListener("click", () => { step = "pick"; renderPick(); });
+      <button class="ho-btn primary" id="cnCreate">${editing ? "Guardar cambios" : "Crear"}</button>`;
+    const m = host.openModal((editing ? "Editar conexión · " : "Crear conexión · ") + current.name, body, foot);
+    const back = m.querySelector("#cnBack");
+    if (back) back.addEventListener("click", () => renderPick());
 
     const statusEl = m.querySelector("#cnStatus");
     const setStatus = (msg, ok) => { statusEl.textContent = msg; statusEl.className = "cn-status " + (ok ? "ok" : "err"); };
@@ -230,9 +299,8 @@ export function openConnectionWizard(appId, host, onCreated) {
     m.querySelector("#cnTest").addEventListener("click", async () => {
       setStatus("Probando…", true);
       try {
-        // r.message refleja el resultado REAL de /test (ok real o error real de AWS/JDBC),
-        // NO una validación de campos cuando hubo intento de conexión (FEAT-001).
-        const r = await api.testConnection(appId, { connector: current.id, config: collect(m) });
+        // r.message refleja el resultado REAL de /test (ok real o error real de AWS/JDBC).
+        const r = await testFn({ connector: current.id, config: collect(m) });
         let msg = r.message || (r.ok ? "Conexión correcta." : "No se pudo conectar.");
         if (r.details && typeof r.details === "object") {
           const extra = Object.entries(r.details)
@@ -248,13 +316,19 @@ export function openConnectionWizard(appId, host, onCreated) {
       const name = m.querySelector("#cnName").value.trim();
       if (!name) { setStatus("El nombre es obligatorio.", false); return; }
       try {
-        const created = await api.createConnection(appId, { name, connector: current.id, space, config: collect(m) });
+        let saved2;
+        if (editing) {
+          saved2 = await api.updateConnection(editing.id, { name, space, config: collect(m) });
+          host.toast(`Conexión "${saved2.name}" actualizada.`);
+        } else {
+          saved2 = await createFn({ name, connector: current.id, space, config: collect(m) });
+          host.toast(`Conexión "${saved2.name}" creada.`);
+        }
         host.closeModal();
-        host.toast(`Conexión "${created.name}" creada.`);
-        onCreated && onCreated(created);
+        onCreated && onCreated(saved2);
       } catch (e) { setStatus("Error: " + e.message, false); }
     });
   }
 
-  renderPick();
+  if (current) renderForm(); else renderPick();
 }

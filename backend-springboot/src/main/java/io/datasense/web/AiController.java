@@ -30,10 +30,39 @@ import java.util.Set;
 public class AiController {
 
     private final BedrockService bedrock;
+    private final io.datasense.repo.NotesRepository notes;
+    private final io.datasense.repo.AppRepository apps;
+    private final io.datasense.auth.AccessService access;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public AiController(BedrockService bedrock) {
+    public AiController(BedrockService bedrock, io.datasense.repo.NotesRepository notes,
+                        io.datasense.repo.AppRepository apps, io.datasense.auth.AccessService access) {
         this.bedrock = bedrock;
+        this.notes = notes;
+        this.apps = apps;
+        this.access = access;
+    }
+
+    /**
+     * Notas del equipo (diccionario de datos) de la app del cuerpo, si el usuario puede verla. Se añaden al prompt del
+     * sistema para que el agente sepa qué significa cada tabla/columna y con qué se cruza.
+     */
+    private String notesBlock(Map<String, Object> body) {
+        try {
+            String appId = str(body == null ? null : body.get("appId"));
+            if (appId.isBlank()) return "";
+            var attrs = (org.springframework.web.context.request.ServletRequestAttributes)
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            var user = attrs == null ? null : io.datasense.auth.AccessService.current(attrs.getRequest());
+            var app = apps.getApp(appId);
+            if (app.isEmpty() || !access.canSee(user, app.get())) return "";
+            String ctx = notes.contextFor(appId);
+            if (ctx.isBlank()) return "";
+            return "\n\nDICCIONARIO DE DATOS (notas del equipo sobre estos datos). Es la fuente de verdad sobre el SIGNIFICADO de cada tabla "
+                    + "y columna, su tipo semántico y con qué se cruzan; úsalo para interpretar, relacionar y modelar, y cítalo cuando ayude:\n" + ctx;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /** Smoke test de arranque: no llama a Bedrock. */
@@ -176,7 +205,7 @@ public class AiController {
      * Nunca lanza: ante fallo del modelo devuelve {@code {ok:false, message, agent}} sin action.
      */
     private Map<String, Object> run(String system, String prefix, Map<String, Object> body, Mode mode) {
-        AiResult result = bedrock.converse(system, prefix + serialize(body));
+        AiResult result = bedrock.converse(system + notesBlock(body), prefix + serialize(body));
 
         Map<String, Object> out = new HashMap<>();
         out.put("agent", bedrock.getAgentName());

@@ -1,5 +1,6 @@
 package io.datasense.web;
 
+import io.datasense.auth.AccessService;
 import io.datasense.engine.DataFrame;
 import io.datasense.engine.Profiler;
 import io.datasense.engine.TableStore;
@@ -12,6 +13,8 @@ import io.datasense.model.AppModels.ColumnProfile;
 import io.datasense.repo.AppRepository;
 import io.datasense.repo.ConnectionRepository;
 import io.datasense.repo.TableRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,27 +73,31 @@ public class ConnectionController {
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "App no encontrada: " + appId));
     }
 
+    /*
+     * Las conexiones ya NO son de la app: son del usuario y se comparten (ver GlobalConnectionController).
+     * Estas rutas por app se conservan por compatibilidad (editor de carga, MCP) y delegan en el mismo modelo.
+     */
+
     @GetMapping
-    public List<Map<String, Object>> list(@PathVariable String appId) {
+    public List<Map<String, Object>> list(@PathVariable String appId, HttpServletRequest req) {
         requireApp(appId);
-        return repo.list(appId);
+        return repo.listFor(AccessService.current(req).id());
     }
 
     @SuppressWarnings("unchecked")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Object> create(@PathVariable String appId, @RequestBody Map<String, Object> body) {
+    public Map<String, Object> create(@PathVariable String appId, HttpServletRequest req, @RequestBody Map<String, Object> body) {
         requireApp(appId);
         String name = str(body.get("name"));
         String connector = str(body.get("connector"));
-        String space = str(body.get("space"));
         Map<String, Object> config = (Map<String, Object>) body.getOrDefault("config", Map.of());
         if (name.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre de la conexión es obligatorio.");
         if (connector.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe elegir un conector.");
         List<String> missing = missingFields(connector, config);
         if (!missing.isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Faltan campos obligatorios: " + String.join(", ", missing));
-        return repo.create(appId, name, connector, space, config);
+        return repo.create(AccessService.current(req).id(), name, connector, str(body.get("space")), str(body.get("description")), config);
     }
 
     /**
@@ -99,10 +106,15 @@ public class ConnectionController {
      * abre una conexión REAL; el resultado o el error real de AWS/JDBC/HTTP se
      * devuelve como {@code {ok, message}}. Todo envuelto para no propagar 5xx.
      */
-    @SuppressWarnings("unchecked")
     @PostMapping("/test")
     public Map<String, Object> test(@PathVariable String appId, @RequestBody Map<String, Object> body) {
         requireApp(appId);
+        return runTest(executors, body);
+    }
+
+    /** Lógica de la prueba de conexión, compartida con {@code POST /api/v1/connections/test}. */
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> runTest(ConnectionExecutors executors, Map<String, Object> body) {
         String connector = str(body.get("connector"));
         Map<String, Object> config = (Map<String, Object>) body.getOrDefault("config", Map.of());
         List<String> missing = missingFields(connector, config);
@@ -131,12 +143,11 @@ public class ConnectionController {
      */
     @SuppressWarnings("unchecked")
     @PostMapping("/{connId}/load")
-    public Map<String, Object> load(@PathVariable String appId, @PathVariable String connId,
+    public Map<String, Object> load(@PathVariable String appId, @PathVariable String connId, HttpServletRequest req,
                                     @RequestBody(required = false) Map<String, Object> params) {
         requireApp(appId);
-        // "Conexiones realizadas": una conexión creada en cualquier app puede usarse
-        // para cargar datos en esta (el stack de conexiones es del usuario, no de la app).
-        Map<String, Object> conn = repo.getRaw(connId).orElseThrow(() ->
+        // Las conexiones son del usuario (propias o compartidas contigo), no de la app: sirven en cualquier proyecto.
+        Map<String, Object> conn = repo.getRawFor(AccessService.current(req).id(), connId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + connId));
 
         String connector = str(conn.get("connector"));
@@ -200,13 +211,17 @@ public class ConnectionController {
     }
 
     @DeleteMapping("/{connId}")
-    public ResponseEntity<Void> delete(@PathVariable String appId, @PathVariable String connId) {
+    public ResponseEntity<Void> delete(@PathVariable String appId, @PathVariable String connId, HttpServletRequest req) {
         requireApp(appId);
-        if (!repo.delete(connId)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + connId);
+        String me = AccessService.current(req).id();
+        if (repo.getFor(me, connId).isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + connId);
+        if (!repo.isOwner(me, connId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño de la conexión puede eliminarla.");
+        repo.delete(connId);
         return ResponseEntity.noContent().build();
     }
 
-    private List<String> missingFields(String connector, Map<String, Object> config) {
+    static List<String> missingFields(String connector, Map<String, Object> config) {
         List<String> req = REQUIRED.getOrDefault(connector, List.of());
         List<String> missing = new ArrayList<>();
         for (String f : req) {

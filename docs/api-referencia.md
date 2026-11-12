@@ -140,3 +140,23 @@ Respuesta IA: `{ok, message, agent, action?}`. `action` puede traer un plan
 Con `params.input` (`{campo: valor}`) en K-Means y en cualquier modelo supervisado o AutoML,
 la respuesta incluye `prediction` para ese caso. Todas las respuestas traen `insights[]`, `n`,
 `elapsedMs` y `table`. Errores de entrada: **400** con `message` legible.
+
+
+## Conexiones por usuario, notas para agente y embeds (nuevo)
+
+Las conexiones son **del usuario** (privadas; se comparten): ver [`modulos/07-conexiones.md`](./modulos/07-conexiones.md).
+Notas y embeds: ver [`modulos/13-notas-agente.md`](./modulos/13-notas-agente.md) y [`modulos/14-embedding.md`](./modulos/14-embedding.md).
+
+| Método | Ruta | Permiso | Descripción |
+|---|---|---|---|
+| POST | `/connections` · `/connections/test` | `connections:manage` | Crear / probar conexión del usuario. |
+| PUT, DELETE | `/connections/{id}` | `connections:manage` (dueño) | Editar / eliminar. |
+| GET | `/connections/share-targets` | `connections:manage` | Personas con quienes compartir. |
+| PUT | `/connections/{id}/shares` | `connections:manage` (dueño) | `{user_ids}`. |
+| GET, PUT | `/apps/{appId}/notes` | `charts:edit` | Diccionario de datos. |
+| GET | `/apps/{appId}/notes/context` | `charts:edit` | Texto que recibe el agente. |
+| POST | `/apps/{appId}/notes/suggest` | `charts:edit` | Borradores con IA (no guarda). |
+| GET, POST | `/embeds` | `embed:manage` | Listar / crear `{name, app_id, sheet_id, allowed_origins?, expires_in_days?, options?}`. |
+| PUT, DELETE | `/embeds/{id}` | `embed:manage` | Editar (`enabled`…) / eliminar. |
+| POST | `/embeds/{id}/rotate` | `embed:manage` | Token nuevo. |
+| GET | `/embed/{token}` (fuera de `/api/v1`) | público | Página incrustable. |

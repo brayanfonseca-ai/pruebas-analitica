@@ -188,7 +188,7 @@ export const platformTools: ContextTool[] = [
   {
     name: "list_all_connections",
     title: "Conexiones realizadas (todas las apps)",
-    description: "Stack de TODAS las conexiones de datos creadas (en cualquier app), con app_name; secretos enmascarados. GET /api/v1/connections.",
+    description: "Conexiones de la cuenta del MCP: las que creo ('mine':true, con 'shared_with') y las que le compartieron ('mine':false, con 'owner_name'). Las conexiones son del USUARIO y privadas: ni siquiera el admin ve las ajenas no compartidas. Secretos enmascarados. GET /api/v1/connections.",
     inputShape: {},
     handler: async () => toToolText(await get("/api/v1/connections")),
   },
@@ -237,9 +237,118 @@ export const platformTools: ContextTool[] = [
   {
     name: "delete_connection",
     title: "Borrar conexion",
-    description: "ACCION DESTRUCTIVA: elimina una conexion (deja de estar disponible en todas las apps). DELETE /api/v1/apps/{appId}/connections/{connId}.",
-    inputShape: { ...appId, connId: id("Id de la conexion.") },
-    handler: async (a) => toToolText(await del(`${A(a.appId)}/connections/${E(a.connId)}`)),
+    description: "ACCION DESTRUCTIVA: elimina una conexion propia (deja de estar disponible tambien para quienes la compartieron). Solo el dueno puede borrarla. Las tablas ya cargadas no se borran. DELETE /api/v1/connections/{connId}.",
+    inputShape: { appId: z.string().optional().describe("Obsoleto, se ignora (las conexiones son del usuario)."), connId: id("Id de la conexion.") },
+    handler: async (a) => toToolText(await del(`/api/v1/connections/${E(a.connId)}`)),
+  },
+  {
+    name: "update_connection",
+    title: "Editar una conexion propia",
+    description: "Cambia nombre, espacio, descripcion o configuracion de una conexion propia ({name?, space?, description?, config?}). Los secretos enmascarados ('••••••') se conservan. Solo el dueno puede editarla. PUT /api/v1/connections/{connId}.",
+    inputShape: {
+      connId: id("Id de la conexion."), name: z.string().optional().describe("Nombre nuevo."), space: z.string().optional().describe("Espacio."),
+      description: z.string().optional().describe("Descripcion."), config: free("Configuracion del conector (parcial o completa).").optional(),
+    },
+    handler: async (a) => toToolText(await put(`/api/v1/connections/${E(a.connId)}`, pick(a, ["name", "space", "description", "config"]))),
+  },
+  {
+    name: "get_connection_share_targets",
+    title: "Con quien se puede compartir una conexion",
+    description: "Usuarios activos con permiso connections:manage (distintos de la cuenta del MCP) a quienes se puede compartir una conexion: [{id, name, email, role}]. GET /api/v1/connections/share-targets.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/connections/share-targets")),
+  },
+  {
+    name: "share_connection",
+    title: "Compartir una conexion",
+    description: "Define con quien se comparte una conexion PROPIA (reemplaza la lista; [] la vuelve privada). Quien la recibe puede usarla (explorar, vista previa, cargar datos) pero no editarla, borrarla ni re-compartirla. Ej.: el admin crea una conexion y se la comparte al desarrollador. PUT /api/v1/connections/{connId}/shares con {user_ids}.",
+    inputShape: { connId: id("Id de la conexion."), userIds: z.array(z.string()).describe("Ids de usuario (de get_connection_share_targets o list_users). [] = privada.") },
+    handler: async (a) => toToolText(await put(`/api/v1/connections/${E(a.connId)}/shares`, { user_ids: a.userIds })),
+  },
+
+  /* ============================ Notas para el agente (diccionario de datos) ============================ */
+  {
+    name: "get_data_notes",
+    title: "Notas para el agente (leer)",
+    description: "Diccionario de datos de una app: contexto del negocio, tablas y columnas con tipo, muestras, descripcion, tipo semantico (id|dimension|measure|date|category|text|flag), sinonimos, cruces definidos y cruces sugeridos por nombre, mas la cobertura (% documentado). Requiere charts:edit. GET /api/v1/apps/{appId}/notes.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/notes`)),
+  },
+  {
+    name: "update_data_notes",
+    title: "Notas para el agente (guardar)",
+    description: "Guarda (upsert) el diccionario de datos: {app_text?, tables:[{name, description?, grain?, columns:[{name, description?, semantic?, synonyms? (texto), joins?:[{table, column, note?}]}]}]}. Solo cambia lo enviado; una columna sin nada se borra. Los asistentes de IA y get_agent_context leen estas notas. PUT /api/v1/apps/{appId}/notes.",
+    inputShape: { ...appId, appText: z.string().optional().describe("Contexto general del negocio para la app."), tables: z.array(free("Tabla: {name, description?, grain?, columns:[...]}")).optional().describe("Tablas y columnas a documentar.") },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/notes`, { ...(a.appText !== undefined ? { app_text: a.appText } : {}), ...(a.tables ? { tables: a.tables } : {}) })),
+  },
+  {
+    name: "get_agent_context",
+    title: "Contexto de datos para el agente",
+    description: "Texto (markdown) con lo documentado de la app: que es cada tabla/columna, sinonimos y con que se cruza. Leelo ANTES de analizar o modelar los datos de una app. Si viene vacio, documenta con update_data_notes o suggest_data_notes. GET /api/v1/apps/{appId}/notes/context.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/notes/context`)),
+  },
+  {
+    name: "suggest_data_notes",
+    title: "Notas para el agente: borradores con IA",
+    description: "Pide a la IA borradores de descripcion y tipo semantico para lo no documentado ({table?} limita a una tabla). NO guarda: revisa y guarda con update_data_notes. Devuelve {ok, tables:[{name, description, columns:[{name, description, semantic}]}]}. POST /api/v1/apps/{appId}/notes/suggest.",
+    inputShape: { ...appId, table: z.string().optional().describe("Solo esta tabla.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/notes/suggest`, pick(a, ["table"]))),
+  },
+
+  /* ============================ Embedding (tableros incrustables) ============================ */
+  {
+    name: "list_embeds",
+    title: "Embeds de tableros",
+    description: "Lista los embeds con id, token (dse_…), app, hoja, estado (active|revoked|expired|unpublished), orígenes permitidos, vencimiento, vistas y URL (/embed/{token}). Requiere embed:manage. GET /api/v1/embeds.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/embeds")),
+  },
+  {
+    name: "create_embed",
+    title: "Crear un embed",
+    description: "Crea un embed (ID + token de solo lectura) de UNA hoja para incrustarla en otra pagina web con <iframe src='{base}/embed/{token}'> o el SDK /js/embed-sdk.js. Solo muestra datos si la app esta en produccion (set_app_stage) y la hoja publicada (set_sheet_visibility). {name, appId, sheetId, allowedOrigins? (vacio = cualquier sitio), expiresInDays? (0/omitir = nunca), options? {theme: light|dark, hideTitle, hideSelections}}. POST /api/v1/embeds.",
+    inputShape: {
+      name: id("Nombre del embed."), appId: id("Id de la app."), sheetId: id("Id de la hoja."),
+      allowedOrigins: z.array(z.string()).optional().describe("Sitios que pueden incrustarlo, ej. https://portal.miempresa.com."),
+      expiresInDays: z.number().int().min(0).optional().describe("Dias hasta que vence el token (0 = nunca)."),
+      options: free("{theme?, hideTitle?, hideSelections?}").optional(),
+    },
+    handler: async (a) => toToolText(await post("/api/v1/embeds", {
+      name: a.name, app_id: a.appId, sheet_id: a.sheetId,
+      ...(a.allowedOrigins ? { allowed_origins: a.allowedOrigins } : {}),
+      ...(a.expiresInDays !== undefined ? { expires_in_days: a.expiresInDays } : {}),
+      ...(a.options ? { options: a.options } : {}),
+    })),
+  },
+  {
+    name: "update_embed",
+    title: "Editar, activar o desactivar un embed",
+    description: "{name?, enabled? (false = revoca sin borrar), allowedOrigins?, expiresInDays? (0 = quitar vencimiento), options?}. PUT /api/v1/embeds/{embedId}.",
+    inputShape: {
+      embedId: id("Id del embed."), name: z.string().optional().describe("Nombre."), enabled: z.boolean().optional().describe("Activo o revocado."),
+      allowedOrigins: z.array(z.string()).optional().describe("Sitios permitidos (reemplaza)."), expiresInDays: z.number().int().min(0).optional().describe("Dias hasta vencer; 0 = nunca."),
+      options: free("{theme?, hideTitle?, hideSelections?}").optional(),
+    },
+    handler: async (a) => toToolText(await put(`/api/v1/embeds/${E(a.embedId)}`, {
+      ...pick(a, ["name", "enabled", "options"]),
+      ...(a.allowedOrigins ? { allowed_origins: a.allowedOrigins } : {}),
+      ...(a.expiresInDays !== undefined ? { expires_in_days: a.expiresInDays } : {}),
+    })),
+  },
+  {
+    name: "rotate_embed_token",
+    title: "Rotar el token de un embed",
+    description: "Genera un token nuevo; el anterior deja de servir AL INSTANTE (hay que actualizar el codigo donde se use). Devuelve el embed con el token nuevo. POST /api/v1/embeds/{embedId}/rotate.",
+    inputShape: { embedId: id("Id del embed.") },
+    handler: async (a) => toToolText(await post(`/api/v1/embeds/${E(a.embedId)}/rotate`, {})),
+  },
+  {
+    name: "delete_embed",
+    title: "Borrar un embed",
+    description: "ACCION DESTRUCTIVA: elimina el embed; las paginas que usen su token dejan de mostrar el tablero. DELETE /api/v1/embeds/{embedId}.",
+    inputShape: { embedId: id("Id del embed.") },
+    handler: async (a) => toToolText(await del(`/api/v1/embeds/${E(a.embedId)}`)),
   },
 
   /* ============================ Datos ============================ */

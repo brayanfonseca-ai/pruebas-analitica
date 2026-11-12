@@ -106,6 +106,12 @@ Cada aplicación tiene una **etapa**: *Personal* (solo su dueño) → *Desarroll
 *Producción* (publicada). Un visualizador solo ve apps en Producción y, dentro de ellas, **las hojas
 publicadas**. Detalle y reglas en [`docs/modulos/12-configuracion-seguridad.md`](./docs/modulos/12-configuracion-seguridad.md).
 
+## Conexiones, Notas para agente y Embedding
+
+- **Conexiones** (`conexiones.html`): son del usuario, privadas y se pueden compartir; catálogo por proveedor (AWS, Microsoft, Google, bases de datos, APIs, IA/MCP). Ver [`docs/modulos/07-conexiones.md`](./docs/modulos/07-conexiones.md).
+- **Notas para agente** (`notas.html`): diccionario de datos que leen la IA y el MCP. Ver [`docs/modulos/13-notas-agente.md`](./docs/modulos/13-notas-agente.md).
+- **Embedding** (`embedding.html`): incrusta hojas publicadas en otras webs con ID + token. Ver [`docs/modulos/14-embedding.md`](./docs/modulos/14-embedding.md).
+
 > Si usas el servidor MCP y cambias la contraseña del administrador, actualiza `DATASENSE_PASSWORD` en `mcp.json`.
 
 La autenticación del cliente solo proyecta permisos en la interfaz; no es seguridad real.

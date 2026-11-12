@@ -38,7 +38,13 @@ public class SheetController {
     @GetMapping
     public List<Map<String, Object>> list(@PathVariable String appId, HttpServletRequest req) {
         requireApp(appId);
-        return access.visibleSheets(AccessService.current(req), sheets.list(appId));
+        List<Map<String, Object>> visible = access.visibleSheets(AccessService.current(req), sheets.list(appId));
+        // Token de embedding: solo la hoja incrustada.
+        Object emb = req.getAttribute(io.datasense.auth.AuthInterceptor.EMBED_ATTR);
+        if (emb instanceof io.datasense.embed.EmbedRecord er) {
+            return visible.stream().filter(s -> er.sheetId().equals(String.valueOf(s.get("id")))).toList();
+        }
+        return visible;
     }
 
     @PostMapping

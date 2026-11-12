@@ -38,10 +38,12 @@ public class UserController {
 
     private final UserRepository users;
     private final AuthService auth;
+    private final io.datasense.repo.ConnectionRepository connections;
 
-    public UserController(UserRepository users, AuthService auth) {
+    public UserController(UserRepository users, AuthService auth, io.datasense.repo.ConnectionRepository connections) {
         this.users = users;
         this.auth = auth;
+        this.connections = connections;
     }
 
     static void checkPassword(String pw) {
@@ -115,6 +117,8 @@ public class UserController {
         if (me.id().equals(id) && !"admin".equals(role) && u.isAdmin()) throw bad("No puedes quitarte a ti mismo el rol de administrador.");
 
         UserRecord saved = users.update(id, email, name, role, active, grant, deny).orElseThrow();
+        // Si ya no puede usar conexiones, pierde las que le habían compartido.
+        if (!saved.has(Permissions.CONNECTIONS)) connections.clearSharesFor(id);
         // Si cambió algo que afecta a su acceso, sus sesiones se cierran y debe entrar de nuevo.
         if (!active || !role.equals(u.role()) || !grant.equals(u.grant()) || !deny.equals(u.deny())) {
             if (!me.id().equals(id)) auth.revokeAll(id);
@@ -140,7 +144,8 @@ public class UserController {
         if (u.isAdmin() && u.active() && users.activeAdmins() <= 1) throw bad("Debe quedar al menos un administrador activo.");
         auth.revokeAll(id);
         int moved = users.reassignApps(id, me.id());
+        int conns = connections.reassign(id, me.id());
         users.delete(id);
-        return Map.of("ok", true, "apps_reassigned", moved);
+        return Map.of("ok", true, "apps_reassigned", moved, "connections_reassigned", conns);
     }
 }

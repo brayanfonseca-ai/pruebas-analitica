@@ -28,6 +28,8 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/10-mcp.md`](./modulos/10-mcp.md) | Servidor MCP (TypeScript). |
 | [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Experimentos de ML: 24 algoritmos, historial, comparación y AutoML. |
 | [`modulos/12-configuracion-seguridad.md`](./modulos/12-configuracion-seguridad.md) | Configuración: usuarios, roles, permisos, etapas (Personal/Desarrollo/Producción) y publicación de hojas. |
+| [`modulos/13-notas-agente.md`](./modulos/13-notas-agente.md) | Notas para agente: diccionario de datos (qué es cada columna, con qué se cruza) que leen la IA y el MCP. |
+| [`modulos/14-embedding.md`](./modulos/14-embedding.md) | Embedding: incrustar hojas publicadas en otras webs con ID + token (iframe, SDK, API). |
 
 ---
 

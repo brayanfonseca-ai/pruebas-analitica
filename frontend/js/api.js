@@ -9,6 +9,10 @@ const BASE = "/api/v1";
 
 /** Cabecera Authorization con el token de la sesión (lo emite POST /auth/login). */
 export function authHeader() {
+  // Página incrustada (/embed/<token>): siempre el token del embed, nunca una sesión de usuario.
+  if (typeof window !== "undefined" && window.__DS_EMBED && window.__DS_EMBED.token) {
+    return { Authorization: `Bearer ${window.__DS_EMBED.token}` };
+  }
   try {
     const s = JSON.parse(localStorage.getItem("ds.session") || "null");
     return s && s.token ? { Authorization: `Bearer ${s.token}` } : {};
@@ -43,7 +47,7 @@ async function request(path, { method = "GET", body, isForm = false } = {}) {
     data = await res.json().catch(() => null);
   }
 
-  if (res.status === 401 && path !== "/auth/login") {
+  if (res.status === 401 && path !== "/auth/login" && !(window.__DS_EMBED && window.__DS_EMBED.token)) {
     // Sesión vencida o revocada (p. ej. un admin desactivó la cuenta): volver al login.
     try { localStorage.removeItem("ds.session"); } catch { /* sin storage */ }
     if (!location.pathname.endsWith("/index.html")) location.replace("/pages/index.html");
@@ -209,6 +213,32 @@ export const deleteConnection = (appId, connId) =>
 // Responde {ok, message, table:{id,name,rows,fields}} o {ok:false, message:<error real>}.
 export const loadConnection = (appId, connId, params = {}) =>
   request(`/apps/${encodeURIComponent(appId)}/connections/${encodeURIComponent(connId)}/load`, { method: "POST", body: params });
+
+/* ---- Conexiones POR USUARIO (no ligadas a una app): crear, probar, editar, borrar y compartir ---- */
+// Cada conexión es de quien la crea; solo ella/él y con quien la comparta la ven.
+export const createConnectionGlobal = (conn) => request("/connections", { method: "POST", body: conn });
+export const testConnectionGlobal = (conn) => request("/connections/test", { method: "POST", body: conn });
+export const updateConnection = (connId, body) =>
+  request(`/connections/${encodeURIComponent(connId)}`, { method: "PUT", body });
+export const deleteConnectionGlobal = (connId) =>
+  request(`/connections/${encodeURIComponent(connId)}`, { method: "DELETE" });
+// Usuarios con quienes se puede compartir: [{id, name, email, role}]
+export const connectionShareTargets = () => request("/connections/share-targets");
+export const shareConnection = (connId, userIds) =>
+  request(`/connections/${encodeURIComponent(connId)}/shares`, { method: "PUT", body: { user_ids: userIds } });
+
+/* ---- Notas para el agente (diccionario de datos por app) ---- */
+export const getNotes = (appId) => request(`/apps/${encodeURIComponent(appId)}/notes`);
+export const saveNotes = (appId, body) => request(`/apps/${encodeURIComponent(appId)}/notes`, { method: "PUT", body });
+export const getNotesContext = (appId) => request(`/apps/${encodeURIComponent(appId)}/notes/context`);
+export const suggestNotes = (appId, body = {}) => request(`/apps/${encodeURIComponent(appId)}/notes/suggest`, { method: "POST", body });
+
+/* ---- Embedding (tableros incrustables con token) ---- */
+export const listEmbeds = () => request("/embeds");
+export const createEmbed = (body) => request("/embeds", { method: "POST", body });
+export const updateEmbed = (id, body) => request(`/embeds/${encodeURIComponent(id)}`, { method: "PUT", body });
+export const rotateEmbed = (id) => request(`/embeds/${encodeURIComponent(id)}/rotate`, { method: "POST" });
+export const deleteEmbed = (id) => request(`/embeds/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /* ---- Conexiones realizadas (todas las apps): stack con permisos ---- */
 // [{id, name, connector, space, app_id, app_name, config(enmascarada), created_at}]

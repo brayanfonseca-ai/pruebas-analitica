@@ -1,7 +1,9 @@
 package io.datasense.auth;
 
+import io.datasense.embed.EmbedService;
 import io.datasense.model.AppModels.AppOut;
 import io.datasense.repo.AppRepository;
+import io.datasense.repo.ExperimentRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -17,20 +20,31 @@ import java.util.Optional;
  * ruta ({@link Permissions#required}) y las reglas de etapa sobre la app a la que apunta la ruta
  * (una app que el usuario no puede ver responde 404, como si no existiera).
  * Única ruta pública: {@code POST /api/v1/auth/login}.
+ *
+ * <p>Un Bearer que empieza por {@code dse_} es un token de embedding: actúa como visualizador de
+ * solo lectura limitado a la app de su embed.</p>
  */
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
     private static final String PREFIX = "/api/v1";
 
+    /** Atributo con el {@code EmbedRecord} cuando la petición viene de un token de embedding. */
+    public static final String EMBED_ATTR = "ds.embed";
+
     private final AuthService auth;
     private final AccessService access;
     private final AppRepository apps;
+    private final EmbedService embeds;
+    private final ExperimentRepository experiments;
 
-    public AuthInterceptor(AuthService auth, AccessService access, AppRepository apps) {
+    public AuthInterceptor(AuthService auth, AccessService access, AppRepository apps,
+                           EmbedService embeds, ExperimentRepository experiments) {
         this.auth = auth;
         this.access = access;
         this.apps = apps;
+        this.embeds = embeds;
+        this.experiments = experiments;
     }
 
     @Override
@@ -44,6 +58,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         if ("POST".equals(method) && path.equals("/auth/login")) return true;
 
         String token = bearer(req);
+        if (token != null && token.startsWith("dse_")) return embedRequest(req, res, method, path, token);
         Optional<UserRecord> found = auth.validate(token);
         if (found.isEmpty()) return deny(res, 401, "Sesión no válida o vencida. Inicia sesión de nuevo.");
         UserRecord user = found.get();
@@ -55,6 +70,16 @@ public class AuthInterceptor implements HandlerInterceptor {
         String need = Permissions.required(method, path);
         if (!user.has(need)) {
             return deny(res, 403, "No tienes permiso para esta acción (" + need + ").");
+        }
+
+        // Experimentos de ML: la lectura exige poder ver la app a la que pertenece el experimento.
+        String expId = experimentIdOf(path);
+        if (expId != null && !Permissions.ML.equals(need)) {
+            Optional<Map<String, Object>> exp = experiments.get(expId);
+            if (exp.isPresent() && exp.get().get("app_id") != null) {
+                Optional<AppOut> eapp = apps.getApp(String.valueOf(exp.get().get("app_id")));
+                if (eapp.isPresent() && !access.canSee(user, eapp.get())) return deny(res, 404, "Experimento no encontrado.");
+            }
         }
 
         String appId = Permissions.appIdOf(path);
@@ -72,6 +97,34 @@ public class AuthInterceptor implements HandlerInterceptor {
                 }
             }
         }
+        return true;
+    }
+
+    private static String experimentIdOf(String path) {
+        if (!path.startsWith("/ml/experiments/")) return null;
+        String[] s = path.split("/"); // ["", "ml", "experiments", id, ...]
+        return s.length >= 4 && !s[3].isBlank() ? s[3] : null;
+    }
+
+    /** Token de embedding: visualizador de solo lectura limitado a SU app y a las rutas que necesita el tablero. */
+    private boolean embedRequest(HttpServletRequest req, HttpServletResponse res, String method, String path, String token)
+            throws java.io.IOException {
+        EmbedService.Authn a = embeds.authenticate(token);
+        if (!a.ok()) return deny(res, a.status(), a.error());
+        var e = a.embed();
+        boolean read = "GET".equals(method) || "HEAD".equals(method);
+        String need = Permissions.required(method, path);
+        if (!a.user().has(need)) return deny(res, 403, "El token de embedding es de solo lectura.");
+        String appId = Permissions.appIdOf(path);
+        boolean ownApp = appId != null && appId.equals(e.appId());
+        boolean ownMl = false;
+        String expId = experimentIdOf(path);
+        if (read && expId != null) {
+            ownMl = experiments.get(expId).map(m -> e.appId().equals(String.valueOf(m.get("app_id")))).orElse(false);
+        }
+        if (!ownApp && !ownMl) return deny(res, 403, "Este token solo da acceso a su tablero.");
+        req.setAttribute(AccessService.USER_ATTR, a.user());
+        req.setAttribute(EMBED_ATTR, e);
         return true;
     }
 

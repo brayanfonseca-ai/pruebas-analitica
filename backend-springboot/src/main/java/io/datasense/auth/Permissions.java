@@ -27,6 +27,7 @@ public final class Permissions {
     public static final String AI = "ai:use";
     public static final String PUBLISH = "apps:publish";
     public static final String USERS = "users:manage";
+    public static final String EMBED = "embed:manage";
 
     public record Def(String id, String label, String group, String description) {}
 
@@ -40,7 +41,8 @@ public final class Permissions {
             new Def(ML, "Experimentos de ML", "Construcción", "Crear experimentos, entrenar modelos y asociarlos a una app."),
             new Def(APPS_DELETE, "Eliminar aplicaciones", "Gobierno", "Borrar aplicaciones completas."),
             new Def(PUBLISH, "Publicar", "Gobierno", "Pasar una app a Producción, publicar hojas y editar lo ya publicado."),
-            new Def(USERS, "Administrar usuarios", "Gobierno", "Configuración: usuarios, roles, permisos y etapas."));
+            new Def(USERS, "Administrar usuarios", "Gobierno", "Configuración: usuarios, roles, permisos y etapas."),
+            new Def(EMBED, "Gestionar embedding", "Gobierno", "Crear y revocar tokens para incrustar tableros publicados en otras páginas web."));
 
     public record RoleDef(String id, String label, String description, List<String> permissions) {}
 
@@ -83,6 +85,9 @@ public final class Permissions {
         boolean read = "GET".equals(method) || "HEAD".equals(method);
         if (path.startsWith("/users") || path.startsWith("/notifications")) return USERS;
         if (path.startsWith("/connections")) return CONNECTIONS;
+        if (path.startsWith("/embeds")) return EMBED;
+        // Lectura de un experimento/corrida: la necesitan los tableros publicados que muestran gráficos de ML.
+        if (read && path.matches("/ml/experiments/[^/]+(/runs/[^/]+)?")) return VIEW;
         if (path.startsWith("/ml/")) return ML;
         if (path.startsWith("/ai")) return read ? VIEW : AI;
         if (path.startsWith("/collections")) return read ? VIEW : EDIT;
@@ -97,6 +102,7 @@ public final class Permissions {
             if (sub.equals("connections")) return CONNECTIONS;
             if (sub.equals("ml")) return ML;
             if (sub.equals("script")) return DATA;
+            if (sub.equals("notes")) return EDIT; // diccionario de datos: lo escribe y lee quien construye
             if (sub.equals("sheets")) return tail.endsWith("/visibility") ? PUBLISH : (read ? VIEW : EDIT);
             if (read) return VIEW;
             if (sub.equals("tables") || sub.equals("associations") || sub.equals("field-overrides")) return DATA;

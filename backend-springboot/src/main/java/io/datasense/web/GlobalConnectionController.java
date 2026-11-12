@@ -1,5 +1,9 @@
 package io.datasense.web;
 
+import io.datasense.auth.AccessService;
+import io.datasense.auth.Permissions;
+import io.datasense.auth.UserRecord;
+import io.datasense.auth.UserRepository;
 import io.datasense.engine.DataFrame;
 import io.datasense.engine.connect.ConnectionExecutor;
 import io.datasense.engine.connect.ConnectionExecutors;
@@ -7,6 +11,8 @@ import io.datasense.engine.connect.LoadScripts;
 import io.datasense.engine.transform.DataTransform;
 import io.datasense.engine.transform.RowExpression;
 import io.datasense.repo.ConnectionRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -37,25 +43,116 @@ public class GlobalConnectionController {
 
     private final ConnectionRepository repo;
     private final ConnectionExecutors executors;
+    private final UserRepository users;
 
-    public GlobalConnectionController(ConnectionRepository repo, ConnectionExecutors executors) {
+    public GlobalConnectionController(ConnectionRepository repo, ConnectionExecutors executors, UserRepository users) {
         this.repo = repo;
         this.executors = executors;
+        this.users = users;
     }
 
+    private static UserRecord me(HttpServletRequest req) { return AccessService.current(req); }
+
+    /** Conexiones del usuario: las que creó y las que le compartieron (nunca las privadas de otros, ni siquiera siendo admin). */
     @GetMapping
-    public List<Map<String, Object>> list() {
-        return repo.listAll();
+    public List<Map<String, Object>> list(HttpServletRequest req) {
+        return repo.listFor(me(req).id());
     }
 
-    private Map<String, Object> raw(String id) {
-        return repo.getRaw(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + id));
+    /** Personas a las que se les puede compartir una conexión: activas, con permiso de conexiones, distintas de uno mismo. */
+    @GetMapping("/share-targets")
+    public List<Map<String, Object>> shareTargets(HttpServletRequest req) {
+        String myId = me(req).id();
+        return users.list().stream()
+                .filter((u) -> u.active() && !u.id().equals(myId) && u.has(Permissions.CONNECTIONS))
+                .map((u) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", u.id());
+                    m.put("name", u.name());
+                    m.put("email", u.email());
+                    m.put("role", u.role());
+                    return m;
+                }).toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, Object> create(HttpServletRequest req, @RequestBody Map<String, Object> body) {
+        String name = str(body.get("name")).trim();
+        String connector = str(body.get("connector"));
+        Map<String, Object> config = body.get("config") instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of();
+        if (name.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre de la conexión es obligatorio.");
+        if (connector.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe elegir un conector.");
+        List<String> missing = ConnectionController.missingFields(connector, config);
+        if (!missing.isEmpty())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Faltan campos obligatorios: " + String.join(", ", missing));
+        return repo.create(me(req).id(), name, connector, str(body.get("space")), str(body.get("description")), config);
+    }
+
+    /** Prueba de conexión REAL (no guarda nada). Errores de la fuente → {ok:false, message} con 200. */
+    @SuppressWarnings("unchecked")
+    @PostMapping("/test")
+    public Map<String, Object> test(@RequestBody Map<String, Object> body) {
+        return ConnectionController.runTest(executors, body);
+    }
+
+    /** Edita nombre, descripción, espacio o config (solo el dueño). Un secreto enmascarado conserva su valor. */
+    @SuppressWarnings("unchecked")
+    @PutMapping("/{id}")
+    public Map<String, Object> update(HttpServletRequest req, @PathVariable String id, @RequestBody Map<String, Object> body) {
+        ownerOnly(req, id);
+        String name = body.containsKey("name") ? str(body.get("name")).trim() : null;
+        if (name != null && name.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre no puede estar vacío.");
+        Map<String, Object> cfg = body.get("config") instanceof Map<?, ?> m ? (Map<String, Object>) m : null;
+        return repo.update(me(req).id(), id, name,
+                        body.containsKey("space") ? str(body.get("space")) : null,
+                        body.containsKey("description") ? str(body.get("description")) : null, cfg)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + id));
+    }
+
+    /** Elimina la conexión para todos con quienes se compartió (solo el dueño). Las tablas ya cargadas se conservan. */
+    @DeleteMapping("/{id}")
+    public Map<String, Object> delete(HttpServletRequest req, @PathVariable String id) {
+        ownerOnly(req, id);
+        repo.delete(id);
+        return Map.of("ok", true);
+    }
+
+    /** Comparte la conexión: {user_ids: [...]} reemplaza la lista. Solo el dueño; solo con personas que puedan usar conexiones. */
+    @PutMapping("/{id}/shares")
+    public Map<String, Object> shares(HttpServletRequest req, @PathVariable String id, @RequestBody Map<String, Object> body) {
+        ownerOnly(req, id);
+        List<String> ids = new ArrayList<>();
+        if (body.get("user_ids") instanceof List<?> l) for (Object o : l) ids.add(String.valueOf(o));
+        String myId = me(req).id();
+        for (String uid : ids) {
+            if (uid.equals(myId)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya eres el dueño de esta conexión.");
+            UserRecord u = users.get(uid).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario no encontrado: " + uid));
+            if (!u.active() || !u.has(Permissions.CONNECTIONS))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, u.name() + " no puede usar conexiones (rol o permiso).");
+        }
+        repo.setShares(id, ids, myId);
+        return Map.of("ok", true, "shared_with", repo.sharedWith(id));
+    }
+
+    private void ownerOnly(HttpServletRequest req, String id) {
+        if (!repo.exists(id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + id);
+        if (repo.getFor(me(req).id(), id).isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + id);
+        if (!repo.isOwner(me(req).id(), id))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño de la conexión puede cambiarla, compartirla o eliminarla.");
+    }
+
+    private static String str(Object o) { return o == null ? "" : String.valueOf(o); }
+
+    private Map<String, Object> raw(HttpServletRequest req, String id) {
+        return repo.getRawFor(me(req).id(), id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conexión no encontrada: " + id));
     }
 
     @SuppressWarnings("unchecked")
     @PostMapping("/{id}/browse")
-    public Map<String, Object> browse(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        Map<String, Object> conn = raw(id);
+    public Map<String, Object> browse(HttpServletRequest req, @PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> conn = raw(req, id);
         ConnectionExecutor exec = executors.get(String.valueOf(conn.get("connector")));
         if (exec == null) return Map.of("ok", false, "message", "Conector no soportado: " + conn.get("connector"));
         try {
@@ -76,8 +173,8 @@ public class GlobalConnectionController {
      */
     @SuppressWarnings("unchecked")
     @PostMapping("/{id}/preview")
-    public Map<String, Object> preview(@PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
-        Map<String, Object> conn = raw(id);
+    public Map<String, Object> preview(HttpServletRequest req, @PathVariable String id, @RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> conn = raw(req, id);
         String connector = String.valueOf(conn.get("connector"));
         ConnectionExecutor exec = executors.get(connector);
         if (exec == null) return Map.of("ok", false, "message", "Conector no soportado: " + connector);
@@ -111,8 +208,8 @@ public class GlobalConnectionController {
      */
     @SuppressWarnings("unchecked")
     @PostMapping("/{id}/transform")
-    public Map<String, Object> transform(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        Map<String, Object> conn = raw(id);
+    public Map<String, Object> transform(HttpServletRequest req, @PathVariable String id, @RequestBody Map<String, Object> body) {
+        Map<String, Object> conn = raw(req, id);
         Map<String, Object> config = (Map<String, Object>) conn.get("config");
         Map<String, Object> params = body.get("params") instanceof Map<?, ?> m ? new LinkedHashMap<>((Map<String, Object>) m) : new LinkedHashMap<>();
         List<String> cols = new ArrayList<>();
@@ -135,8 +232,8 @@ public class GlobalConnectionController {
      */
     @SuppressWarnings("unchecked")
     @PostMapping("/{id}/parse-script")
-    public Map<String, Object> parseScript(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        Map<String, Object> conn = raw(id);
+    public Map<String, Object> parseScript(HttpServletRequest req, @PathVariable String id, @RequestBody Map<String, Object> body) {
+        Map<String, Object> conn = raw(req, id);
         String connector = String.valueOf(conn.get("connector"));
         Map<String, Object> config = (Map<String, Object>) conn.get("config");
         List<String> known = new ArrayList<>();

@@ -3,15 +3,12 @@
 // openConnectionWizard() del editor, pero aporta un `host` autónomo (modal +
 // toast) porque las páginas del hub solo cargan hub.css.
 //
-// Las conexiones viven en una app (como en Qlik, dentro de un espacio). Si no
-// hay ninguna app todavía, se crea una app contenedora "Conexiones de datos"
-// para alojarlas; si ya existen, se usa la más reciente.
+// Las conexiones son del usuario (se crean una vez y sirven en todos sus proyectos).
 
 import { openConnectionWizard } from "./connections.js";
-import { listApps, createApp } from "./api.js";
 
 /* ---- Modal genérico (autónomo, no depende del editor) ---- */
-function makeModalHost() {
+export function makeModalHost() {
   let backdrop = null;
   function closeModal() {
     if (backdrop) { backdrop.remove(); backdrop = null; }
@@ -48,37 +45,14 @@ function makeModalHost() {
   return { openModal, closeModal, toast, space: "DEV_MODELOS_IA" };
 }
 
-async function resolveAppId() {
-  let apps = [];
-  try { apps = await listApps(); } catch { apps = []; }
-  if (Array.isArray(apps) && apps.length) {
-    // La más reciente si viene con fecha; si no, la primera.
-    const sorted = [...apps].sort((a, b) =>
-      String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
-    return sorted[0].id;
-  }
-  const app = await createApp("Conexiones de datos");
-  return app.id;
-}
-
 /**
- * Abre el asistente de conexiones desde el hub.
+ * Abre el asistente de conexiones desde el hub. Las conexiones son del USUARIO (no de una app),
+ * así que ya no hace falta una app contenedora.
  * @param {function} [onCreated] callback con la conexión creada.
+ * @param {object} [opts] {connector?, connection?} (ver openConnectionWizard)
  */
-export async function openConnectionsFromHub(onCreated) {
+export function openConnectionsFromHub(onCreated, opts = {}) {
   const host = makeModalHost();
-  // Modal de "cargando" mientras resolvemos la app contenedora.
-  host.openModal("Crear conexión de datos",
-    `<p class="ed-muted">Preparando espacio de conexiones…</p>`,
-    `<button class="ho-btn" data-close>Cancelar</button>`);
-  let appId;
-  try {
-    appId = await resolveAppId();
-  } catch (e) {
-    host.openModal("Crear conexión de datos",
-      `<p class="cn-status err">No se pudo preparar el espacio: ${e.message}</p>`,
-      `<button class="ho-btn" data-close>Cerrar</button>`);
-    return;
-  }
-  openConnectionWizard(appId, host, (created) => { onCreated && onCreated(created); });
+  openConnectionWizard(null, host, (created) => { onCreated && onCreated(created); }, opts);
+  return host;
 }

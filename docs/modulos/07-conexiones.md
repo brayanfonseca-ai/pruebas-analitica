@@ -48,3 +48,35 @@ Credenciales AWS desde `~/.aws` (nunca en el repo). Secretos enmascarados en la 
 `frontend/js/connections.js`, `frontend/js/conn-hub.js`, `frontend/css/connections-hub.css`,
 `frontend/js/app-editor.js` (Conexiones realizadas + selector de datos), `frontend/css/editor.css` (`.ed-ds-*`),
 `backend: web/ConnectionController.java`, `web/GlobalConnectionController.java`, `web/ScriptController.java`, `repo/ConnectionRepository.java`, `engine/connect/*` (incl. `LoadScripts.java`).
+
+
+---
+
+## Conexiones por usuario y compartidas (módulo «Conexiones»)
+
+Las conexiones **ya no pertenecen a una app**: son del usuario que las crea y se reutilizan en todos sus proyectos.
+
+- **Quién crea**: quien tenga el permiso `connections:manage` (administrador y desarrollador por defecto).
+- **Privacidad estricta**: solo ven una conexión su dueño y las personas con quienes la comparta. **Ni el administrador** ve las privadas de otros (guardan credenciales). Un administrador puede crear una y compartirla a un desarrollador, y viceversa.
+- **Compartir**: el dueño elige personas activas con `connections:manage`. Quien la recibe puede **usarla** (explorar, vista previa, cargar datos en sus apps) pero no editarla, borrarla ni re-compartirla. Si un usuario pierde `connections:manage`, pierde sus conexiones compartidas. Al eliminar un usuario, sus conexiones y apps pasan a quien lo elimina.
+- **Migración**: las conexiones antiguas (ligadas a una app) pasaron a su dueño y quedaron privadas; la tabla vieja quedó como `connections_legacy`.
+- **Tablas**: `data_connections` (dueño, conector, espacio, config) y `connection_shares`.
+
+### API
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/connections` | Propias (`mine:true`, con `shared_with`) y compartidas (`mine:false`, con `owner_name`). Secretos enmascarados. |
+| POST | `/connections` | Crea `{name, connector, space?, config}`. |
+| POST | `/connections/test` | Prueba real sin guardar. |
+| PUT / DELETE | `/connections/{id}` | Editar / eliminar (solo el dueño; los secretos `••••••` se conservan). |
+| GET | `/connections/share-targets` | Personas con quienes se puede compartir. |
+| PUT | `/connections/{id}/shares` | `{user_ids}` reemplaza la lista (`[]` = privada). |
+
+Las rutas `/apps/{id}/connections…` siguen como alias de compatibilidad (el editor de carga las usa) y aplican las mismas reglas.
+
+### Pantalla
+`frontend/pages/conexiones.html` + `js/conexiones.js`, con tres pestañas: **Mis conexiones** (agrupadas por proveedor, con distintivos Tuya/Compartida por, probar, editar, compartir, eliminar), **Catálogo de conectores** y **Conectar un agente** (bloque `mcp.json` para usar el MCP de DataSense).
+El catálogo (`js/connections.js`) se organiza por proveedor: **AWS**, **Microsoft**, **Google**, **Bases de datos**, **APIs y archivos web** e **IA y agentes (MCP)**. Con ejecutor real (**Disponible**): s3, athena, postgres, mysql, mariadb, sqlserver, oracle, redshift, webfile, rest. El resto guarda la configuración pero responde con un aviso honesto al probar/cargar (**Vista previa**).
+
+### MCP
+`create_connection`, `test_connection`, `update_connection`, `delete_connection`, `get_connection_share_targets`, `share_connection`, `list_all_connections`.

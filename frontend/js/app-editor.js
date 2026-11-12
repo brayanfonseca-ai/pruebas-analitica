@@ -10,7 +10,7 @@
 // auto-generado, reconstruye desde los archivos subidos. "Ver una vista previa de
 // los datos" lista las tablas resultantes. Nada se calcula en JS.
 
-import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnection, loadConnection, aiModelar } from "./api.js";
+import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnectionGlobal, loadConnection, aiModelar } from "./api.js";
 import { openConnectionWizard, CONNECTORS } from "./connections.js";
 import { openDataSelector as openDataSelectorModal } from "./data-selector.js";
 import { mountEstrellita } from "./estrellita.js";
@@ -444,11 +444,11 @@ export async function render(mount, ctx) {
       items.map((c) => `
         <div class="ed-conn ed-conn-real" data-conn-id="${esc(c.id)}" tabindex="0" role="button" title="Seleccionar datos de ${esc(c.name)}">
           <div class="ed-conn-head"><span class="cn-ic cn-ic-${esc(connIcon(c.connector))}"></span><span class="ed-conn-name">${esc(c.name)}</span><span class="ed-conn-kind">${esc(CONN_LABEL[c.connector] || c.connector)}</span></div>
-          <div class="ed-conn-meta">${esc(connSummary(c))}${c.app_id && c.app_id !== ctx.appId ? ` · creada en ${esc(c.app_name || "otra app")}` : ""}</div>
+          <div class="ed-conn-meta">${esc(connSummary(c))}${c.mine === false ? ` · compartida por ${esc(c.owner_name || "otro usuario")}` : (c.shared_with && c.shared_with.length ? ` · compartida con ${c.shared_with.length}` : "")}</div>
           <div class="ed-conn-actions">
             ${(canImport || canEdit) ? `<button class="ed-conn-act ed-conn-load-btn" data-conn-sel="${esc(c.id)}" title="Seleccionar y cargar datos">▦</button>` : ""}
             <button class="ed-conn-act" data-conn-sel="${esc(c.id)}" data-only-script="1" title="Validar e insertar script de carga">⎘</button>
-            <button class="ed-conn-act" data-conn-del="${esc(c.id)}" title="Eliminar conexión">🗑</button>
+            ${c.mine === false ? "" : `<button class="ed-conn-act" data-conn-del="${esc(c.id)}" title="Eliminar conexión">🗑</button>`}
           </div>
         </div>`).join("");
 
@@ -456,8 +456,8 @@ export async function render(mount, ctx) {
       ev.stopPropagation();
       const id = b.dataset.connDel;
       const c = items.find((x) => x.id === id);
-      if (!confirm(`¿Eliminar la conexión "${c?.name || id}"? Dejará de estar disponible en todas las aplicaciones.`)) return;
-      try { await deleteConnection(c?.app_id || ctx.appId, id); renderConnections(filter); } catch (e) { alert(e.message); }
+      if (!confirm(`¿Eliminar la conexión "${c?.name || id}"? Dejará de estar disponible para ti y para quienes la compartiste.`)) return;
+      try { await deleteConnectionGlobal(id); renderConnections(filter); } catch (e) { alert(e.message); }
     }));
     box.querySelectorAll("[data-conn-sel]").forEach((b) => b.addEventListener("click", (ev) => {
       ev.stopPropagation();

@@ -139,18 +139,7 @@ public class DatabaseConfig {
                     is_custom INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
-            jdbc.execute("""
-                CREATE TABLE IF NOT EXISTS connections (
-                    id TEXT PRIMARY KEY,
-                    app_id TEXT NOT NULL,
-                    name TEXT NOT NULL,
-                    connector TEXT NOT NULL,
-                    space TEXT,
-                    config_json TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
-                )""");
+            // (La tabla antigua «connections», atada a cada app, se migró a data_connections: ver AuthBootstrap.)
             // Origen de las tablas cargadas desde una conexión (para generar el
             // script LIB CONNECT / SQL SELECT y re-ejecutar la carga).
             jdbc.execute("""
@@ -242,6 +231,79 @@ public class DatabaseConfig {
                     created_at INTEGER NOT NULL,
                     expires_at INTEGER NOT NULL,
                     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                )""");
+            // Conexiones de datos POR USUARIO (independientes de las apps): su dueño y con quién se comparten.
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS data_connections (
+                    id TEXT PRIMARY KEY,
+                    owner_id TEXT,
+                    name TEXT NOT NULL,
+                    connector TEXT NOT NULL,
+                    space TEXT,
+                    description TEXT,
+                    config_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS connection_shares (
+                    connection_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    shared_by TEXT,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (connection_id, user_id)
+                )""");
+            // Notas para el agente: diccionario de datos (qué es cada tabla/columna y con qué se cruza).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS app_notes (
+                    app_id TEXT PRIMARY KEY,
+                    text TEXT NOT NULL DEFAULT '',
+                    updated_by TEXT,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS table_notes (
+                    app_id TEXT NOT NULL,
+                    table_name TEXT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '',
+                    grain TEXT NOT NULL DEFAULT '',
+                    updated_by TEXT,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (app_id, table_name),
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS column_notes (
+                    app_id TEXT NOT NULL,
+                    table_name TEXT NOT NULL,
+                    column_name TEXT NOT NULL,
+                    description TEXT NOT NULL DEFAULT '',
+                    semantic TEXT NOT NULL DEFAULT '',
+                    synonyms TEXT NOT NULL DEFAULT '',
+                    joins_json TEXT NOT NULL DEFAULT '[]',
+                    updated_by TEXT,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (app_id, table_name, column_name),
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            // Embedding: token por tablero publicado para incrustarlo en otras páginas web.
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS embeds (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    app_id TEXT NOT NULL,
+                    sheet_id TEXT NOT NULL,
+                    token TEXT NOT NULL UNIQUE,
+                    enabled INTEGER NOT NULL DEFAULT 1,
+                    allowed_origins TEXT NOT NULL DEFAULT '',
+                    expires_at TEXT,
+                    options_json TEXT NOT NULL DEFAULT '{}',
+                    created_by TEXT,
+                    created_at TEXT NOT NULL,
+                    last_used_at TEXT,
+                    views INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
             addColumn("apps", "owner_id", "TEXT");
             // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
