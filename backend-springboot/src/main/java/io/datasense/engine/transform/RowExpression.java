@@ -24,7 +24,7 @@ import java.util.function.Function;
  *   primary := número | 'texto' | [Campo] | Func "(" args ")" | "(" expr ")"
  * </pre>
  * Funciones: If, IsNull, Alt, Upper, Lower, Trim, Len, Left, Right, Mid, Replace,
- * Round, Floor, Ceil, Abs, Num, Text, Date, Year, Month, Day.
+ * Round, Floor, Ceil, Abs, Num, Text, Date, Year, Month, Day, Class (rangos) y Match.
  * Valores: Double, String, Boolean o null. Aritmética con null → null.
  */
 public final class RowExpression {
@@ -264,6 +264,19 @@ public final class RowExpression {
                 return s.substring(b, Math.max(b, e)); }; }
             case "replace" -> { need.accept(3); return r -> { Object v = a.get(0).eval(r); Object x = a.get(1).eval(r), y = a.get(2).eval(r); if (v == null) return null; return format(v).replace(x == null ? "" : format(x), y == null ? "" : format(y)); }; }
             case "round" -> { need.accept(1); return r -> { Double x = num(a.get(0).eval(r)); if (x == null) return null; int d = a.size() > 1 && num(a.get(1).eval(r)) != null ? num(a.get(1).eval(r)).intValue() : 0; return BigDecimal.valueOf(x).setScale(Math.max(0, d), java.math.RoundingMode.HALF_UP).doubleValue(); }; }
+            // Class([Edad], 10) -> "30 - 40": agrupa un número en rangos del ancho indicado.
+            case "class" -> { need.accept(2); return r -> {
+                Double x = num(a.get(0).eval(r)), w = num(a.get(1).eval(r));
+                if (x == null || w == null || w <= 0) return null;
+                double lo = Math.floor(x / w) * w;
+                return format(lo) + " - " + format(lo + w); }; }
+            // Match([Estado], 'Activo', 'Inactivo') -> 1, 2 o 0: posición del valor en la lista (sin distinguir mayúsculas).
+            case "match" -> { need.accept(2); return r -> {
+                Object v = a.get(0).eval(r);
+                if (v == null) return 0.0;
+                String s = format(v);
+                for (int i = 1; i < a.size(); i++) { Object c = a.get(i).eval(r); if (c != null && format(c).equalsIgnoreCase(s)) return (double) i; }
+                return 0.0; }; }
             case "floor" -> { need.accept(1); return r -> { Double x = num(a.get(0).eval(r)); return x == null ? null : Math.floor(x); }; }
             case "ceil" -> { need.accept(1); return r -> { Double x = num(a.get(0).eval(r)); return x == null ? null : Math.ceil(x); }; }
             case "abs" -> { need.accept(1); return r -> { Double x = num(a.get(0).eval(r)); return x == null ? null : Math.abs(x); }; }

@@ -709,7 +709,7 @@ export async function render(mount, ctx) {
       return { ...m.resolved, label: item.label || m.name };
     }
     if (!item.table || !item.field) return null;
-    return { table: item.table, field: item.field, agg: item.agg, label: item.label || defaultLabel(item) };
+    return { table: item.table, field: item.field, agg: item.agg, expr: item.calc || undefined, label: item.label || defaultLabel(item) };
   }
 
   function defaultLabel(item) {
@@ -2321,7 +2321,7 @@ export async function render(mount, ctx) {
     pop.querySelector("[data-cat-fx]")?.addEventListener("click", () => {
       closePop();
       openExpression(baseKind, "", async (expr, resolved) => {
-        const it = { id: uid(), source: "expr", expression: expr, table: resolved.table, field: resolved.field, agg: resolved.agg };
+        const it = { id: uid(), source: "expr", expression: expr, table: resolved.table, field: resolved.field, agg: resolved.agg, calc: resolved.expr || undefined };
         if (isAlt) addAlt(obj, baseKind, it); else addItem(obj, baseKind, it);
       });
     });
@@ -2411,7 +2411,7 @@ export async function render(mount, ctx) {
           <select id="exField"><option value="">Insertar campo…</option>${fieldOpts}</select>
           <button class="ho-btn small" id="exInsert">Insertar</button>
         </div>
-        <p class="ho-expr-msg" id="exMsg">Sintaxis: ${isMeasure ? "Sum, Avg, Count, Min o Max sobre un campo, p. ej. <code>Sum([Ventas])</code>" : "un campo entre corchetes, p. ej. <code>[Sucursal]</code>"}. El motor valida la expresión antes de aplicarla.</p>
+        <p class="ho-expr-msg" id="exMsg">Sintaxis: ${isMeasure ? "Sum, Avg, Count, Min o Max sobre un campo, p. ej. <code>Sum([Ventas])</code>" : "un campo, p. ej. <code>[Sucursal]</code>, o una <b>dimensión calculada</b>: <code>If([EDAD EN AÑOS] &gt;= 40, 'Mayor de 40', 'Menor de 40')</code>, <code>Class([ANTIGÜEDAD EN MESES], 12)</code>, <code>Year([FECHA RETIRO])</code>, <code>[EMPRESA] &amp; ' - ' &amp; [CARGO]</code>"}. El motor valida la expresión antes de aplicarla.</p>
       </div>
       <div class="ho-modal-foot"><button class="ho-btn" data-close>Cancelar</button><button class="ho-btn primary" id="exOk">Aplicar</button></div>`);
     const text = modal.querySelector("#exText");
@@ -2471,14 +2471,41 @@ export async function render(mount, ctx) {
 
   function openMasterModal(kind, item) {
     const isMeasure = kind === "measure";
-    const fieldOpts = st.fields.map((f) => `<option value="${esc(f.field)}" ${item && item.resolved.field === f.field ? "selected" : ""}>${esc(f.field)}</option>`).join("");
+    const isCalc = !isMeasure && !!item?.resolved?.expr;
+    const fieldOpts = st.fields.map((f) => `<option value="${esc(f.field)}" ${item && !isCalc && item.resolved.field === f.field ? "selected" : ""}>${esc(f.field)}</option>`).join("");
+    const insOpts = st.fields.map((f) => `<option value="${esc(f.field)}">${esc(f.field)}</option>`).join("");
+    const CALC_SNIPPETS = [
+      ["Si… entonces", "If([campo] >= 40, 'Mayor', 'Menor')"],
+      ["Rangos", "Class([campo], 10)"],
+      ["Año", "Year([campo])"],
+      ["Mes", "Month([campo])"],
+      ["Unir textos", "[campo1] & ' - ' & [campo2]"],
+      ["Mayúsculas", "Upper([campo])"],
+      ["Valor por defecto", "Alt([campo], 'Sin dato')"],
+    ];
     openModalHtml(`
       <div class="ho-modal-head"><h3>${item ? "Editar" : "Crear"} ${isMeasure ? "medida" : "dimensión"} maestra</h3><button class="ho-x" data-close>✕</button></div>
       <div class="ho-modal-body">
         ${isMeasure ? `
           <div class="ho-p-field"><label class="ho-p-label" for="mExpr">Expresión</label>
             <div class="ho-fx-input"><input id="mExpr" value="${esc(item?.expression || "")}" placeholder="Sum([Ventas])" /><button class="ho-fx" id="mFx" title="Editor de expresiones">f<sub>x</sub></button></div></div>` : `
-          <div class="ho-p-field"><label class="ho-p-label" for="mField">Campo</label><select id="mField"><option value="">Seleccione un campo…</option>${fieldOpts}</select></div>`}
+          <div class="ho-seg" role="tablist" aria-label="Tipo de dimensión">
+            <button type="button" class="ho-seg-b ${isCalc ? "" : "on"}" data-dmode="field">Campo</button>
+            <button type="button" class="ho-seg-b ${isCalc ? "on" : ""}" data-dmode="calc">Calculada (expresión)</button>
+          </div>
+          <div class="ho-p-field" id="mFieldBox" ${isCalc ? "hidden" : ""}><label class="ho-p-label" for="mField">Campo</label><select id="mField"><option value="">Seleccione un campo…</option>${fieldOpts}</select></div>
+          <div id="mCalcBox" ${isCalc ? "" : "hidden"}>
+            <div class="ho-p-field"><label class="ho-p-label" for="mCalc">Expresión</label>
+              <textarea class="ho-expr" id="mCalc" rows="4" spellcheck="false" placeholder="If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40')">${esc(isCalc ? item.expression : "")}</textarea></div>
+            <div class="ho-expr-help">
+              <select id="mIns"><option value="">Insertar campo…</option>${insOpts}</select>
+              <button type="button" class="ho-btn small" id="mInsBtn">Insertar</button>
+              <button type="button" class="ho-btn small" id="mTest">Probar</button>
+            </div>
+            <div class="ho-calc-snips">${CALC_SNIPPETS.map(([l, s]) => `<button type="button" class="ho-chip" data-snip="${esc(s)}" title="${esc(s)}">${esc(l)}</button>`).join("")}</div>
+            <div class="ho-calc-prev" id="mPrev"></div>
+            <p class="ho-p-hint">Se calcula en cada fila con los campos de <b>una misma tabla</b> y se usa como cualquier dimensión: agrupa gráficos, se puede seleccionar y filtrar. Funciones: If, Class, Year, Month, Day, Round, Upper, Lower, Trim, Left, Right, Mid, Replace, Alt, Match, Num, Text, Date; operadores &amp; + - * / = &lt;&gt; &lt; &gt; AND OR NOT.</p>
+          </div>`}
         <div class="ho-p-field"><label class="ho-p-label" for="mName">Nombre</label><input id="mName" value="${esc(item?.name || "")}" /></div>
         <div class="ho-p-field"><label class="ho-p-label" for="mDesc">Descripción</label><textarea id="mDesc" rows="3">${esc(item?.description || "")}</textarea></div>
         <p class="ho-expr-msg" id="mMsg">${item ? "Si cambia la definición, todos los gráficos que usan este elemento se actualizan." : ""}</p>
@@ -2490,7 +2517,35 @@ export async function render(mount, ctx) {
       </div>`);
     const msg = modal.querySelector("#mMsg");
     const nameEl = modal.querySelector("#mName");
-    if (!isMeasure) modal.querySelector("#mField").addEventListener("change", (e) => { if (!nameEl.value) nameEl.value = e.target.value; });
+    let dmode = isCalc ? "calc" : "field";
+    if (!isMeasure) {
+      modal.querySelector("#mField").addEventListener("change", (e) => { if (!nameEl.value) nameEl.value = e.target.value; });
+      modal.querySelectorAll("[data-dmode]").forEach((b) => b.addEventListener("click", () => {
+        dmode = b.dataset.dmode;
+        modal.querySelectorAll("[data-dmode]").forEach((x) => x.classList.toggle("on", x === b));
+        modal.querySelector("#mFieldBox").hidden = dmode !== "field";
+        modal.querySelector("#mCalcBox").hidden = dmode !== "calc";
+        if (dmode === "calc") modal.querySelector("#mCalc").focus();
+      }));
+      const calcEl = modal.querySelector("#mCalc");
+      const insertAt = (txt) => {
+        const s = calcEl.selectionStart ?? calcEl.value.length, e = calcEl.selectionEnd ?? s;
+        calcEl.value = calcEl.value.slice(0, s) + txt + calcEl.value.slice(e);
+        calcEl.focus(); calcEl.selectionStart = calcEl.selectionEnd = s + txt.length;
+      };
+      modal.querySelector("#mInsBtn").addEventListener("click", () => { const f = modal.querySelector("#mIns").value; if (f) insertAt(`[${f}]`); });
+      modal.querySelectorAll("[data-snip]").forEach((b) => b.addEventListener("click", () => insertAt(b.dataset.snip)));
+      modal.querySelector("#mTest").addEventListener("click", async () => {
+        const prev = modal.querySelector("#mPrev");
+        prev.innerHTML = `<span class="ho-p-hint">Calculando…</span>`;
+        try {
+          const r = await api.parseExpression(ctx.appId, "dimension", calcEl.value.trim(), nameEl.value.trim() || "Dimensión calculada");
+          if (!r.calculated) { prev.innerHTML = `<span class="ho-p-hint">Es un campo simple: usa la opción «Campo».</span>`; return; }
+          prev.innerHTML = `<div class="ho-calc-ok">✓ Válida · tabla <b>${esc(r.table)}</b> · ${r.distinct ?? "?"} valores distintos</div>
+            <div class="ho-calc-vals">${(r.sample || []).map((v) => `<span>${esc(v)}</span>`).join("")}${(r.distinct || 0) > (r.sample || []).length ? "<span>…</span>" : ""}</div>`;
+        } catch (e) { prev.innerHTML = `<div class="ho-calc-err">${esc(e.message)}</div>`; }
+      });
+    }
     modal.querySelector("#mFx")?.addEventListener("click", () => {
       const current = modal.querySelector("#mExpr").value;
       const name = nameEl.value;
@@ -2503,10 +2558,12 @@ export async function render(mount, ctx) {
       });
     });
     modal.querySelector("#mOk").addEventListener("click", async () => {
-      const expression = isMeasure ? modal.querySelector("#mExpr").value.trim() : (modal.querySelector("#mField").value ? `[${modal.querySelector("#mField").value}]` : "");
+      const expression = isMeasure ? modal.querySelector("#mExpr").value.trim()
+        : dmode === "calc" ? modal.querySelector("#mCalc").value.trim()
+        : (modal.querySelector("#mField").value ? `[${modal.querySelector("#mField").value}]` : "");
       const name = nameEl.value.trim();
       const description = modal.querySelector("#mDesc").value.trim() || null;
-      if (!expression) { msg.textContent = isMeasure ? "Escriba una expresión." : "Seleccione un campo."; msg.classList.add("err"); return; }
+      if (!expression) { msg.textContent = isMeasure || dmode === "calc" ? "Escriba una expresión." : "Seleccione un campo."; msg.classList.add("err"); return; }
       if (!name) { msg.textContent = "Escriba un nombre."; msg.classList.add("err"); return; }
       msg.classList.remove("err");
       msg.textContent = "Validando en el motor…";

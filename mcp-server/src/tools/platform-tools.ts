@@ -446,7 +446,7 @@ export const platformTools: ContextTool[] = [
   {
     name: "save_master_item",
     title: "Crear/editar elemento maestro",
-    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression (ej. Sum([Ventas])), description?}. POST|PUT /api/v1/apps/{appId}/master-items.",
+    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression, description?}. Medida: Sum([Ventas]), Count([cedula])… Dimension: un campo [Sucursal] o una DIMENSION CALCULADA (expresion por fila con campos de una misma tabla), ej. If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40'), Class([ANTIGÜEDAD EN MESES], 12), Year([FECHA RETIRO]), [EMPRESA] & ' - ' & [CARGO]; funciones If, Class, Match, Year, Month, Day, Round, Upper, Lower, Trim, Left, Right, Mid, Replace, Alt, Num, Text, Date. El 'name' de una calculada es el campo por el que se agrupa, selecciona y filtra (no puede coincidir con un campo existente). En create_sheet usa la dimension con {source:'master', masterId}. POST|PUT /api/v1/apps/{appId}/master-items.",
     inputShape: {
       ...appId, itemId: z.string().optional().describe("Id para actualizar."),
       kind: z.enum(["dimension", "measure"]).optional(), name: z.string().optional(), expression: z.string().optional(), description: z.string().optional(),
@@ -466,9 +466,9 @@ export const platformTools: ContextTool[] = [
   {
     name: "parse_expression",
     title: "Validar expresion fx",
-    description: "Valida una expresion (ej. Sum([Ventas])/Count([Cliente])) contra los campos de la app. POST /api/v1/apps/{appId}/expressions/parse.",
-    inputShape: { ...appId, expression: id("Expresion."), kind: z.enum(["dimension", "measure"]).optional().describe("default measure") },
-    handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/parse`, { kind: String(a.kind ?? "measure"), expression: String(a.expression) })),
+    description: "Valida una expresion contra los campos de la app. Medida: Sum([Ventas]). Dimension: campo o dimension calculada (If/Class/Year/&…): devuelve {table, field, expr, calculated:true, distinct, sample (valores de ejemplo)} para probarla antes de guardarla. POST /api/v1/apps/{appId}/expressions/parse.",
+    inputShape: { ...appId, expression: id("Expresion."), kind: z.enum(["dimension", "measure"]).optional().describe("default measure"), name: z.string().optional().describe("Nombre de la dimension calculada.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/parse`, { kind: String(a.kind ?? "measure"), expression: String(a.expression), ...(a.name ? { name: String(a.name) } : {}) })),
   },
 
   /* ============================ Modelo logico ============================ */

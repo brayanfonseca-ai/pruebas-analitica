@@ -154,9 +154,10 @@ export const getFieldValues = (appId, field, selections = {}, limit = 1000) =>
 
 /* ----------------------- Expresiones (fx) ----------------------- */
 // Valida una expresión en el motor y devuelve {table, field, agg?}.
-export const parseExpression = (appId, kind, expression) =>
+// Una dimensión que no es un campo simple es CALCULADA: devuelve {table, field, expr, calculated:true, distinct, sample}.
+export const parseExpression = (appId, kind, expression, name) =>
   request(`/apps/${encodeURIComponent(appId)}/expressions/parse`, {
-    method: "POST", body: { kind, expression },
+    method: "POST", body: name ? { kind, expression, name } : { kind, expression },
   });
 
 /* ----------------------- Elementos maestros ----------------------- */

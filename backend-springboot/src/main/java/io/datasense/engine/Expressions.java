@@ -1,5 +1,7 @@
 package io.datasense.engine;
 
+import io.datasense.engine.transform.RowExpression;
+
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -51,6 +53,14 @@ public final class Expressions {
      * @return measure -> {table, field, agg}; dimension -> {table, field}
      */
     public static Map<String, Object> compile(String kind, String text, Map<String, List<String>> fieldIndex) {
+        return compile(kind, text, fieldIndex, null);
+    }
+
+    /**
+     * Igual que {@link #compile(String, String, Map)}; {@code name} es el nombre con el que se expone una
+     * dimensión calculada (el de la dimensión maestra). Sin nombre se usa la propia expresión.
+     */
+    public static Map<String, Object> compile(String kind, String text, Map<String, List<String>> fieldIndex, String name) {
         if (text == null || text.isBlank()) throw new ExpressionError("La expresión está vacía.");
         String field, agg = null;
         if ("measure".equals(kind)) {
@@ -65,8 +75,7 @@ public final class Expressions {
             field = fieldFrom(m);
         } else if ("dimension".equals(kind)) {
             Matcher m = DIMENSION.matcher(text);
-            if (!m.matches()) throw new ExpressionError(
-                    "Una dimensión debe ser un campo, por ejemplo [Sucursal]. Las dimensiones calculadas aún no están soportadas.");
+            if (!m.matches()) return calculated(text, name, fieldIndex);
             field = fieldFrom(m);
         } else {
             throw new ExpressionError("Tipo de expresión desconocido: '" + kind + "'.");
@@ -77,6 +86,62 @@ public final class Expressions {
         out.put("field", field);
         if (agg != null) out.put("agg", agg);
         return out;
+    }
+
+    /**
+     * Dimensión calculada: una expresión por fila (If, Round, Year, &amp;, comparaciones, Class…) que el motor evalúa
+     * en cada consulta como si fuera un campo más. Todos los campos que usa deben estar en una misma tabla.
+     * Devuelve {table, field (nombre con que se agrupa/selecciona), expr, calculated:true, fields}.
+     */
+    private static Map<String, Object> calculated(String text, String name, Map<String, List<String>> fieldIndex) {
+        String expr = text.strip().replaceFirst("^=\\s*", "");
+        RowExpression ex;
+        try { ex = RowExpression.compile(expr); }
+        catch (RowExpression.ExprError e) { throw new ExpressionError("Dimensión calculada no válida: " + e.getMessage()); }
+        List<String> used = ex.fields();
+        if (used.isEmpty()) throw new ExpressionError("Una dimensión calculada debe usar al menos un campo, por ejemplo If([Edad] >= 40, 'Mayor', 'Menor').");
+        java.util.Set<String> common = null;
+        for (String f : used) {
+            List<String> ts = fieldIndex.get(f);
+            if (ts == null || ts.isEmpty()) throw new ExpressionError("El campo '" + f + "' no existe en el modelo de datos.");
+            if (common == null) common = new TreeSet<>(ts); else common.retainAll(ts);
+        }
+        if (common == null || common.isEmpty())
+            throw new ExpressionError("Los campos de una dimensión calculada deben estar en la misma tabla (" + String.join(", ", used) + ").");
+        String label = name == null || name.isBlank() ? expr : name.strip();
+        if (fieldIndex.containsKey(label))
+            throw new ExpressionError("El nombre «" + label + "» ya es un campo del modelo. Elige otro nombre para la dimensión calculada.");
+        Map<String, Object> out = new java.util.LinkedHashMap<>();
+        out.put("table", common.iterator().next());
+        out.put("field", label);
+        out.put("expr", expr);
+        out.put("calculated", true);
+        out.put("fields", used);
+        return out;
+    }
+
+    /** Copia del DataFrame con una columna calculada más ({@code name} = valor de {@code expr} en cada fila). */
+    public static DataFrame withCalculated(DataFrame df, String name, String expr) {
+        if (df == null || name == null || df.indexOf(name) >= 0) return df;
+        RowExpression ex = RowExpression.compile(expr);
+        List<String> cols = new java.util.ArrayList<>(df.columns());
+        cols.add(name);
+        List<List<String>> rows = new java.util.ArrayList<>(df.rowCount());
+        for (List<String> r : df.rows()) {
+            String v;
+            try {
+                v = RowExpression.format(ex.eval((f) -> {
+                    int i = df.indexOf(f);
+                    String s = i >= 0 && i < r.size() ? r.get(i) : null;
+                    return s == null || s.isBlank() ? null : s;
+                }));
+            } catch (RuntimeException e) { v = null; }
+            List<String> nr = new java.util.ArrayList<>(r);
+            while (nr.size() < cols.size() - 1) nr.add(null);
+            nr.add(v == null ? "" : v);
+            rows.add(nr);
+        }
+        return new DataFrame(cols, rows);
     }
 
     private static String resolveTable(String field, Map<String, List<String>> fieldIndex) {

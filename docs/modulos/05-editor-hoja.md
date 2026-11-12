@@ -22,3 +22,21 @@ El modo **edición** de la Hoja: construir el dashboard arrastrando gráficos, c
 ## Archivos
 `frontend/js/app-hoja.js`, `frontend/js/chart-types.js`, `frontend/js/hoja-templates.js`, `frontend/js/hoja-render.js`,
 `backend: web/SheetController.java`, `repo/SheetRepository.java`, `repo/SheetObjectNormalizer.java`.
+
+
+## Dimensiones calculadas
+
+Una dimensión ya no tiene que ser un campo: puede ser una **expresión por fila**.
+
+- **Dónde**: Hoja en modo edición → *Elementos maestros* → **Dimensiones +** → pestaña **Calculada (expresión)**. También en el editor *fx* de la dimensión de un gráfico.
+- **Ejemplos**:
+  - `If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40')`
+  - `Class([ANTIGÜEDAD EN MESES], 12)` → rangos «0 - 12», «12 - 24»…
+  - `Year([FECHA RETIRO])`, `Month([FECHA CONTRATO])`
+  - `[EMPRESA] & ' - ' & [CARGO]`
+  - `If([ESTADO CONTRATO] = 'Activo', 'Vigente', 'Retirado')`
+- **Funciones**: If, Class (rangos), Match, Year, Month, Day, Round, Floor, Ceil, Abs, Upper, Lower, Trim, Len, Left, Right, Mid, Replace, Alt, IsNull, Num, Text, Date; operadores `&` `+ - * /` `= <> < > <= >=` `AND OR NOT`.
+- **Probar** muestra la tabla, cuántos valores distintos da y unos ejemplos antes de guardar.
+- **Reglas**: todos los campos deben estar en una misma tabla; el **nombre** es el campo por el que se agrupa, selecciona y filtra, así que no puede coincidir con un campo existente ni con otra dimensión calculada.
+- **Cómo funciona**: `Expressions.compile` marca la dimensión como calculada (`resolved = {table, field: nombre, expr, calculated}`); en cada `/query` `QueryController` añade a la tabla una columna con `Expressions.withCalculated` (evaluada con `RowExpression`) para las dimensiones calculadas maestras y la de la propia consulta (`dimension.expr`). Así funcionan igual que un campo: agrupación, selecciones, filtros por objeto, panel de filtrado (`/fields/values`) y asociación con otras tablas.
+- **MCP**: `save_master_item` (kind `dimension` con la expresión) y `parse_expression` (con `name`) para probarla.

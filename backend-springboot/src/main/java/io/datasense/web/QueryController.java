@@ -37,9 +37,11 @@ public class QueryController {
     private final TableRepository tables;
     private final TableStore store;
     private final FieldOverrideRepository fieldOverrides;
+    private final io.datasense.repo.MasterItemRepository masters;
 
     public QueryController(AppRepository apps, TableRepository tables, TableStore store,
-                           FieldOverrideRepository fieldOverrides) {
+                           FieldOverrideRepository fieldOverrides, io.datasense.repo.MasterItemRepository masters) {
+        this.masters = masters;
         this.apps = apps;
         this.tables = tables;
         this.store = store;
@@ -70,8 +72,37 @@ public class QueryController {
             effectiveTypes.put(name, typesByField);
             displays.put(name, displayByField);
         }
+        addCalculated(appId, loaded, spec);
         // El motor degrada combinaciones imposibles (sum sobre texto -> count) sin lanzar 500.
         return QueryEngine.run(loaded, spec, effectiveTypes, displays);
+    }
+
+    /** Dimensiones calculadas maestras de la app: [{table, field, expr}]. */
+    private List<Map<String, Object>> calculatedMasters(String appId) {
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        for (Map<String, Object> m : masters.list(appId, "dimension")) {
+            if (m.get("resolved") instanceof Map<?, ?> r && r.get("expr") != null && r.get("table") != null && r.get("field") != null) {
+                out.add(Map.of("table", String.valueOf(r.get("table")), "field", String.valueOf(r.get("field")), "expr", String.valueOf(r.get("expr"))));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Añade a cada tabla las columnas de las dimensiones calculadas: las maestras (así sus valores se pueden
+     * seleccionar y filtrar desde cualquier objeto) y la de la propia consulta si viene con {@code expr}.
+     */
+    private void addCalculated(String appId, Map<String, DataFrame> loaded, QuerySpec spec) {
+        List<Map<String, Object>> calc = new java.util.ArrayList<>(calculatedMasters(appId));
+        if (spec.dimension() != null && spec.dimension().expr() != null && !spec.dimension().expr().isBlank())
+            calc.add(Map.of("table", spec.dimension().table(), "field", spec.dimension().field(), "expr", spec.dimension().expr()));
+        for (Map<String, Object> c : calc) {
+            String t = (String) c.get("table");
+            DataFrame df = loaded.get(t);
+            if (df == null) continue;
+            try { loaded.put(t, io.datasense.engine.Expressions.withCalculated(df, (String) c.get("field"), (String) c.get("expr"))); }
+            catch (RuntimeException ignored) { /* expresión inválida: la dimensión queda vacía, no rompe la hoja */ }
+        }
     }
 
     /**
@@ -114,6 +145,23 @@ public class QueryController {
         apps.getApp(appId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "App no encontrada: " + appId));
         String field = String.valueOf(body.get("field"));
+        // ¿Es una dimensión calculada (maestra, o enviada con su expresión)? Se calcula y se devuelven sus valores.
+        Map<String, Object> calc = null;
+        for (Map<String, Object> c : calculatedMasters(appId)) if (field.equals(c.get("field"))) { calc = c; break; }
+        if (calc == null && body.get("expr") != null && body.get("table") != null)
+            calc = Map.of("table", String.valueOf(body.get("table")), "field", field, "expr", String.valueOf(body.get("expr")));
+        if (calc != null) {
+            for (Map<String, Object> row : tables.listTables(appId)) {
+                if (!calc.get("table").equals(row.get("name"))) continue;
+                try {
+                    DataFrame df = io.datasense.engine.Expressions.withCalculated(store.load(appId, (String) row.get("id")), field, (String) calc.get("expr"));
+                    List<String> distinct = df.columnValues(field).stream().filter(v -> v != null && !v.isBlank()).distinct().toList();
+                    return Map.of("field", field, "values", distinct.stream().map(v -> Map.of("value", v, "state", "optional")).toList());
+                } catch (RuntimeException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dimensión calculada no válida: " + e.getMessage());
+                }
+            }
+        }
         for (Map<String, Object> row : tables.listTables(appId)) {
             String tableId = (String) row.get("id");
             DataFrame df = store.load(appId, tableId);

@@ -47,7 +47,10 @@ export function buildQuery(def, props, resolve, selections) {
     .filter(Boolean);
   if (!measures.length) return null;
   const spec = { measures, chart_type: def.type, selections: mergeSelections(selections, props.filters) };
-  if (def.roles.dims.max > 0 && dims[0]) spec.dimension = { table: dims[0].table, field: dims[0].field };
+  if (def.roles.dims.max > 0 && dims[0]) {
+    spec.dimension = { table: dims[0].table, field: dims[0].field };
+    if (dims[0].expr) spec.dimension.expr = dims[0].expr; // dimensión calculada: el motor la evalúa por fila
+  }
   return spec;
 }
 

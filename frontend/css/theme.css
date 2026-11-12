@@ -1274,3 +1274,19 @@ html[data-theme="dark"] .wf-field { color: #6ee7b7; }
 .vc-l.add { background: rgba(16, 185, 129, .16); color: #a7f3d0; }
 .vc-l.del { background: rgba(239, 68, 68, .16); color: #fecaca; }
 .vc-skip { padding: 4px 12px; color: #6b7aa5; background: rgba(255, 255, 255, .03); font-style: italic; }
+
+/* ======================= 32. Dimensión maestra calculada ======================= */
+.ho-seg { display: inline-flex; gap: 4px; padding: 3px; margin-bottom: 12px; border-radius: 10px; background: var(--ds-surface-2); border: 1px solid var(--ds-border); }
+.ho-seg-b { border: 0; background: none; padding: 6px 12px; border-radius: 8px; font: 600 12px inherit; color: var(--ds-muted); cursor: pointer; }
+.ho-seg-b { border: 0 !important; }
+.ho-seg-b.on { color: #fff !important; background: var(--ds-grad) !important; }
+.ho-calc-snips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+.ho-calc-snips .ho-chip { border: 1px dashed var(--ds-border-2); background: none; color: var(--ds-text); padding: 3px 9px; border-radius: 99px; font-size: 11.5px; cursor: pointer; }
+.ho-calc-snips .ho-chip:hover { border-color: var(--ds-a); background: var(--ds-accent-soft); }
+.ho-calc-prev { margin: 8px 0; min-height: 4px; }
+.ho-calc-ok { font-size: 12px; color: #059669; }
+html[data-theme="dark"] .ho-calc-ok { color: #6ee7b7; }
+.ho-calc-err { font-size: 12px; color: #e11d48; padding: 7px 10px; border-radius: 8px; background: rgba(244, 63, 94, .1); }
+.ho-calc-vals { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.ho-calc-vals span { font-size: 11.5px; padding: 2px 8px; border-radius: 7px; background: var(--ds-accent-soft); color: var(--ds-accent); }
+html[data-theme="dark"] .ho-calc-vals span { color: var(--ds-a-hi); }

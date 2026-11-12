@@ -49,7 +49,8 @@ public final class AppModels {
     public record VisibilityUpdate(String visibility) {}
 
     // ---- query ----
-    public record FieldRef(String table, String field) {}
+    /** Dimensión: campo físico, o dimensión calculada si trae {@code expr} (se evalúa por fila y se agrupa como {@code field}). */
+    public record FieldRef(String table, String field, String expr) {}
 
     public record MeasureSpec(String table, String field, String agg, String label) {}
 
