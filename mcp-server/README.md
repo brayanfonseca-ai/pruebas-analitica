@@ -105,13 +105,14 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (90 tools en total):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (93 tools en total):
 
 | Grupo | Tools |
 |---|---|
 | Catalogos | `list_chart_types`, `list_ml_algorithms` |
 | Conexiones por usuario (privadas; se comparten) | `update_connection`, `get_connection_share_targets`, `share_connection` (más `create_connection`, `test_connection` y `delete_connection`, que ahora son del usuario) |
 | Permisos por rol | `set_role_permissions`, `reset_role_permissions` |
+| Versiones del script | `set_script` (con `message`), `list_script_versions`, `get_script_version`, `restore_script_version` |
 | Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes` |
 | Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed` |
 | Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (mode + transform), `delete_connection` |

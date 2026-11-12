@@ -10,7 +10,9 @@
 // auto-generado, reconstruye desde los archivos subidos. "Ver una vista previa de
 // los datos" lista las tablas resultantes. Nada se calcula en JS.
 
-import { getScript, putScript, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnectionGlobal, loadConnection, aiModelar } from "./api.js";
+import { openWorkflow } from "./editor-workflow.js";
+import { openEnvSearch } from "./editor-search.js";
+import { getScript, putScript, listScriptVersions, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnectionGlobal, loadConnection, aiModelar } from "./api.js";
 import { openConnectionWizard, CONNECTORS } from "./connections.js";
 import { openDataSelector as openDataSelectorModal } from "./data-selector.js";
 import { mountEstrellita } from "./estrellita.js";
@@ -47,8 +49,8 @@ export async function render(mount, ctx) {
         <div class="ed-tb-left">
           <button class="ed-tb-btn" data-act="toggleSecciones" title="Mostrar/ocultar secciones">⊟ Secciones</button>
           <div class="ed-tb-sep"></div>
-          <button class="ed-tb-ico" data-act="find" title="Buscar (Ctrl+F)">🔍</button>
-          <button class="ed-tb-ico" data-act="comment" title="Comentar/descomentar">//</button>
+          <button class="ed-tb-ico" data-act="find" title="Buscar en todo el entorno: script, tablas, campos, notas, hojas y conexiones (Ctrl+F)">🔍</button>
+          <button class="ed-tb-ico" data-act="comment" title="Comentar/descomentar líneas (Ctrl+/): un campo comentado en un LOAD no se carga">//</button>
           <button class="ed-tb-ico" data-act="indent" title="Sangrar">⇥</button>
           <span class="ed-tb-title">Editor de carga · <span id="edActiveSec">Main</span></span>
         </div>
@@ -186,13 +188,56 @@ export async function render(mount, ctx) {
   });
 
   /* ---------------- Mini-toolbar ---------------- */
+  // Salta a una línea del script y la resalta un momento.
+  function jumpToLine(line) {
+    if (!cm) return;
+    cm.focus();
+    cm.setCursor({ line, ch: 0 });
+    cm.scrollIntoView({ line, ch: 0 }, 120);
+    const h = cm.addLineClass(line, "background", "ed-line-flash");
+    setTimeout(() => cm.removeLineClass(h, "background", "ed-line-flash"), 1800);
+  }
+
+  /** «//»: comenta o descomenta las líneas seleccionadas. Un campo comentado en un LOAD no se carga. */
+  function toggleComment() {
+    if (!cm || !canEdit) return;
+    const ranges = cm.listSelections();
+    let from = Infinity, to = -1;
+    for (const r of ranges) { from = Math.min(from, r.anchor.line, r.head.line); to = Math.max(to, r.anchor.line, r.head.line); }
+    const idx = []; for (let l = from; l <= to; l++) if (cm.getLine(l).trim()) idx.push(l);
+    if (!idx.length) return;
+    const allCommented = idx.every((l) => /^\s*\/\//.test(cm.getLine(l)) && !/^\s*\/\/\/\$tab/i.test(cm.getLine(l)));
+    cm.operation(() => {
+      for (const l of idx) {
+        const text = cm.getLine(l);
+        if (/^\s*\/\/\/\$tab/i.test(text)) continue; // las cabeceras de sección no se tocan
+        const lead = text.match(/^\s*/)[0].length;
+        if (allCommented) {
+          const m = text.slice(lead).match(/^\/\/\s?/);
+          cm.replaceRange("", { line: l, ch: lead }, { line: l, ch: lead + m[0].length });
+        } else cm.replaceRange("// ", { line: l, ch: lead });
+      }
+    });
+    status.textContent = allCommented ? "Líneas descomentadas: se volverán a cargar." : "Líneas comentadas: los campos comentados no se cargan. Guarda y pulsa Cargar datos.";
+    status.style.color = "";
+  }
+
   $(".ed-tb-left").addEventListener("click", (e) => {
     const act = e.target.closest("[data-act]")?.dataset.act;
-    if (!act || !cm) return;
-    if (act === "find") cm.execCommand("find");
-    if (act === "comment") cm.execCommand("toggleComment");
+    if (!act) return;
+    if (act === "toggleSecciones") return $("#edSections").classList.toggle("collapsed");
+    if (act === "find") {
+      const sel = cm ? cm.getSelection().trim() : "";
+      return openEnvSearch({ appId: ctx.appId, getCode, onJump: jumpToLine, initial: sel.length < 60 ? sel : "" });
+    }
+    if (!cm) return;
+    if (act === "comment") toggleComment();
     if (act === "indent") cm.execCommand("indentMore");
-    if (act === "toggleSecciones") $("#edSections").classList.toggle("collapsed");
+  });
+  if (cm) cm.setOption("extraKeys", {
+    "Ctrl-F": () => openEnvSearch({ appId: ctx.appId, getCode, onJump: jumpToLine, initial: cm.getSelection().trim().slice(0, 60) }),
+    "Ctrl-/": () => toggleComment(),
+    "Ctrl-S": () => { if (canEdit) saveScript(); },
   });
 
   /* ---------------- Guardar / Cargar / Vista previa / Historial ---------------- */
@@ -202,18 +247,42 @@ export async function render(mount, ctx) {
     if (!act) return;
     if (act === "save") return saveScript();
     if (act === "run") return runNow();
-    if (act === "preview") return preview();
+    if (act === "preview") return openWorkflow({ appId: ctx.appId, scriptText: getCode(), onJump: jumpToLine });
     if (act === "historial") return showHistory();
   });
 
+  /** Guardar script = nueva versión (control de versiones en Notas para agente). Pide una descripción del cambio. */
   async function saveScript() {
-    try {
-      const saved = await putScript(ctx.appId, getCode());
-      dirty = false;
-      genBadge.textContent = saved.is_custom ? "editado" : "auto-generado";
-      status.textContent = "Script guardado.";
-      status.style.color = "";
-    } catch (err) { status.textContent = "No se pudo guardar: " + err.message; status.style.color = "#c0392b"; }
+    let versions = [];
+    try { versions = await listScriptVersions(ctx.appId); } catch { /* sin historial todavía */ }
+    const head = versions[0];
+    const m = openModal(`<h3>Guardar script</h3>`, `
+      <div class="ed-save">
+        <div class="ed-save-line"><span class="ed-save-dot"></span><div><b>${head ? `Nueva versión v${head.version + 1}` : "Primera versión (v1)"}</b>
+          <small>${head ? `La v${head.version} (${esc(head.message)}) baja al historial y la nueva queda como principal. Nada se pierde.` : "Se guarda como la versión principal del script."}</small></div></div>
+        <label class="ed-field"><span>¿Qué cambiaste? <em>(como un mensaje de commit)</em></span>
+          <input id="edSaveMsg" maxlength="300" placeholder="${head ? "Ej.: Comento FECHA RETIRO y renombro CEDULA" : "Ej.: Versión inicial del script"}" /></label>
+        <p class="ed-muted">El historial se ve en <a href="notas.html?app=${encodeURIComponent(ctx.appId)}#versiones">Notas para agente → Versiones del script</a>, con el detalle de cada cambio y la opción de restaurar.</p>
+      </div>`,
+      `<button class="ho-btn" data-close>Cancelar</button><button class="ho-btn primary" id="edSaveOk">Guardar versión</button>`);
+    const inp = m.querySelector("#edSaveMsg");
+    inp.focus();
+    const go = async () => {
+      m.querySelector("#edSaveOk").disabled = true;
+      try {
+        const saved = await putScript(ctx.appId, getCode(), inp.value.trim());
+        dirty = false;
+        genBadge.textContent = `editado · v${saved.version}`;
+        status.textContent = saved.version_created ? `Guardado como v${saved.version}: ${saved.version_message}` : `Sin cambios: la v${saved.version} ya es igual.`;
+        status.style.color = "";
+        closeModal();
+      } catch (err) {
+        m.querySelector("#edSaveOk").disabled = false;
+        status.textContent = "No se pudo guardar: " + err.message; status.style.color = "#c0392b";
+      }
+    };
+    m.querySelector("#edSaveOk").addEventListener("click", go);
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
   }
 
   async function runNow() {
@@ -224,7 +293,11 @@ export async function render(mount, ctx) {
     try {
       if (dirty && canEdit) {
         prog.step("Guardando script…");
-        try { await putScript(ctx.appId, getCode()); dirty = false; genBadge.textContent = "editado"; } catch {}
+        try {
+          const sv = await putScript(ctx.appId, getCode(), "Guardado automático al cargar datos");
+          dirty = false; genBadge.textContent = `editado · v${sv.version}`;
+          if (sv.version_created) prog.step(`Script guardado como v${sv.version}.`);
+        } catch {}
       }
       prog.step("Ejecutando la carga en el motor…");
       const result = await runScript(ctx.appId);

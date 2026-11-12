@@ -129,8 +129,14 @@ export const getModel = (appId) => request(`/apps/${encodeURIComponent(appId)}/m
 
 /* ----------------------- Script (Editor de carga) ----------------------- */
 export const getScript = (appId) => request(`/apps/${encodeURIComponent(appId)}/script`);
-export const putScript = (appId, text) =>
-  request(`/apps/${encodeURIComponent(appId)}/script`, { method: "PUT", body: { text } });
+// Guarda el script; si cambió, crea una versión nueva (control de versiones) -> {version, version_created, version_message}
+export const putScript = (appId, text, message) =>
+  request(`/apps/${encodeURIComponent(appId)}/script`, { method: "PUT", body: message ? { text, message } : { text } });
+// Control de versiones del script: historial, una versión (texto + diff) y restaurar (crea versión nueva).
+export const listScriptVersions = (appId) => request(`/apps/${encodeURIComponent(appId)}/script/versions`);
+export const getScriptVersion = (appId, v) => request(`/apps/${encodeURIComponent(appId)}/script/versions/${encodeURIComponent(v)}`);
+export const restoreScriptVersion = (appId, v) =>
+  request(`/apps/${encodeURIComponent(appId)}/script/versions/${encodeURIComponent(v)}/restore`, { method: "POST" });
 export const runScript = (appId) =>
   request(`/apps/${encodeURIComponent(appId)}/script/run`, { method: "POST" });
 

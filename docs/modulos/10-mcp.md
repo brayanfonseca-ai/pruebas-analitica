@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **90 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **93 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -27,6 +27,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Colecciones | `list_collections`, `create_collection`, `delete_collection` |
 | Conexiones por usuario | `create_connection` / `test_connection` (ya sin `appId` obligatorio), `update_connection`, `delete_connection` (solo el dueño), `get_connection_share_targets`, `share_connection`. Ver [07](./07-conexiones.md) |
 | Permisos por rol | `set_role_permissions`, `reset_role_permissions`. Ver [12](./12-configuracion-seguridad.md) |
+| Versiones del script | `set_script` (con `message`), `list_script_versions`, `get_script_version`, `restore_script_version`. Ver [13](./13-notas-agente.md) |
 | Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes`. Ver [13](./13-notas-agente.md) |
 | Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed`. Ver [14](./14-embedding.md) |
 | Usuarios, permisos y etapas | `get_current_user`, `get_security_catalog`, `list_users`, `create_user`, `update_user`, `reset_user_password`, `delete_user`, `set_app_stage` (personal → desarrollo → produccion); `set_sheet_visibility` publica hojas. Ver [12](./12-configuracion-seguridad.md) |

@@ -10,7 +10,8 @@
  * segun .kiro/qa/mcp-plan.md. NO modifica el backend Java.
  */
 
-import { post, put, del, toToolText } from "../http-client.js";
+import { z } from "zod";
+import { get, post, put, del, toToolText } from "../http-client.js";
 import type { ContextTool } from "./context-tools.js";
 import {
   createAppShape,
@@ -71,12 +72,33 @@ export const actionTools: ContextTool[] = [
     name: "set_script",
     title: "Guardar script de carga",
     description:
-      "Guarda (reemplaza) el script de carga de una aplicacion. Devuelve {app_id, text, is_custom:true}. PUT /api/v1/apps/{appId}/script con {text}.",
-    inputShape: setScriptShape,
+      "Guarda el script de carga de una aplicacion con control de versiones: si el texto cambio respecto a la version principal se crea una version nueva (v1, v2…) y la anterior queda en el historial (list_script_versions). 'message' describe el cambio (como un commit). En las tablas cargadas por conexion, una linea de campo comentada con // en su LOAD hace que esa columna NO se cargue al ejecutar run_script. Devuelve {app_id, text, is_custom, version, version_created, version_message}. PUT /api/v1/apps/{appId}/script con {text, message?}.",
+    inputShape: { ...setScriptShape, message: z.string().optional().describe("Descripcion del cambio (como un mensaje de commit).") },
     handler: async (args) =>
       toToolText(
-        await put(`${appPath(args.appId)}/script`, { text: String(args.text) }),
+        await put(`${appPath(args.appId)}/script`, { text: String(args.text), ...(args.message ? { message: String(args.message) } : {}) }),
       ),
+  },
+  {
+    name: "list_script_versions",
+    title: "Historial de versiones del script",
+    description: "Versiones guardadas del script de carga (la primera es la principal/HEAD): [{version, message, author_name, created_at, lines, added, removed, is_head}]. GET /api/v1/apps/{appId}/script/versions.",
+    inputShape: { appId: z.string().min(1).describe("Identificador de la aplicacion (appId).") },
+    handler: async (args) => toToolText(await get(`${appPath(args.appId)}/script/versions`)),
+  },
+  {
+    name: "get_script_version",
+    title: "Ver una version del script",
+    description: "Texto completo de una version y su diff linea a linea contra la anterior ([{op:' '|'+'|'-', text}]). GET /api/v1/apps/{appId}/script/versions/{version}.",
+    inputShape: { appId: z.string().min(1).describe("Identificador de la aplicacion (appId)."), version: z.number().int().min(1).describe("Numero de version (1, 2, …).") },
+    handler: async (args) => toToolText(await get(`${appPath(args.appId)}/script/versions/${encodeURIComponent(String(args.version))}`)),
+  },
+  {
+    name: "restore_script_version",
+    title: "Restaurar una version del script",
+    description: "Vuelve a una version anterior SIN borrar historia: crea una version nueva con ese contenido y la deja como principal. Luego usa run_script para recargar. POST /api/v1/apps/{appId}/script/versions/{version}/restore.",
+    inputShape: { appId: z.string().min(1).describe("Identificador de la aplicacion (appId)."), version: z.number().int().min(1).describe("Version a restaurar.") },
+    handler: async (args) => toToolText(await post(`${appPath(args.appId)}/script/versions/${encodeURIComponent(String(args.version))}/restore`, {})),
   },
   {
     name: "run_script",

@@ -19,7 +19,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.datasense.repo.ScriptVersionRepository;
+
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,10 +45,12 @@ public class ScriptController {
     private final ConnectionRepository connections;
     private final ConnectionExecutors executors;
     private final JdbcTemplate jdbc;
+    private final ScriptVersionRepository versions;
 
     public ScriptController(AppRepository apps, TableRepository tables, TableStore store,
                             FieldOverrideRepository fieldOverrides, ConnectionRepository connections,
-                            ConnectionExecutors executors, JdbcTemplate jdbc) {
+                            ConnectionExecutors executors, JdbcTemplate jdbc, ScriptVersionRepository versions) {
+        this.versions = versions;
         this.apps = apps;
         this.tables = tables;
         this.store = store;
@@ -112,15 +117,124 @@ public class ScriptController {
         return Map.of("app_id", appId, "text", generated(appId), "is_custom", false);
     }
 
+    /**
+     * Guarda el script. Si cambió respecto a la versión principal, crea una versión nueva (control de versiones):
+     * body {text, message?}. Devuelve además {version, version_created, version_message}.
+     */
     @PutMapping("/script")
-    public Map<String, Object> put(@PathVariable String appId, @RequestBody Map<String, String> body) {
+    public Map<String, Object> put(@PathVariable String appId, @RequestBody Map<String, String> body,
+                                   jakarta.servlet.http.HttpServletRequest request) {
         requireApp(appId);
         String text = body.getOrDefault("text", "");
-        int n = jdbc.update("UPDATE scripts SET text = ?, updated_at = ? WHERE app_id = ?",
-                text, Ids.now(), appId);
-        if (n == 0) jdbc.update("INSERT INTO scripts (app_id, text, updated_at) VALUES (?, ?, ?)",
-                appId, text, Ids.now());
-        return Map.of("app_id", appId, "text", text, "is_custom", true);
+        io.datasense.auth.UserRecord user = io.datasense.auth.AccessService.current(request);
+        List<Map<String, Object>> cur = jdbc.queryForList("SELECT text FROM scripts WHERE app_id = ?", appId);
+        String previous = cur.isEmpty() ? null : String.valueOf(cur.get(0).get("text"));
+        writeScript(appId, text);
+        ScriptVersionRepository.Saved v = versions.record(appId, text, body.get("message"),
+                user == null ? null : user.id(), user == null ? null : user.name(), previous);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("app_id", appId);
+        out.put("text", text);
+        out.put("is_custom", true);
+        out.put("version", v.version());
+        out.put("version_created", v.created());
+        out.put("version_message", v.message());
+        return out;
+    }
+
+    private void writeScript(String appId, String text) {
+        int n = jdbc.update("UPDATE scripts SET text = ?, updated_at = ? WHERE app_id = ?", text, Ids.now(), appId);
+        if (n == 0) jdbc.update("INSERT INTO scripts (app_id, text, updated_at) VALUES (?, ?, ?)", appId, text, Ids.now());
+    }
+
+    /* ---------------- Control de versiones del script ---------------- */
+
+    /** Historial (la primera es la principal / HEAD). */
+    @GetMapping("/script/versions")
+    public List<Map<String, Object>> versions(@PathVariable String appId) {
+        requireApp(appId);
+        return versions.list(appId);
+    }
+
+    /** Una versión con su texto y el diff contra la anterior ({op, text} por línea). */
+    @GetMapping("/script/versions/{version}")
+    public Map<String, Object> version(@PathVariable String appId, @PathVariable int version) {
+        requireApp(appId);
+        Map<String, Object> v = versions.get(appId, version).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Versión no encontrada: v" + version));
+        String prev = versions.get(appId, version - 1).map(p -> String.valueOf(p.get("text"))).orElse("");
+        v.put("diff", ScriptVersionRepository.diff(prev, String.valueOf(v.get("text"))));
+        v.put("is_head", versions.latest(appId).map(h -> ((Number) h.get("version")).intValue() == version).orElse(false));
+        return v;
+    }
+
+    /** Restaura una versión: no borra nada, crea una versión nueva con ese contenido y la deja como principal. */
+    @PostMapping("/script/versions/{version}/restore")
+    public Map<String, Object> restore(@PathVariable String appId, @PathVariable int version,
+                                       jakarta.servlet.http.HttpServletRequest request) {
+        requireApp(appId);
+        Map<String, Object> v = versions.get(appId, version).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Versión no encontrada: v" + version));
+        String text = String.valueOf(v.get("text"));
+        io.datasense.auth.UserRecord user = io.datasense.auth.AccessService.current(request);
+        writeScript(appId, text);
+        ScriptVersionRepository.Saved s = versions.record(appId, text, "Restaurada desde v" + version,
+                user == null ? null : user.id(), user == null ? null : user.name(), null);
+        return Map.of("ok", true, "text", text, "version", s.version(), "version_created", s.created(), "restored_from", version);
+    }
+
+    /**
+     * Bloque de una tabla dentro del script completo: desde su cabecera {@code [nombre]:} hasta la siguiente
+     * cabecera, {@code LIB CONNECT} o {@code ///$tab}. null si la tabla no aparece (o su cabecera está comentada).
+     */
+    private static String blockFor(String script, String table) {
+        String[] lines = script.split("\\r?\\n");
+        java.util.regex.Pattern head = java.util.regex.Pattern.compile(
+                "^\\s*(?:\\[" + java.util.regex.Pattern.quote(table) + "\\]|" + java.util.regex.Pattern.quote(table) + ")\\s*:\\s*$",
+                java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Pattern other = java.util.regex.Pattern.compile("^\\s*(\\[[^\\]]+\\]\\s*:\\s*$|LIB\\s+CONNECT\\b|///\\$tab\\b)",
+                java.util.regex.Pattern.CASE_INSENSITIVE);
+        int start = -1;
+        for (int i = 0; i < lines.length; i++) if (head.matcher(lines[i]).matches()) { start = i; break; }
+        if (start < 0) return null;
+        StringBuilder sb = new StringBuilder(lines[start]).append('\n');
+        for (int i = start + 1; i < lines.length; i++) {
+            if (other.matcher(lines[i]).find()) break;
+            sb.append(lines[i]).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Aplica el script guardado a los parámetros de una tabla cargada por conexión: columnas comentadas con
+     * {@code //} (o quitadas del LOAD) no se cargan, renombres AS, WHERE y DISTINCT. Las columnas excluidas se
+     * conservan en el spec para poder volver a incluirlas descomentándolas. null si no hay nada que aplicar.
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> paramsFromScript(String script, String table, Map<String, Object> params, String appId, String tableId) {
+        if (script == null) return null;
+        String block = blockFor(script, table);
+        if (block == null) return null;
+        List<String> known = new ArrayList<>(io.datasense.engine.transform.DataTransform.from(params.get("transform")).sources());
+        if (known.isEmpty()) {
+            try { known.addAll(store.load(appId, tableId).columns()); } catch (Exception ignored) { /* sin datos previos */ }
+        }
+        // Columnas mencionadas en el bloque (también las comentadas) que aún no se conocían.
+        java.util.regex.Matcher fm = java.util.regex.Pattern.compile("^\\s*(?://\\s*)?\\[([^\\]]+)\\]").matcher("");
+        for (String line : block.split("\\r?\\n")) {
+            if (fm.reset(line).find() && !line.trim().endsWith(":") && !known.contains(fm.group(1))) known.add(fm.group(1));
+        }
+        // Si se comentó el ÚLTIMO campo («// [x];»), su «;» cerraba el LOAD: se conserva como terminador.
+        StringBuilder fixed = new StringBuilder();
+        for (String line : block.split("\\r?\\n")) {
+            String t = line.trim();
+            if (t.startsWith("//") && !t.startsWith("///") && t.endsWith(";")) fixed.append(line).append("\n;\n");
+            else fixed.append(line).append('\n');
+        }
+        var parsed = io.datasense.engine.transform.DataTransform.parseBlock(fixed.toString(), known);
+        Map<String, Object> out = new LinkedHashMap<>(params);
+        out.put("transform", parsed.spec().toMap());
+        return out;
     }
 
     @SuppressWarnings("unchecked")
@@ -132,6 +246,8 @@ public class ScriptController {
         List<Map<String, Object>> summary = new ArrayList<>();
         log.add("Reconstruyendo el modelo desde las tablas cargadas…");
         Map<String, Map<String, Object>> sources = connections.tableSources(appId);
+        List<Map<String, Object>> saved = jdbc.queryForList("SELECT text FROM scripts WHERE app_id = ?", appId);
+        String script = saved.isEmpty() ? null : String.valueOf(saved.get(0).get("text"));
         int total = 0;
         for (Map<String, Object> row : tables.listTables(appId)) {
             String name = (String) row.get("name");
@@ -150,8 +266,24 @@ public class ScriptController {
                     log.add("ADVERTENCIA: la conexión '" + connName + "' ya no existe; " + name + " conserva los datos de la última carga.");
                 } else {
                     log.add("LIB CONNECT TO '" + connName + "' → extrayendo " + name + "…");
+                    Map<String, Object> params = (Map<String, Object>) src.get("params");
+                    Map<String, Object> fromScript = null;
                     try {
-                        var res = io.datasense.engine.connect.Extraction.load(exec, (Map<String, Object>) conn.get().get("config"), (Map<String, Object>) src.get("params"));
+                        fromScript = paramsFromScript(script, name, params, appId, tableId);
+                    } catch (IllegalArgumentException e) {
+                        log.add("ADVERTENCIA: el bloque de " + name + " en el script no se pudo interpretar (" + e.getMessage()
+                                + "); se usan los parámetros de la última carga.");
+                    }
+                    if (fromScript != null) {
+                        params = fromScript;
+                        long off = ((List<Map<String, Object>>) ((Map<String, Object>) params.get("transform")).getOrDefault("columns", List.of()))
+                                .stream().filter(c -> Boolean.FALSE.equals(c.get("include"))).count();
+                        if (off > 0) log.add("  · " + name + ": " + off + " columna(s) comentada(s) o quitada(s) en el script no se cargan.");
+                    }
+                    try {
+                        var res = io.datasense.engine.connect.Extraction.load(exec, (Map<String, Object>) conn.get().get("config"), params);
+                        if (fromScript != null) connections.saveTableSource(tableId, appId, (String) src.get("conn_id"), connName,
+                                (String) src.get("connector"), params);
                         DataFrame fresh = res == null ? null : res.df();
                         if (res != null) res.warnings().forEach(w -> log.add("  · " + name + ": " + w));
                         if (fresh != null && !fresh.columns().isEmpty()) {

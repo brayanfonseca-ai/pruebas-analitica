@@ -60,7 +60,9 @@ async function openApp(app) {
     st.data = await api.getNotes(app.id);
     if (st.data.tables.length === 1) st.open.add(st.data.tables[0].name);
   } catch (e) { toast(e.message, "err"); st.data = null; }
+  await loadVersions();
   st.loading = false; render();
+  if (location.hash === "#versiones") setTimeout(() => main.querySelector("#ntVersions")?.scrollIntoView({ behavior: "smooth" }), 80);
 }
 
 async function backToApps() {
@@ -212,7 +214,76 @@ function editView() {
       <button type="button" class="q-btn" id="ntToggle">${st.open.size ? "Contraer todo" : "Expandir todo"}</button>
     </div>
     ${d.tables.map(tableSection).join("")}
-    <p class="cfg-hint">Los <strong>cruces sugeridos</strong> salen de columnas con el mismo nombre en otras tablas. Las notas se guardan por aplicación y las leen el asistente de IA y los agentes MCP (<code>get_agent_context</code>).</p>`}`;
+    <p class="cfg-hint">Los <strong>cruces sugeridos</strong> salen de columnas con el mismo nombre en otras tablas. Las notas se guardan por aplicación y las leen el asistente de IA y los agentes MCP (<code>get_agent_context</code>).</p>`}
+    ${versionsView()}`;
+}
+
+/* =======================  VERSIONES DEL SCRIPT (control de versiones)  ======================= */
+async function loadVersions() {
+  st.versions = null; st.verDetail = null;
+  if (!authService.can("data:import")) return;
+  try { st.versions = await api.listScriptVersions(st.app.id); } catch { st.versions = null; }
+}
+
+function versionsView() {
+  if (!st.versions) return "";
+  const v = st.versions;
+  const head = v[0];
+  return `<section class="vc" id="ntVersions">
+    <div class="vc-head"><div><h2>${svg("script")} Versiones del script de carga</h2>
+      <p>Cada vez que guardas el script con cambios se crea una versión nueva: queda como <b>principal</b> y la anterior baja al historial. Nada se borra; restaurar crea otra versión.</p></div>
+      <a class="q-btn" href="app.html?app=${encodeURIComponent(st.app.id)}#editor">Abrir el editor de carga</a></div>
+    ${v.length ? `<ol class="vc-line">${v.map((x) => `
+      <li class="vc-item ${x.is_head ? "head" : ""} ${st.verDetail?.version === x.version ? "open" : ""}" data-v="${x.version}">
+        <span class="vc-dot"></span>
+        <div class="vc-card">
+          <div class="vc-top"><span class="vc-tag">v${x.version}</span>${x.is_head ? `<span class="vc-head-tag">PRINCIPAL</span>` : ""}
+            <b class="vc-msg">${esc(x.message)}</b>
+            <span class="vc-diffc"><em class="add">+${x.added}</em><em class="del">−${x.removed}</em></span></div>
+          <small>${esc(x.author_name || "—")} · ${esc(fmtDate(x.created_at))} · ${x.lines} líneas</small>
+          <div class="vc-acts">
+            <button type="button" class="q-btn sm2" data-vact="view">${st.verDetail?.version === x.version ? "Ocultar cambios" : "Ver cambios"}</button>
+            ${x.is_head ? "" : `<button type="button" class="q-btn sm2" data-vact="restore" ${authService.can("data:import") ? "" : "disabled"}>Restaurar esta versión</button>`}
+          </div>
+          ${st.verDetail?.version === x.version ? diffView(st.verDetail) : ""}
+        </div></li>`).join("")}</ol>`
+      : `<div class="cfg-card cn-empty"><p>Aún no hay versiones. Se crea la primera al pulsar <b>Guardar script</b> en el editor de carga.</p></div>`}
+    ${head ? `<p class="cfg-hint">Versión principal: <b>v${head.version}</b> · ${v.length} ${v.length === 1 ? "versión" : "versiones"} en total.</p>` : ""}
+  </section>`;
+}
+
+function diffView(d) {
+  const ops = d.diff || [];
+  const changed = ops.some((o) => o.op !== " ");
+  // Contexto compacto: muestra cambios con 2 líneas alrededor; el resto se pliega.
+  const keep = new Array(ops.length).fill(false);
+  ops.forEach((o, i) => { if (o.op !== " ") for (let k = Math.max(0, i - 2); k <= Math.min(ops.length - 1, i + 2); k++) keep[k] = true; });
+  let html = "", skipped = 0, ln = 0;
+  ops.forEach((o, i) => {
+    if (o.op !== "-") ln++;
+    if (changed && !keep[i]) { skipped++; return; }
+    if (skipped) { html += `<div class="vc-skip">··· ${skipped} línea${skipped === 1 ? "" : "s"} sin cambios</div>`; skipped = 0; }
+    html += `<div class="vc-l ${o.op === "+" ? "add" : o.op === "-" ? "del" : ""}"><span class="vc-n">${o.op === "-" ? "" : ln}</span><span class="vc-op">${o.op === " " ? "" : o.op}</span><code>${esc(o.text) || "&nbsp;"}</code></div>`;
+  });
+  if (skipped) html += `<div class="vc-skip">··· ${skipped} línea${skipped === 1 ? "" : "s"} sin cambios</div>`;
+  return `<div class="vc-diff">${d.version === 1 && !changed ? "" : ""}${html || `<div class="vc-skip">Sin cambios respecto a la versión anterior.</div>`}</div>`;
+}
+
+async function versionAction(version, act) {
+  if (act === "view") {
+    if (st.verDetail?.version === version) { st.verDetail = null; render(); return; }
+    try { st.verDetail = await api.getScriptVersion(st.app.id, version); render(); } catch (e) { toast(e.message, "err"); }
+    return;
+  }
+  if (act === "restore") {
+    const ok = await confirmBox({ title: `Restaurar v${version}`, message: `Se creará una versión nueva con el contenido de <b>v${version}</b> y quedará como principal. La versión actual se conserva en el historial. Después pulsa <b>Cargar datos</b> en el editor para aplicarla.`, okLabel: "Restaurar" });
+    if (!ok) return;
+    try {
+      const r = await api.restoreScriptVersion(st.app.id, version);
+      toast(r.version_created ? `Restaurada: ahora la principal es v${r.version}.` : "Esa versión ya era igual a la principal.");
+      await loadVersions(); render();
+    } catch (e) { toast(e.message, "err"); }
+  }
 }
 
 /* ----------------------- Eventos ----------------------- */
@@ -235,6 +306,8 @@ function wire() {
   main.querySelectorAll("[data-app]").forEach((b) => b.addEventListener("click", () => openApp(st.apps.find((a) => a.id === b.dataset.app))));
   const back = main.querySelector("#ntBack");
   if (back) back.addEventListener("click", backToApps);
+  main.querySelectorAll(".vc-item [data-vact]").forEach((b) => b.addEventListener("click", () =>
+    versionAction(Number(b.closest(".vc-item").dataset.v), b.dataset.vact)));
   if (st.view !== "edit" || !st.data) return;
 
   const save_ = main.querySelector("#ntSave");

@@ -26,3 +26,13 @@ Edición del **script de carga** estilo Qlik y subida de archivos. Equivale al "
 `frontend/js/app-editor.js`, `frontend/css/editor.css`,
 `backend: web/ScriptController.java`, `web/DataController.java`,
 `engine/Profiler.java`, `engine/TableReader.java`, `engine/TableStore.java`.
+
+
+## Herramientas de la barra (actualización)
+
+- **Scroll**: el script ocupa el alto disponible y se desplaza dentro del editor (la rejilla usa `grid-template-rows: minmax(0, 1fr)`).
+- **🔍 Buscar en todo el entorno** (`Ctrl+F`, `js/editor-search.js`): busca una palabra, sin distinguir mayúsculas ni tildes y también parecidas («cedla» → «CEDULA»), en el script, tablas y campos del modelo, notas para agente, hojas y conexiones. Un resultado del script salta a la línea y la resalta.
+- **// Comentar** (`Ctrl+/`): comenta o descomenta las líneas seleccionadas. En las tablas cargadas por conexión, un campo comentado dentro de su `LOAD` **no se carga** al pulsar *Cargar datos*: `ScriptController.run` interpreta el bloque de cada tabla (`DataTransform.parseBlock`) y aplica columnas excluidas, renombres `AS`, `WHERE` y `DISTINCT`; las excluidas se conservan para volver a incluirlas al descomentarlas. Otros comentarios `//` son solo documentación.
+- **⇥ Sangrar**: igual que antes.
+- **Ver una vista previa de los datos** (`js/editor-workflow.js`): abre el **Flujo de datos**, un workflow de 5 etapas conectadas (Fuente → Extracción → Transformación → Modelo → Asociaciones) con indicadores, recorrido resaltado al pasar el cursor y, al hacer clic en una tabla, sus campos (los comentados tachados) y una muestra real de datos; «Ir al bloque en el script» salta a su `LOAD`.
+- **Guardar script** (`Ctrl+S`): pide una descripción del cambio y crea una **versión** nueva (ver [13 · Versiones del script](./13-notas-agente.md)).

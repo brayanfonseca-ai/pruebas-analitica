@@ -127,6 +127,19 @@ public class DatabaseConfig {
                     updated_at TEXT NOT NULL,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
+            // Control de versiones del script de carga (cada «Guardar script» con cambios = una versión nueva).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS script_versions (
+                    app_id TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    text TEXT NOT NULL,
+                    message TEXT NOT NULL DEFAULT '',
+                    author_id TEXT,
+                    author_name TEXT,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (app_id, version),
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS associations (
                     id TEXT PRIMARY KEY,

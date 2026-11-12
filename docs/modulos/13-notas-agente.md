@@ -19,3 +19,15 @@ Al cargar datos en una aplicación, **Notas para agente** lista sus tablas y col
 - `AiController` añade `contextFor(appId)` al *system prompt* cuando la petición trae `appId` y el usuario ve esa app.
 - API (`/api/v1/apps/{appId}/notes`): `GET`, `PUT {app_text?, tables:[{name, description?, grain?, columns:[{name, description?, semantic?, synonyms?, joins?}]}]}`, `GET /context`, `POST /suggest {table?}` (no guarda).
 - MCP: `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes`.
+
+
+## Versiones del script de carga (control de versiones)
+
+Al final de cada app en **Notas para agente** está la línea de tiempo **Versiones del script de carga**, al estilo git:
+- Cada **Guardar script** con cambios crea una versión nueva (v1, v2, …) con su mensaje («¿Qué cambiaste?»), autor y fecha; queda como **PRINCIPAL** y la anterior baja al historial. Guardar sin cambios no crea versión. Pulsar *Cargar datos* con cambios sin guardar también crea una («Guardado automático al cargar datos»).
+- **Ver cambios**: diff línea a línea contra la versión anterior (verde = añadido, rojo = quitado; las líneas sin cambios se pliegan).
+- **Restaurar esta versión**: no reescribe la historia; crea una versión nueva con ese contenido y la deja como principal.
+- Si la app ya tenía un script guardado antes de existir el control de versiones, ese contenido se conserva como v1.
+- Tabla `script_versions (app_id, version, text, message, author_id, author_name, created_at)`; `ScriptVersionRepository` (diff LCS).
+- API (`data:import`): `PUT /apps/{id}/script {text, message?}` → `{version, version_created, version_message}`; `GET /apps/{id}/script/versions`; `GET /apps/{id}/script/versions/{v}` (texto + `diff`); `POST /apps/{id}/script/versions/{v}/restore`.
+- MCP: `set_script` (con `message`), `list_script_versions`, `get_script_version`, `restore_script_version`.
