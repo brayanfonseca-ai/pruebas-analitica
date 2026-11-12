@@ -27,7 +27,7 @@ const STAGES = [
 
 const main = document.getElementById("main");
 const isAdmin = () => authService.can("users:manage");
-const st = { tab: "usuarios", catalog: null, users: [], apps: [], q: "", roleFilter: "", expanded: new Set(), sheets: {} };
+const st = { roleDraft: {}, tab: "usuarios", catalog: null, users: [], apps: [], q: "", roleFilter: "", expanded: new Set(), sheets: {} };
 
 /* ----------------------- Avisos ----------------------- */
 function toast(msg, kind = "ok") {
@@ -274,20 +274,62 @@ function deleteModal(user) {
 }
 
 /* =======================  ROLES Y PERMISOS  ======================= */
+// Borrador de la matriz: rol -> Set de permisos marcados (solo roles editables).
+const draftOf = (r) => (st.roleDraft[r.id] ||= new Set(r.permissions));
+const sameSet = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
+const roleDirty = (r) => r.editable && st.roleDraft[r.id] && !sameSet(st.roleDraft[r.id], new Set(r.permissions));
+
 function rolesView() {
   const roles = st.catalog.roles;
   const groups = [...new Set(st.catalog.permissions.map((p) => p.group))];
+  const cell = (r, p) => {
+    if (!r.editable) return `<td class="c"><span class="cfg-ok" title="El administrador siempre tiene todos los permisos" aria-label="Sí">✓</span></td>`;
+    const on = draftOf(r).has(p.id);
+    const locked = p.id === "dashboard:view"; // todo rol debe poder ver tableros publicados
+    return `<td class="c"><input type="checkbox" class="cfg-perm" data-role="${esc(r.id)}" data-perm="${esc(p.id)}" ${on ? "checked" : ""} ${locked ? "disabled" : ""}
+      aria-label="${esc(p.label)} para ${esc(r.label)}" /></td>`;
+  };
   return `
     <div class="cfg-roles">${roles.map((r) => `<div class="cfg-role-card ${esc(r.id)}"><span class="cfg-role ${esc(r.id)}">${esc(r.label)}</span><p>${esc(r.description)}</p>
-      <small>${r.permissions.length} de ${st.catalog.permissions.length} permisos · ${st.users.filter((u) => u.role === r.id).length} usuarios</small></div>`).join("")}</div>
+      <small>${draftOf(r).size} de ${st.catalog.permissions.length} permisos · ${st.users.filter((u) => u.role === r.id).length} usuarios${r.customized ? " · <b>personalizado</b>" : ""}</small></div>`).join("")}</div>
+    <div class="cfg-callout">Marca o desmarca lo que puede hacer cada rol y pulsa <strong>Guardar</strong>: se aplica al instante a todas las personas con ese rol
+      (quien ya tenga la sesión abierta lo recibe en unos segundos). El rol Administrador siempre tiene todo.</div>
     <div class="cfg-card"><table class="cfg-table cfg-matrix">
       <thead><tr><th>Permiso</th>${roles.map((r) => `<th class="c">${esc(r.label)}</th>`).join("")}</tr></thead>
       <tbody>${groups.map((g) => `<tr class="grp"><td colspan="${roles.length + 1}">${esc(g)}</td></tr>` +
         st.catalog.permissions.filter((p) => p.group === g).map((p) => `<tr><td><strong>${esc(p.label)}</strong><small>${esc(p.description)}</small></td>
-          ${roles.map((r) => `<td class="c">${r.permissions.includes(p.id) ? '<span class="cfg-ok" aria-label="Sí">✓</span>' : '<span class="cfg-no" aria-label="No">—</span>'}</td>`).join("")}</tr>`).join("")).join("")}
-      </tbody></table></div>
+          ${roles.map((r) => cell(r, p)).join("")}</tr>`).join("")).join("")}
+      </tbody>
+      <tfoot><tr><td></td>${roles.map((r) => r.editable ? `<td class="c cfg-role-actions">
+        <button type="button" class="q-btn primary sm" data-save-role="${esc(r.id)}" ${roleDirty(r) ? "" : "disabled"}>Guardar</button>
+        <button type="button" class="q-btn sm" data-reset-role="${esc(r.id)}" ${r.customized || roleDirty(r) ? "" : "disabled"} title="Volver a los permisos de fábrica">Restablecer</button></td>` : "<td></td>").join("")}</tr></tfoot>
+      </table></div>
     <p class="cfg-hint">Los roles son la base. En <strong>Usuarios</strong> puedes conceder o quitar permisos sueltos a una persona sin cambiarle el rol.</p>`;
 }
+
+async function saveRole(roleId) {
+  const r = st.catalog.roles.find((x) => x.id === roleId);
+  try {
+    await api.setRolePermissions(roleId, [...draftOf(r)]);
+    toast(`Permisos del rol ${r.label} guardados.`);
+    delete st.roleDraft[roleId];
+    st.catalog = await api.authCatalog();
+    await refreshUsers();
+    render();
+  } catch (e) { toast(e.message, "err"); }
+}
+async function resetRole(roleId) {
+  const r = st.catalog.roles.find((x) => x.id === roleId);
+  try {
+    await api.resetRolePermissions(roleId);
+    toast(`El rol ${r.label} volvió a sus permisos de fábrica.`);
+    delete st.roleDraft[roleId];
+    st.catalog = await api.authCatalog();
+    await refreshUsers();
+    render();
+  } catch (e) { toast(e.message, "err"); }
+}
+async function refreshUsers() { try { st.users = await api.listUsers(); } catch { /* sin cambios */ } }
 
 /* =======================  ETAPAS Y PUBLICACIÓN  ======================= */
 function stagesView() {
@@ -354,6 +396,15 @@ function wire() {
   main.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { st.tab = b.dataset.tab; history.replaceState(null, "", `?tab=${st.tab}`); render(); }));
 
   main.querySelector("#cfgNewUser")?.addEventListener("click", () => userModal(null));
+  // Roles y permisos (matriz editable)
+  main.querySelectorAll("input.cfg-perm").forEach((cb) => cb.addEventListener("change", () => {
+    const r = st.catalog.roles.find((x) => x.id === cb.dataset.role);
+    const d = draftOf(r);
+    if (cb.checked) d.add(cb.dataset.perm); else d.delete(cb.dataset.perm);
+    render();
+  }));
+  main.querySelectorAll("[data-save-role]").forEach((b) => b.addEventListener("click", () => saveRole(b.dataset.saveRole)));
+  main.querySelectorAll("[data-reset-role]").forEach((b) => b.addEventListener("click", () => resetRole(b.dataset.resetRole)));
   main.querySelector("#cfgQ")?.addEventListener("input", (e) => {
     st.q = e.target.value; const pos = e.target.selectionStart; render();
     const i = main.querySelector("#cfgQ"); i.focus(); i.setSelectionRange(pos, pos);

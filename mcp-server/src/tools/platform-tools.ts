@@ -266,6 +266,22 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await put(`/api/v1/connections/${E(a.connId)}/shares`, { user_ids: a.userIds })),
   },
 
+  /* ============================ Permisos por rol ============================ */
+  {
+    name: "set_role_permissions",
+    title: "Permisos de un rol",
+    description: "Fija los permisos que trae un rol (editor = Desarrollador, viewer = Visualizador; el admin siempre tiene todo). Se aplica al instante a todas las personas con ese rol; los permisos sueltos por usuario siguen encima. 'permissions' debe incluir dashboard:view. Ids validos en el catalogo de roles y permisos (GET /api/v1/auth/catalog) (ej. apps:publish, charts:edit, embed:manage). Requiere users:manage. PUT /api/v1/users/roles/{role} con {permissions}.",
+    inputShape: { role: id("editor | viewer."), permissions: z.array(z.string()).describe("Lista completa de permisos del rol.") },
+    handler: async (a) => toToolText(await put(`/api/v1/users/roles/${E(a.role)}`, { permissions: a.permissions })),
+  },
+  {
+    name: "reset_role_permissions",
+    title: "Restablecer permisos de un rol",
+    description: "Devuelve un rol (editor | viewer) a sus permisos de fabrica. DELETE /api/v1/users/roles/{role}.",
+    inputShape: { role: id("editor | viewer.") },
+    handler: async (a) => toToolText(await del(`/api/v1/users/roles/${E(a.role)}`)),
+  },
+
   /* ============================ Notas para el agente (diccionario de datos) ============================ */
   {
     name: "get_data_notes",

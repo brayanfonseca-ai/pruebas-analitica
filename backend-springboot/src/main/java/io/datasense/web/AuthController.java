@@ -88,7 +88,10 @@ public class AuthController {
             m.put("id", r.id());
             m.put("label", r.label());
             m.put("description", r.description());
-            m.put("permissions", r.permissions());
+            m.put("permissions", Permissions.roleDefaults(r.id()));
+            m.put("factory", Permissions.factoryDefaults(r.id()));
+            m.put("customized", Permissions.isCustomized(r.id()));
+            m.put("editable", !"admin".equals(r.id()));
             return m;
         }).toList();
         List<Map<String, Object>> perms = Permissions.CATALOG.stream().map(d -> {

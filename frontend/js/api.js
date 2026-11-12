@@ -75,6 +75,9 @@ export const apiLogin = (email, password) => request("/auth/login", { method: "P
 export const apiLogout = () => request("/auth/logout", { method: "POST" });
 export const authMe = () => request("/auth/me");
 export const authCatalog = () => request("/auth/catalog");
+// Permisos que trae cada rol (solo administradores): fijar / volver a los de fábrica.
+export const setRolePermissions = (role, permissions) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "PUT", body: { permissions } });
+export const resetRolePermissions = (role) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "DELETE" });
 export const changeMyPassword = (current, password) => request("/auth/password", { method: "PUT", body: { current, password } });
 export const listUsers = () => request("/users");
 export const createUser = (user) => request("/users", { method: "POST", body: user });

@@ -1131,3 +1131,10 @@ html[data-theme="dark"] .ds-card-pop button svg { color: var(--ds-a-hi); }
 .ds-card-pop button span { flex: 1; }
 .ds-card-pop button em { font-style: normal; font-size: .7rem; font-weight: 700; color: var(--ds-muted); }
 .ds-card-pop-sep { height: 1px; margin: 5px 6px; background: var(--ds-border); }
+
+/* ======================= 29. Roles y permisos editables ======================= */
+.cfg-matrix input.cfg-perm { width: 18px; height: 18px; cursor: pointer; }
+.cfg-matrix input.cfg-perm:disabled { opacity: .45; cursor: not-allowed; }
+.cfg-matrix tfoot td { padding: 12px 14px; border-top: 1px solid var(--ds-border); background: var(--ds-surface-2); }
+.cfg-role-actions { display: table-cell; }
+.cfg-role-actions .q-btn.sm { margin: 0 3px; }

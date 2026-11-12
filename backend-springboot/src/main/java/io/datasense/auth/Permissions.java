@@ -63,7 +63,26 @@ public final class Permissions {
     public static boolean validPermission(String p) { return CATALOG.stream().anyMatch(d -> d.id().equals(p)); }
     public static boolean validStage(String s) { return s != null && STAGES.contains(s); }
 
+    /** Permisos personalizados por el administrador para un rol (Configuración → Roles y permisos). */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Set<String>> OVERRIDES = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Fija (o, con null, quita) los permisos personalizados de un rol. El administrador no se puede cambiar. */
+    public static void setRoleOverride(String role, Collection<String> perms) {
+        if (!validRole(role) || "admin".equals(role)) return;
+        if (perms == null) OVERRIDES.remove(role); else OVERRIDES.put(role, new LinkedHashSet<>(perms));
+    }
+
+    public static boolean isCustomized(String role) { return OVERRIDES.containsKey(role); }
+
+    /** Permisos de fábrica del rol (sin personalizar). */
+    public static Set<String> factoryDefaults(String role) {
+        return ROLE_DEFS.stream().filter(r -> r.id().equals(role)).findFirst()
+                .map(r -> (Set<String>) new LinkedHashSet<>(r.permissions())).orElseGet(LinkedHashSet::new);
+    }
+
     public static Set<String> roleDefaults(String role) {
+        Set<String> custom = OVERRIDES.get(role);
+        if (custom != null) return new LinkedHashSet<>(custom);
         return ROLE_DEFS.stream().filter(r -> r.id().equals(role)).findFirst()
                 .map(r -> (Set<String>) new LinkedHashSet<>(r.permissions())).orElseGet(LinkedHashSet::new);
     }

@@ -97,3 +97,12 @@ esa contraseña, actualiza las variables en `mcp.json`.
 - Es seguridad de aplicación para uso local/equipo: no hay HTTPS, recuperación por correo ni doble factor.
 - Los experimentos de ML se filtran por permiso (`ml:run`), no por la etapa de su app.
 - Las notificaciones y la Configuración son para administradores.
+
+
+## Permisos de cada rol, editables por el administrador
+
+En **Configuración → Roles y permisos** la matriz es editable: el administrador marca o desmarca qué puede hacer el **Desarrollador** y el **Visualizador** (por ejemplo, quitarle o darle *Publicar*) y pulsa **Guardar**. Se aplica al instante a todas las personas con ese rol; **Restablecer** vuelve a los permisos de fábrica. Reglas: el Administrador siempre tiene todo y no se edita; todo rol conserva `dashboard:view`. Los permisos sueltos por usuario (Usuarios → editar) siguen aplicándose encima del rol.
+
+- Tabla `role_permissions (role, permissions)`; `Permissions.setRoleOverride/roleDefaults` aplican lo guardado.
+- API (`users:manage`): `PUT /api/v1/users/roles/{role}` `{permissions:[…]}` y `DELETE /api/v1/users/roles/{role}`; `GET /auth/catalog` devuelve por rol `permissions` (vigentes), `factory`, `customized` y `editable`.
+- MCP: `set_role_permissions`, `reset_role_permissions`.
