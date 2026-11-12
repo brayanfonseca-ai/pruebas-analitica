@@ -4,6 +4,7 @@
 import { renderNav, wireAppsButton, renderProfileMenu } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
 import { listApps, createApp, deleteApp } from "./api.js";
+import { appMenuBtn, registerApps, onAppsChanged } from "./app-menu.js";
 
 // Guard de sesión.
 if (!authService.isAuthenticated()) {
@@ -36,6 +37,7 @@ function appCardHtml(a) {
             <rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor" fill-opacity=".15"/><path d="M3 9h18M9 9v12"/>
           </svg>
         </span>
+        <span class="ds-head-btns">${appMenuBtn(a.id)}</span>
         ${authService.can("apps:delete") ? `<button class="q-create-add" title="Eliminar" data-del="${esc(a.id)}">✕</button>` : ""}
       </div>
       <h3 class="q-create-card-title" title="${esc(a.name)}">${esc(a.name)}</h3>
@@ -82,11 +84,14 @@ async function load() {
   grid.innerHTML = `<p style="color:var(--q-muted);">Cargando…</p>`;
   try {
     apps = await listApps();
+    registerApps(apps);
     render();
   } catch (err) {
     grid.innerHTML = `<p style="color:#c0392b;">Error al cargar aplicaciones: ${esc(err.message)}</p>`;
   }
 }
+
+onAppsChanged(() => load());
 
 /* ----------------------- Abrir / eliminar ----------------------- */
 grid.addEventListener("click", async (e) => {

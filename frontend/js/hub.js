@@ -405,14 +405,18 @@ async function mountThemes(main) {
 
 const STAGE_LABEL = { personal: "Personal", desarrollo: "Desarrollo", produccion: "Producción" };
 
+let analyzeMenuWired = false;
 async function mountAnalyzeApps(main) {
   const grid = main.querySelector("#appsGrid");
   if (!grid) return;
+  const menu = await import("./app-menu.js");
   grid.innerHTML = `<div class="q-muted" style="padding:16px">Cargando aplicaciones…</div>`;
   let apps = [];
   try {
     const api = await import("./api.js");
     apps = await api.listApps();
+    menu.registerApps(apps);
+    if (!analyzeMenuWired) { analyzeMenuWired = true; menu.onAppsChanged(() => mountAnalyzeApps(main)); }
   } catch (e) {
     grid.innerHTML = `<div class="q-muted" style="padding:16px">No se pudieron cargar las aplicaciones: ${esc(e.message)}</div>`;
     return;
@@ -427,6 +431,7 @@ async function mountAnalyzeApps(main) {
     }
     grid.innerHTML = list.map((a) => `
       <a class="q-app-card" href="app.html?app=${encodeURIComponent(a.id)}">
+        ${menu.appMenuBtn(a.id)}
         <div class="q-app-thumb">${icon("app")}</div>
         <div class="q-app-name">${esc(a.name)}</div>
         <div class="q-app-meta q-muted"><span class="ds-stage ${esc(a.stage)}"><span class="ds-stage-dot"></span>${esc(STAGE_LABEL[a.stage] || a.stage)}</span>

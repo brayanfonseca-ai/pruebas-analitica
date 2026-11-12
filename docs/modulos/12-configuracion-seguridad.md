@@ -31,7 +31,7 @@ usuario llega a **Mi cuenta** desde el menú de su perfil (avatar).
 | `connections:manage` Gestionar conexiones | ✓ | ✓ | |
 | `ml:run` Experimentos de ML | ✓ | ✓ | |
 | `apps:delete` Eliminar aplicaciones | ✓ | | |
-| `apps:publish` Publicar (Producción y hojas) | ✓ | | |
+| `apps:publish` Publicar (Producción y hojas) | ✓ | ✓ | |
 | `users:manage` Administrar usuarios | ✓ | | |
 | `embed:manage` Gestionar embedding (tokens para incrustar tableros) | ✓ | | |
 
@@ -53,6 +53,7 @@ sin cambiarle el rol.
 Pasar a/salir de Producción y publicar hojas exige `apps:publish`; modificar una app ya en Producción también.
 La etapa se cambia en la miga de la barra superior de la app, en el Catálogo/Analizar (se filtra por etapa) o
 en Configuración → Etapas; las hojas, en el menú «···» → *Publicar hoja*.
+El desarrollador también puede publicar. Para no hacerlo hoja por hoja, cada tarjeta de aplicación (Inicio, Catálogo, Analizar) tiene un menú «⋯» con **Publicar (app y todas sus hojas)**, accesos al Gestor de datos, Editor de carga, Modelo lógico, Informes, Notas para agente, nuevo experimento de ML, Conexiones y Embedding (cada opción solo aparece si hay permiso). Código: `frontend/js/app-menu.js`.
 
 ### Protecciones
 - Contraseñas de 8+ caracteres, guardadas con PBKDF2-HMAC-SHA256 y sal aleatoria (nunca en claro).

@@ -4,6 +4,7 @@
 import { renderNav, wireAppsButton, renderProfileMenu, svg } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
 import { listApps } from "./api.js";
+import { appMenuBtn, registerApps, onAppsChanged } from "./app-menu.js";
 
 // Guard de sesión: sin sesión válida -> login.
 if (!authService.isAuthenticated()) {
@@ -21,6 +22,7 @@ function fmtDate(iso) {
 function appCard(a) {
   return `
     <a class="q-home-card" href="app.html?app=${encodeURIComponent(a.id)}">
+      ${appMenuBtn(a.id)}
       <div class="q-home-thumb">${svg("analyze")}</div>
       <div class="q-home-body">
         <div class="q-home-name" title="${esc(a.name)}">${esc(a.name)}</div>
@@ -37,6 +39,7 @@ async function renderHome() {
   recent.innerHTML = explore.innerHTML = `<p class="q-muted" style="color:var(--q-muted);padding:8px">Cargando…</p>`;
   try {
     const apps = await listApps();
+    registerApps(apps);
     // "Recientes": las últimas por fecha de creación; "Explorar": el resto.
     const sorted = [...apps].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
     const recents = sorted.slice(0, 4);
@@ -67,4 +70,5 @@ renderNav("nav", { active: "inicio" });
 wireAppsButton();
 renderProfileMenu(authService);
 renderGreeting();
+onAppsChanged(renderHome);
 renderHome();

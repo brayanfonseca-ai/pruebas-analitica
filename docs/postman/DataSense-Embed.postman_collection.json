@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "DataSense · Embed (token de solo lectura)",
+    "description": "Extrae un tablero incrustado con el token del embed (Embedding → Código → Opción 3). Edita las variables de la colección: baseUrl, appId, sheetId y token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "appId", "value": "222566ee889f4370b2fe2033e8e36b24" },
+    { "key": "sheetId", "value": "" },
+    { "key": "token", "value": "dse_PEGA_AQUI_TU_TOKEN" }
+  ],
+  "item": [
+    {
+      "name": "1. Hoja incrustada (objetos, propiedades y diseño)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/apps/{{appId}}/sheets",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "apps", "{{appId}}", "sheets"]
+        }
+      }
+    },
+    {
+      "name": "2. Datos de la aplicación (solo lectura)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/apps/{{appId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "apps", "{{appId}}"]
+        }
+      }
+    },
+    {
+      "name": "3. Página incrustable (HTML, sin Authorization)",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/embed/{{token}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["embed", "{{token}}"]
+        }
+      }
+    }
+  ]
+}

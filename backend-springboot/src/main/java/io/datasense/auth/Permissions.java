@@ -49,8 +49,8 @@ public final class Permissions {
     public static final List<RoleDef> ROLE_DEFS = List.of(
             new RoleDef("admin", "Administrador", "Control total de la plataforma. No se le puede restringir.",
                     CATALOG.stream().map(Def::id).toList()),
-            new RoleDef("editor", "Desarrollador", "Construye aplicaciones, datos, hojas y modelos; no publica ni administra.",
-                    List.of(VIEW, AI, APPS_CREATE, EDIT, DATA, CONNECTIONS, ML)),
+            new RoleDef("editor", "Desarrollador", "Construye y publica aplicaciones, datos, hojas y modelos; no administra usuarios.",
+                    List.of(VIEW, AI, APPS_CREATE, EDIT, DATA, CONNECTIONS, ML, PUBLISH)),
             new RoleDef("viewer", "Visualizador", "Solo ve las aplicaciones en Producción y sus hojas publicadas.",
                     List.of(VIEW)));
 

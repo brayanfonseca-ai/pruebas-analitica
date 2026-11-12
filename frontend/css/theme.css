@@ -1094,3 +1094,40 @@ html[data-theme="dark"] .em-warn { color: #fcd34d; }
 .em-prev iframe { display: block; width: 100%; height: 420px; border: 0; }
 @media (max-width: 700px) { .em-row { grid-template-columns: 1fr; } }
 .cn-code pre { padding-top: 40px; }
+
+/* ======================= 28. Correcciones de layout y menú «⋯» de las tarjetas ======================= */
+/* Los iconos de ayuda, notificaciones, tema y cuenta siempre van pegados a la derecha de la barra superior. */
+.q-topbar .q-top-actions { margin-left: auto; flex: none; }
+
+/* Modales del editor: el cuerpo se desplaza cuando el contenido es más alto que la pantalla
+   (p. ej. el catálogo de conectores del asistente de conexiones). */
+.ed-modal { max-height: calc(100vh - 48px); }
+.ed-modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ed-modal-head, .ed-modal-foot { flex: none; }
+.cnh-modal { max-height: calc(100vh - 48px); }
+.cnh-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+
+/* Botón «⋯» de las tarjetas de aplicación */
+.q-home-card, .q-app-card { position: relative; }
+.ds-card-menu { position: absolute; top: 8px; right: 8px; z-index: 3; width: 30px; height: 30px; border-radius: 9px; border: 1px solid transparent; cursor: pointer;
+  display: grid; place-items: center; color: #fff; background: rgba(8, 12, 28, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .15s, background .15s; }
+.q-home-card:hover .ds-card-menu, .q-app-card:hover .ds-card-menu, .q-create-card:hover .ds-card-menu, .ds-card-menu:focus-visible, .ds-card-menu[aria-expanded="true"] { opacity: 1; }
+.ds-card-menu:hover { background: var(--ds-a); }
+.ds-card-menu svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+@media (hover: none) { .ds-card-menu { opacity: 1; } }
+.q-create-card .ds-card-menu { position: static; opacity: 1; color: var(--ds-muted); background: none; border: 0; width: 30px; height: 30px; }
+.q-create-card .ds-card-menu:hover { color: var(--ds-text); background: var(--ds-accent-soft); }
+.ds-head-btns { margin-left: auto; margin-right: 4px; display: inline-flex; }
+.q-create-card-head { display: flex; align-items: center; }
+
+.ds-card-pop { position: fixed; z-index: 9300; min-width: 250px; max-width: 320px; padding: 6px; border-radius: 14px; background: var(--ds-surface); border: 1px solid var(--ds-border-2);
+  box-shadow: 0 24px 50px -16px rgba(0, 0, 0, .55); animation: ds-pop .16s ease; }
+.ds-card-pop-h { padding: 8px 10px 6px; font-size: .74rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ds-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-card-pop button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px 10px; border: 0; border-radius: 9px; background: none; cursor: pointer; text-align: left; font: 600 .84rem inherit; color: var(--ds-text); }
+.ds-card-pop button:hover { background: var(--ds-accent-soft); }
+.ds-card-pop button svg { flex: none; width: 18px; height: 18px; color: var(--ds-accent); }
+html[data-theme="dark"] .ds-card-pop button svg { color: var(--ds-a-hi); }
+.ds-card-pop button span { flex: 1; }
+.ds-card-pop button em { font-style: normal; font-size: .7rem; font-weight: 700; color: var(--ds-muted); }
+.ds-card-pop-sep { height: 1px; margin: 5px 6px; background: var(--ds-border); }
