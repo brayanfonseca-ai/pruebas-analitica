@@ -2699,21 +2699,17 @@ export async function render(mount, ctx) {
   }
 
   function openEmbed() {
+    // Incrustar de verdad = un embed con token (módulo Embedding). Se abre con esta app y hoja ya elegidas.
     const s = st.sheet;
     if (!s) return;
-    const url = `${location.origin}${location.pathname}?app=${encodeURIComponent(ctx.appId)}#hoja`;
-    const code = `<iframe src="${url}" width="900" height="600" frameborder="0"></iframe>`;
-    openModalHtml(`
-      <div class="ho-modal-head"><h3>Incluir hoja</h3><button class="ho-x" data-close>✕</button></div>
-      <div class="ho-modal-body">
-        <p class="ho-p-hint">Copia este código para incrustar la hoja en otra página (la sesión del visor debe tener acceso a la app).</p>
-        <textarea class="ho-expr" id="embedCode" rows="3" readonly>${esc(code)}</textarea>
-      </div>
-      <div class="ho-modal-foot"><button class="ho-btn" data-close>Cerrar</button><button class="ho-btn primary" id="embedCopy">Copiar</button></div>`, "small");
-    modal.querySelector("#embedCopy").addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(code); status("Código de inclusión copiado."); closeModal(); }
-      catch { modal.querySelector("#embedCode").select(); }
-    });
+    if (ctx.can("embed:manage")) {
+      location.href = `embedding.html?new=1&app=${encodeURIComponent(ctx.appId)}&sheet=${encodeURIComponent(s.id)}`;
+      return;
+    }
+    openInfo("Incluir hoja", [
+      "Para mostrar esta hoja en otra página web se crea un embed (ID + token de solo lectura) en el módulo Embedding.",
+      "Tu usuario no tiene el permiso «Gestionar embedding»: pídele a un administrador que lo cree o que te dé el permiso.",
+    ]);
   }
 
   function openSheetConfig() {

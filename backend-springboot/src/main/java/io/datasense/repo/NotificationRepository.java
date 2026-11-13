@@ -42,8 +42,8 @@ public class NotificationRepository {
         SELECT 'master:' || m.id, 'master', m.name, a.name, m.app_id, m.id, m.kind, m.created_at
           FROM master_items m JOIN apps a ON a.id = m.app_id
         UNION ALL
-        SELECT 'connection:' || c.id, 'connection', c.name, a.name, c.app_id, c.id, c.connector, c.created_at
-          FROM connections c JOIN apps a ON a.id = c.app_id
+        SELECT 'connection:' || c.id, 'connection', c.name, COALESCE(u.name, ''), NULL, c.id, c.connector, c.created_at
+          FROM data_connections c LEFT JOIN users u ON u.id = c.owner_id
         UNION ALL
         SELECT 'experiment:' || e.id, 'experiment', e.name, a.name, e.app_id, e.id, e.table_ref, e.created_at
           FROM ml_experiments e JOIN apps a ON a.id = e.app_id
@@ -141,7 +141,7 @@ public class NotificationRepository {
             case "sheet" -> app + "&sheet=" + enc(refId) + "#hoja";
             case "collection" -> "/pages/hub.html?page=colecciones";
             case "master" -> app + "#logico";
-            case "connection" -> app + "#editor";
+            case "connection" -> "/pages/conexiones.html";
             case "experiment", "run" -> "/pages/experimento.html?id=" + enc(refId);
             default -> "/pages/inicio.html";
         };

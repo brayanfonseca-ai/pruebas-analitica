@@ -99,7 +99,7 @@ Módulo ES cargado en todas las páginas con barra superior.
 
 - **Menú plegable**: `data-side="collapsed"` en `<html>` (clave `ds.side`); 210 px → 68 px solo iconos, con tooltip.
 - **Centro de ayuda**: panel lateral que lee `frontend/help/ayuda.json` (secciones `inicio`, `manual`, `faq`, `atajos`). Para ampliar el manual basta editar ese JSON; el MCP (`get_help`) lo lee también. Se abre con el botón «?», `F1` o `?`.
-- **Notificaciones**: `NotificationRepository` **deriva** el feed de las tablas existentes (`apps`, `tables`, `app_sheets`, `collections`, `master_items`, `connections`, `ml_experiments`, `ml_runs`) por su `created_at`; solo se guarda el estado de lectura (`notification_state`, `notification_reads`). API: `GET /api/v1/notifications`, `POST /read-all`, `POST /{id}/read`, `POST /clear`. Solo el rol admin ve el contador y el feed; se refresca cada minuto y al volver a la pestaña.
+- **Notificaciones**: `NotificationRepository` **deriva** el feed de las tablas existentes (`apps`, `tables`, `app_sheets`, `collections`, `master_items`, `data_connections`, `ml_experiments`, `ml_runs`) por su `created_at`; solo se guarda el estado de lectura (`notification_state`, `notification_reads`). API: `GET /api/v1/notifications`, `POST /read-all`, `POST /{id}/read`, `POST /clear`. Solo el rol admin ve el contador y el feed; se refresca cada minuto y al volver a la pestaña.
 
 ### Identidad visual y temas (`frontend/css/theme.css` + `frontend/js/theme.js`)
 
@@ -150,7 +150,7 @@ contra el servidor en ejecución.
 ## Modelo de datos (SQLite)
 
 Tablas principales: `apps`, `tables`, `columns`, `app_sheets`, `collections`,
-`master_items`, `associations`, `connections`, `field_overrides`, `logical_model`.
+`master_items`, `associations`, `data_connections` + `connection_shares` (conexiones por usuario), `table_sources`, `field_overrides`, `logical_model`, `scripts` + `script_versions`, `app_notes`/`table_notes`/`column_notes`, `embeds`, `users`, `role_permissions`.
 Los **datos** de cada tabla no viven en SQLite sino como **CSV** por app/tabla
 (`TableStore`), para que el motor los lea y agregue.
 

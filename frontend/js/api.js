@@ -72,7 +72,6 @@ export const setAppStage = (appId, stage, ownerId) =>
 
 /* ----------------------- Sesión, usuarios y permisos ----------------------- */
 export const apiLogin = (email, password) => request("/auth/login", { method: "POST", body: { email, password } });
-export const apiLogout = () => request("/auth/logout", { method: "POST" });
 export const authMe = () => request("/auth/me");
 export const authCatalog = () => request("/auth/catalog");
 // Permisos que trae cada rol (solo administradores): fijar / volver a los de fábrica.
@@ -216,8 +215,6 @@ export const createConnection = (appId, conn) =>
   request(`/apps/${encodeURIComponent(appId)}/connections`, { method: "POST", body: conn });
 export const testConnection = (appId, conn) =>
   request(`/apps/${encodeURIComponent(appId)}/connections/test`, { method: "POST", body: conn });
-export const deleteConnection = (appId, connId) =>
-  request(`/apps/${encodeURIComponent(appId)}/connections/${encodeURIComponent(connId)}`, { method: "DELETE" });
 // Carga REAL desde una conexión existente: materializa una tabla del modelo
 // (mismo camino que subir un archivo). params opcional {tableName,table,query,key,object,limit}.
 // Responde {ok, message, table:{id,name,rows,fields}} o {ok:false, message:<error real>}.
@@ -281,11 +278,6 @@ export const addCalendarPeriod = (appId, p) => request(`${LM(appId)}/calendar-pe
 export const deleteCalendarPeriod = (appId, id) => request(`${LM(appId)}/calendar-periods/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 /* ----------------------- Laboratorio de ML ----------------------- */
-// Tablas con sus campos agrupados por rol (numéricos / categóricos / fechas).
-export const getMlDatasets = (appId) => request(`/apps/${encodeURIComponent(appId)}/ml/datasets`);
-// Ejecuta un algoritmo: { table, algorithm, params } -> resultado con métricas y datos de gráficos.
-export const runMl = (appId, payload) =>
-  request(`/apps/${encodeURIComponent(appId)}/ml/run`, { method: "POST", body: payload });
 
 /* ----------------------- Experimentos de ML (proceso independiente) ----------------------- */
 export const listExperiments = () => request("/ml/experiments");

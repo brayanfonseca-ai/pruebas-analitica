@@ -77,7 +77,8 @@ function body() {
 }
 
 /* ----------------------- Nuevo embed ----------------------- */
-async function newEmbed() {
+/** preset {appId, sheetId}: viene del menú «Incluir hoja» de una hoja. */
+async function newEmbed(preset = {}) {
   const apps = st.apps;
   if (!apps.length) { toast("Primero crea una aplicación.", "err"); return; }
   const m = modal({
@@ -118,12 +119,13 @@ async function newEmbed() {
     const sel = $("#nSheet"); sel.innerHTML = `<option>Cargando…</option>`;
     try {
       sheets = await api.listSheets($("#nApp").value);
-      sel.innerHTML = sheets.length ? sheets.map((s) => `<option value="${esc(s.id)}">${esc(s.title)}${s.visibility === "publica" ? " · publicada" : ""}</option>`).join("") : `<option value="">(la app no tiene hojas)</option>`;
+      sel.innerHTML = sheets.length ? sheets.map((s) => `<option value="${esc(s.id)}" ${s.id === preset.sheetId ? "selected" : ""}>${esc(s.title)}${s.visibility === "publica" ? " · publicada" : ""}</option>`).join("") : `<option value="">(la app no tiene hojas)</option>`;
     } catch (e) { sheets = []; sel.innerHTML = `<option value="">${esc(e.message)}</option>`; }
     warn();
   };
   $("#nApp").addEventListener("change", loadSheets);
   $("#nSheet").addEventListener("change", warn);
+  if (preset.appId && apps.some((a) => a.id === preset.appId)) $("#nApp").value = preset.appId;
   loadSheets();
   $("#nOk").addEventListener("click", async () => {
     const err = $("#nErr"); err.hidden = true;
@@ -250,7 +252,7 @@ function wire() {
   const q = main.querySelector("#emQ");
   if (q) q.addEventListener("input", () => { st.q = q.value; const p = q.selectionStart; render(); const n = main.querySelector("#emQ"); n.focus(); n.setSelectionRange(p, p); });
   main.querySelector("#emSt")?.addEventListener("change", (ev) => { st.status = ev.target.value; render(); });
-  main.querySelectorAll("#emNew, #emNew2").forEach((b) => b.addEventListener("click", newEmbed));
+  main.querySelectorAll("#emNew, #emNew2").forEach((b) => b.addEventListener("click", () => newEmbed()));
   main.querySelectorAll("tr[data-id] [data-act]").forEach((b) => b.addEventListener("click", () => {
     const e = st.embeds.find((x) => x.id === b.closest("tr").dataset.id); if (!e) return;
     if (b.dataset.act === "copy") copyText(e.token, "Token copiado.");
@@ -264,4 +266,10 @@ renderNav("nav", { active: "embedding" });
 wireAppsButton();
 renderProfileMenu(authService);
 render();
-load().then(() => { render(); const id = new URLSearchParams(location.search).get("open"); if (id) openDetail(id); });
+load().then(() => {
+  render();
+  const p = new URLSearchParams(location.search);
+  if (p.get("open")) openDetail(p.get("open"));
+  else if (p.get("new") === "1") newEmbed({ appId: p.get("app"), sheetId: p.get("sheet") });
+  if (p.has("new")) history.replaceState(null, "", location.pathname);
+});
