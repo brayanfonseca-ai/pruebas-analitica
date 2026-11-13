@@ -42,7 +42,11 @@ export function buildQuery(def, props, resolve, selections) {
   const measures = props.measures
     .map((m) => {
       const r = resolve(m);
-      return r ? { table: r.table, field: r.field, agg: r.agg || "sum", label: m.label || r.label || r.field } : null;
+      if (!r) return null;
+      const spec = { table: r.table, field: r.field, agg: r.agg || "sum", label: m.label || r.label || r.field };
+      // Medida compuesta (aritmética entre agregaciones, Count DISTINCT…): el motor necesita la fórmula y sus partes.
+      if (r.formula && r.parts) { spec.formula = r.formula; spec.parts = r.parts; }
+      return spec;
     })
     .filter(Boolean);
   if (!measures.length) return null;

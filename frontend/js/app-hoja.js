@@ -259,6 +259,8 @@ export async function render(mount, ctx) {
     }
     renderChrome();
     relayout();
+    st.comments = [];
+    loadComments();
     if (typeof registerSheetMenu === "function") registerSheetMenu();
     if (!quiet) status("");
   }
@@ -689,6 +691,7 @@ export async function render(mount, ctx) {
       if (obj) addFromPayload(obj, dragPayload);
       dragPayload = null;
     });
+    commentChip(el, o.id);
     return el;
   }
 
@@ -710,7 +713,17 @@ export async function render(mount, ctx) {
       return { ...m.resolved, label: item.label || m.name };
     }
     if (!item.table || !item.field) return null;
-    return { table: item.table, field: item.field, agg: item.agg, expr: item.calc || undefined, label: item.label || defaultLabel(item) };
+    return {
+      table: item.table, field: item.field, agg: item.agg, expr: item.calc || undefined,
+      formula: item.formula || undefined, parts: item.parts || undefined, label: item.label || defaultLabel(item),
+    };
+  }
+
+  // Medida lista para /query: simple {table, field, agg} o compuesta (con fórmula y partes).
+  function measureSpec(rr, extra = {}) {
+    const s = { table: rr.table, field: rr.field, agg: rr.agg || "sum", ...extra };
+    if (rr.formula && rr.parts) { s.formula = rr.formula; s.parts = rr.parts; }
+    return s;
   }
 
   function defaultLabel(item) {
@@ -819,7 +832,7 @@ export async function render(mount, ctx) {
       if (r === "kpi") {
         const vals = await Promise.all(p.measures.map((m) => {
           const rr = resolveItem(m);
-          return api.query(ctx.appId, { measures: [{ table: rr.table, field: rr.field, agg: rr.agg || "sum", label: rr.label }], selections: sel }).then((x) => x.value);
+          return api.query(ctx.appId, { measures: [measureSpec(rr, { label: rr.label })], selections: sel }).then((x) => x.value);
         }));
         if (tokens.get(o.id) !== token) return;
         renderKpi(body, p, { value: vals[0], compare: vals[1], label: itemLabel(p.measures[0]) });
@@ -827,7 +840,7 @@ export async function render(mount, ctx) {
       }
       if (r === "gauge") {
         const rr = resolveItem(p.measures[0]);
-        const res = await api.query(ctx.appId, { measures: [{ table: rr.table, field: rr.field, agg: rr.agg || "sum" }], selections: sel });
+        const res = await api.query(ctx.appId, { measures: [measureSpec(rr)], selections: sel });
         if (tokens.get(o.id) !== token) return;
         renderGauge(body, p, res.value);
         return;
@@ -858,7 +871,7 @@ export async function render(mount, ctx) {
           const s2 = { ...sel, [dimFields[1].field]: [yv] };
           const res = await api.query(ctx.appId, {
             dimension: { table: dimFields[0].table, field: dimFields[0].field },
-            measures: [{ table: meas.table, field: meas.field, agg: meas.agg || "sum" }], selections: s2,
+            measures: [measureSpec(meas)], selections: s2,
           });
           (res.labels || []).forEach((xl, i) => { xs.add(String(xl)); ys.add(String(yv)); const val = res.values[i]; grid[`${yv}|${xl}`] = val; if (val > max) max = val; });
         }
@@ -896,7 +909,7 @@ export async function render(mount, ctx) {
         for (const og of origins.slice(0, 30)) {
           const res = await api.query(ctx.appId, {
             dimension: { table: dimFields[1].table, field: dimFields[1].field },
-            measures: [{ table: meas.table, field: meas.field, agg: meas.agg || "sum" }],
+            measures: [measureSpec(meas)],
             selections: { ...sel, [dimFields[0].field]: [og] },
           });
           (res.labels || []).forEach((dst, i) => { if (res.values[i]) flows.push({ from: String(og), to: String(dst), value: res.values[i] }); });
@@ -1511,6 +1524,7 @@ export async function render(mount, ctx) {
       const list = (items) => items.map((m) => `
         <div class="ho-master" draggable="true" data-master="${m.id}" data-filter="${esc(m.name.toLowerCase())}" title="${esc(m.expression)}${m.description ? " · " + esc(m.description) : ""}">
           <span class="ho-master-name">${esc(m.name)}</span>
+          ${m.certified ? `<span class="ho-cert" title="Métrica certificada${m.certified_by ? " por " + esc(m.certified_by) : ""}${m.certified_note ? " · " + esc(m.certified_note) : ""}">✓ Certificada</span>` : ""}
           ${canEdit ? `<button class="ho-mini" data-master-edit="${m.id}" title="Editar">✎</button>` : ""}
         </div>`).join("") || `<div class="ho-as-none">Sin elementos.</div>`;
       html = head("Elementos maestros") + search() + `
@@ -2290,7 +2304,7 @@ export async function render(mount, ctx) {
         </div>
         <div class="ho-cat-list">
           ${masters.length ? `<div class="ho-cat-group">${baseKind === "measure" ? "Medidas" : "Dimensiones"}</div>
-            ${masters.map((m) => `<button class="ho-cat-item" data-cat-master="${m.id}" data-filter="${esc(m.name.toLowerCase())}">${esc(m.name)}</button>`).join("")}` : ""}
+            ${[...masters].sort((a, b) => (b.certified ? 1 : 0) - (a.certified ? 1 : 0)).map((m) => `<button class="ho-cat-item" data-cat-master="${m.id}" data-filter="${esc(m.name.toLowerCase())}">${esc(m.name)}${m.certified ? ` <span class="ho-cert" title="Métrica certificada">✓</span>` : ""}</button>`).join("")}` : ""}
           <div class="ho-cat-group">Campos</div>
           ${st.fields.length ? st.fields.map((f) => `
             <button class="ho-cat-item" data-cat-field="${esc(f.field)}" data-filter="${esc((f.display || f.field).toLowerCase())} ${esc(f.field.toLowerCase())}">
@@ -2322,7 +2336,10 @@ export async function render(mount, ctx) {
     pop.querySelector("[data-cat-fx]")?.addEventListener("click", () => {
       closePop();
       openExpression(baseKind, "", async (expr, resolved) => {
-        const it = { id: uid(), source: "expr", expression: expr, table: resolved.table, field: resolved.field, agg: resolved.agg, calc: resolved.expr || undefined };
+        const it = {
+          id: uid(), source: "expr", expression: expr, table: resolved.table, field: resolved.field, agg: resolved.agg,
+          calc: resolved.expr || undefined, formula: resolved.formula || undefined, parts: resolved.parts || undefined,
+        };
         if (isAlt) addAlt(obj, baseKind, it); else addItem(obj, baseKind, it);
       });
     });
@@ -2364,15 +2381,138 @@ export async function render(mount, ctx) {
       ];
       openInfo(def.label, lines.length ? lines : ["Sin datos asignados."]);
     };
+    const nCm = (st.comments || []).filter((c) => c.object_id === id && !c.resolved).length;
     openMenu(anchor, [
       ...(o.props.showDetails !== false ? [{ label: "Ver detalles", fn: details }] : []),
       { label: "Pantalla completa", fn: () => expandObject(id) },
+      ...(!ctx.embed ? [{ label: nCm ? `Comentarios (${nCm})` : "Comentarios", fn: () => openComments(id) }] : []),
       ...(st.edit ? [
         { label: "Copiar", fn: () => { select(id); copySel(); } },
         { label: "Duplicar", fn: () => { select(id); copySel(); paste(); } },
         { label: "Eliminar", danger: true, fn: () => { select(id); deleteSel(); } },
       ] : []),
     ]);
+  }
+
+  /* ======================================================================
+     Comentarios sobre objetos: el equipo conversa sobre un gráfico (o un punto
+     concreto: la selección activa) sin salir del tablero.
+     ====================================================================== */
+  async function loadComments() {
+    if (ctx.embed || !st.sheet) { st.comments = []; return; }
+    const sid = st.sheet.id;
+    try {
+      const list = await api.listComments(ctx.appId, { sheetId: sid });
+      if (st.sheet?.id !== sid) return;
+      st.comments = list;
+    } catch { st.comments = []; }
+    els.forEach((el, id) => commentChip(el, id));
+  }
+
+  /** Chip «💬 N» sobre el objeto cuando tiene comentarios sin resolver. */
+  function commentChip(el, id) {
+    if (!el || String(id).endsWith("__full")) return;
+    const open = (st.comments || []).filter((c) => c.object_id === id && !c.resolved).length;
+    let chip = el.querySelector(":scope > .ho-obj-cmt");
+    if (!open) { chip?.remove(); return; }
+    if (!chip) {
+      chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "ho-obj-cmt";
+      chip.addEventListener("pointerdown", (e) => e.stopPropagation());
+      chip.addEventListener("click", (e) => { e.stopPropagation(); openComments(id); });
+      el.appendChild(chip);
+    }
+    chip.textContent = `💬 ${open}`;
+    chip.title = `${open} comentario${open === 1 ? "" : "s"} sin resolver`;
+    chip.setAttribute("aria-label", chip.title);
+  }
+
+  function selectionText() {
+    return Object.entries(st.selections || {})
+      .filter(([, v]) => Array.isArray(v) && v.length)
+      .map(([f, v]) => `${displayOf(f)} = ${v.slice(0, 3).map(fmt).join(", ")}${v.length > 3 ? ` (+${v.length - 3})` : ""}`)
+      .join(" · ");
+  }
+
+  function openComments(id) {
+    const o = objById(id);
+    if (!o) return;
+    const def = getType(o.type);
+    const me = ctx.me?.() || {};
+    const canModerate = ctx.can("apps:publish");
+    const selText = selectionText();
+    let showResolved = false;
+    openModalHtml(`
+      <div class="ho-modal-head"><h3>Comentarios · ${esc(o.props.title || def.label)}</h3><button class="ho-x" data-close aria-label="Cerrar">✕</button></div>
+      <div class="ho-modal-body">
+        <div class="ho-cmts" id="cmList" aria-live="polite"></div>
+        <div class="ho-cmt-new">
+          <label class="ho-cmt-lbl" for="cmText">Nuevo comentario</label>
+          <textarea id="cmText" maxlength="2000" rows="3" placeholder="Escribe un comentario para el equipo… (Ctrl+Enter para enviar)"></textarea>
+          ${selText ? `<label class="ho-cmt-pt"><input type="checkbox" id="cmPoint" checked /> Anclar a la selección actual: <b>${esc(selText)}</b></label>` : ""}
+          <div class="ho-cmt-err" id="cmErr" role="alert"></div>
+        </div>
+      </div>
+      <div class="ho-modal-foot">
+        <label class="ho-cmt-show"><input type="checkbox" id="cmShowRes" /> Mostrar resueltos</label>
+        <button class="ho-btn" data-close>Cerrar</button>
+        <button class="ho-btn primary" id="cmSend">Comentar</button>
+      </div>`, "small comments");
+    const $m = (s) => modal.querySelector(s);
+    const when = (s) => { const d = new Date(s); return isNaN(d) ? "" : d.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }); };
+    const paintList = () => {
+      const all = (st.comments || []).filter((c) => c.object_id === id);
+      const list = all.filter((c) => showResolved || !c.resolved);
+      const nRes = all.filter((c) => c.resolved).length;
+      $m("#cmList").innerHTML = list.length ? list.map((c) => `
+        <div class="ho-cmt ${c.resolved ? "res" : ""}" data-cm="${c.id}">
+          <span class="ho-cmt-av" aria-hidden="true">${esc((c.author_name || "?").trim().charAt(0).toUpperCase())}</span>
+          <div class="ho-cmt-b">
+            <div class="ho-cmt-h"><b>${esc(c.author_name || "Usuario")}</b><small>${esc(when(c.created_at))}</small>${c.resolved ? `<span class="ho-cmt-tag">Resuelto</span>` : ""}</div>
+            ${c.point ? `<div class="ho-cmt-pt-tag" title="Selección a la que se refiere">📍 ${esc(c.point)}</div>` : ""}
+            <div class="ho-cmt-t">${esc(c.text)}</div>
+            <div class="ho-cmt-a">
+              ${c.point ? `<button type="button" class="ho-link" data-cm-apply="${c.id}">Ver ese punto</button>` : ""}
+              <button type="button" class="ho-link" data-cm-res="${c.id}">${c.resolved ? "Reabrir" : "Marcar resuelto"}</button>
+              ${c.author_id === me.userId || canModerate ? `<button type="button" class="ho-link danger" data-cm-del="${c.id}">Borrar</button>` : ""}
+            </div>
+          </div>
+        </div>`).join("")
+        : `<div class="ho-cmt-empty">${all.length ? `Todos los comentarios están resueltos (${nRes}).` : "Aún no hay comentarios. Deja el primero: una duda, un hallazgo o una tarea para el equipo."}</div>`;
+    };
+    const refresh = async () => { await loadComments(); paintList(); };
+    paintList();
+    $m("#cmShowRes").addEventListener("change", (e) => { showResolved = e.target.checked; paintList(); });
+    const send = async () => {
+      const text = $m("#cmText").value.trim();
+      const err = $m("#cmErr");
+      if (!text) { err.textContent = "Escribe el comentario."; $m("#cmText").focus(); return; }
+      err.textContent = "";
+      $m("#cmSend").disabled = true;
+      try {
+        const point = $m("#cmPoint")?.checked ? selText : undefined;
+        await api.createComment(ctx.appId, { sheetId: st.sheet.id, objectId: id, text, ...(point ? { point, selections: st.selections } : {}) });
+        $m("#cmText").value = "";
+        await refresh();
+      } catch (e) { err.textContent = e.message; }
+      finally { $m("#cmSend").disabled = false; }
+    };
+    $m("#cmSend").addEventListener("click", send);
+    $m("#cmText").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); } });
+    $m("#cmList").addEventListener("click", async (e) => {
+      const r = e.target.closest("[data-cm-res]"), d = e.target.closest("[data-cm-del]"), a = e.target.closest("[data-cm-apply]");
+      try {
+        if (r) { const c = st.comments.find((x) => x.id === r.dataset.cmRes); await api.resolveComment(ctx.appId, c.id, !c.resolved); await refresh(); }
+        if (d) { if (!confirm("¿Borrar este comentario?")) return; await api.deleteComment(ctx.appId, d.dataset.cmDel); await refresh(); }
+        if (a) {
+          const c = st.comments.find((x) => x.id === a.dataset.cmApply);
+          if (c?.selections) { setSelections(c.selections); closeModal(); }
+          else status(`Este comentario se refiere a: ${c?.point}`);
+        }
+      } catch (ex) { $m("#cmErr").textContent = ex.message; }
+    });
+    setTimeout(() => $m("#cmText")?.focus(), 30);
   }
 
   /* ======================================================================
@@ -2452,6 +2592,19 @@ export async function render(mount, ctx) {
         await refresh();
       },
       onDelete: async () => { await api.deleteMasterItem(ctx.appId, item.id); await refresh(); },
+      // Gobierno: certificar (apps:publish) e historial de versiones de la definición.
+      canCertify: ctx.can("apps:publish"),
+      onCertify: async (on, note) => {
+        const saved = await api.certifyMasterItem(ctx.appId, item.id, on, note);
+        await loadMasters(); renderAssets(); rerenderAllContent();
+        return saved;
+      },
+      onVersions: () => api.listMasterItemVersions(ctx.appId, item.id),
+      onRestore: async (version) => {
+        const saved = await api.restoreMasterItemVersion(ctx.appId, item.id, version);
+        await loadMasters(); renderAssets(); rerenderAllContent(); renderProps();
+        return saved;
+      },
     });
   }
 

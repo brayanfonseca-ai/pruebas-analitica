@@ -1314,6 +1314,28 @@ html[data-theme="dark"] .ho-calc-vals span { color: var(--ds-a-hi); }
 .xs-tval.calc { color: #fff; background: linear-gradient(135deg, #10b981, #06b6d4); }
 .xs-tval.field { color: #0891b2; background: rgba(6, 182, 212, .14); }
 .xs-tval.measure { color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); }
+.xs-tval.composite { color: #fff; background: linear-gradient(135deg, #a855f7, #ec4899); }
+/* Gobierno: métricas certificadas + historial de versiones */
+.xs-gov { padding: 12px; border-radius: 12px; background: var(--ds-surface-2); border: 1px solid var(--ds-border); display: flex; flex-direction: column; gap: 6px; }
+.xs-gov small { color: var(--ds-muted); font-size: 11.5px; line-height: 1.45; }
+.xs-certok { align-self: flex-start; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 99px; color: #fff; background: linear-gradient(135deg, #059669, #10b981); }
+.xs-gov-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.xs-gov-bar .xs-tb { padding: 5px 10px; font-size: 11.5px; }
+.xs-tb.cert { color: #059669; border-color: rgba(16, 185, 129, .5); }
+html[data-theme="dark"] .xs-tb.cert { color: #6ee7b7; }
+.xs-hist { display: flex; flex-direction: column; gap: 6px; }
+.xs-hist-h { font-size: 12.5px; font-weight: 800; }
+.xs-hist-h em { font-style: normal; font-weight: 500; color: var(--ds-muted); margin-left: 6px; }
+.xs-hist-it { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--ds-border); }
+.xs-hist-it.cur { border-color: rgba(var(--ds-a-rgb), .45); background: rgba(var(--ds-a-rgb), .05); }
+.xs-hist-v { flex: none; font: 800 11.5px ui-monospace, Consolas, monospace; padding: 2px 7px; border-radius: 7px; background: var(--ds-surface-2); border: 1px solid var(--ds-border); }
+.xs-hist-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.xs-hist-b small { color: var(--ds-muted); font-size: 11px; }
+.xs-hist-b code { font: 11.5px ui-monospace, Consolas, monospace; color: var(--ds-text); white-space: pre-wrap; word-break: break-word; }
+.xs-hist-cur { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--ds-a); }
+.xs-hist-act { flex: none; display: flex; gap: 4px; }
+.ho-cert { flex: none; font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 99px; color: #047857; background: rgba(16, 185, 129, .14); border: 1px solid rgba(16, 185, 129, .35); white-space: nowrap; }
+html[data-theme="dark"] .ho-cert { color: #6ee7b7; }
 .xs-type small { color: var(--ds-muted); font-size: 11.5px; line-height: 1.45; }
 .xs-tip { margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: var(--ds-muted); padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--ds-border-2); }
 .xs-tip b { color: var(--ds-text); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; }
@@ -1385,3 +1407,32 @@ html[data-theme="dark"] .xs-fn-it code { color: #c4b5fd; }
 .xs-msg { flex: 1; font-size: 12px; color: var(--ds-muted); }
 .xs-msg.err { color: #e11d48; }
 @media (max-width: 1100px) { .xs-body { grid-template-columns: 240px minmax(0, 1fr); } .xs-right { display: none; } }
+
+/* ===================== 34. Comentarios sobre objetos ===================== */
+.ho-modal.small.comments { width: min(520px, 100%); }
+.ho-cmts { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; }
+.ho-cmt { display: flex; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--ds-border); background: var(--ds-surface-2); }
+.ho-cmt.res { opacity: .62; }
+.ho-cmt-av { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: var(--ds-grad); }
+.ho-cmt-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ho-cmt-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+.ho-cmt-h small { color: var(--ds-muted); font-size: 11px; }
+.ho-cmt-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #047857; }
+html[data-theme="dark"] .ho-cmt-tag { color: #6ee7b7; }
+.ho-cmt-pt-tag { align-self: flex-start; font-size: 11px; padding: 2px 8px; border-radius: 99px; color: var(--ds-a); background: rgba(var(--ds-a-rgb), .1); }
+.ho-cmt-t { font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.ho-cmt-a { display: flex; gap: 12px; }
+.ho-cmt-a .ho-link { border: none; background: none; padding: 0; cursor: pointer; font-size: 11.5px; font-weight: 600; color: var(--ds-a); }
+.ho-cmt-a .ho-link:hover { text-decoration: underline; }
+.ho-cmt-a .ho-link.danger { color: #e11d48; }
+.ho-cmt-empty { font-size: 12.5px; color: var(--ds-muted); padding: 14px; text-align: center; border: 1px dashed var(--ds-border-2); border-radius: 12px; }
+.ho-cmt-new { display: flex; flex-direction: column; gap: 6px; }
+.ho-cmt-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ds-muted); }
+.ho-cmt-new textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 64px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); font: 13px/1.45 inherit; }
+.ho-cmt-new textarea:focus { outline: 2px solid rgba(var(--ds-a-rgb), .35); border-color: var(--ds-a); }
+.ho-cmt-pt { display: flex; gap: 6px; align-items: baseline; font-size: 12px; color: var(--ds-muted); }
+.ho-cmt-err { font-size: 12px; color: #e11d48; min-height: 0; }
+.ho-cmt-show { margin-right: auto; display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ds-muted); }
+.ho-obj-cmt { position: absolute; left: 8px; bottom: 6px; z-index: 4; border: 1px solid rgba(var(--ds-a-rgb), .35); background: var(--ds-surface); color: var(--ds-a);
+  font: 700 11px inherit; padding: 2px 8px; border-radius: 99px; cursor: pointer; box-shadow: 0 2px 6px rgba(15, 23, 42, .12); }
+.ho-obj-cmt:hover { background: rgba(var(--ds-a-rgb), .1); }

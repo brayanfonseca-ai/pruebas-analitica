@@ -318,6 +318,41 @@ public class DatabaseConfig {
                     views INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
+            // Métricas certificadas: una definición oficial (sello + quién/cuándo) con historial de versiones.
+            addColumn("master_items", "certified", "INTEGER NOT NULL DEFAULT 0");
+            addColumn("master_items", "certified_by", "TEXT");
+            addColumn("master_items", "certified_at", "TEXT");
+            addColumn("master_items", "certified_note", "TEXT");
+            addColumn("master_items", "version", "INTEGER NOT NULL DEFAULT 1");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS master_item_versions (
+                    item_id TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    expression TEXT NOT NULL,
+                    description TEXT,
+                    message TEXT NOT NULL DEFAULT '',
+                    author_name TEXT,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY (item_id, version),
+                    FOREIGN KEY (item_id) REFERENCES master_items (id) ON DELETE CASCADE
+                )""");
+            // Comentarios sobre los objetos de una hoja (opcionalmente anclados a un punto: «Sucursal = Bogotá»).
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS comments (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    sheet_id TEXT NOT NULL,
+                    object_id TEXT NOT NULL,
+                    point TEXT,
+                    text TEXT NOT NULL,
+                    author_id TEXT,
+                    author_name TEXT,
+                    resolved INTEGER NOT NULL DEFAULT 0,
+                    selections_json TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
             addColumn("apps", "owner_id", "TEXT");
             // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
             addColumn("apps", "stage", "TEXT NOT NULL DEFAULT 'desarrollo'");

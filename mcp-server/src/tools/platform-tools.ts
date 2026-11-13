@@ -446,7 +446,7 @@ export const platformTools: ContextTool[] = [
   {
     name: "save_master_item",
     title: "Crear/editar elemento maestro",
-    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression, description?}. Medida: Sum([Ventas]), Count([cedula])… Dimension: un campo [Sucursal] o una DIMENSION CALCULADA (expresion por fila con campos de una misma tabla), ej. If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40'), Class([ANTIGÜEDAD EN MESES], 12), Year([FECHA RETIRO]), [EMPRESA] & ' - ' & [CARGO]; funciones If, Class, Match, Year, Month, Day, Round, Upper, Lower, Trim, Left, Right, Mid, Replace, Alt, Num, Text, Date. El 'name' de una calculada es el campo por el que se agrupa, selecciona y filtra (no puede coincidir con un campo existente). En create_sheet usa la dimension con {source:'master', masterId}. POST|PUT /api/v1/apps/{appId}/master-items.",
+    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression, description?}. Medida: simple Sum([Ventas]), Count([cedula]) o COMPUESTA: aritmetica entre agregaciones (Count([FECHA RETIRO]) / Count([CEDULA]) * 100), agregacion sobre una expresion por fila (Sum(If([ESTADO CONTRATO]='Inactivo',1,0))), Count(DISTINCT [CEDULA]), Round(...), If(Count([x])>0, ...); todos los campos en una misma tabla; dentro de una compuesta Count cuenta valores no vacios y /0 da 0. En create_sheet usa la medida con {source:'master', masterId}. Dimension: un campo [Sucursal] o una DIMENSION CALCULADA (expresion por fila con campos de una misma tabla), ej. If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40'), Class([ANTIGÜEDAD EN MESES], 12), Year([FECHA RETIRO]), [EMPRESA] & ' - ' & [CARGO]; funciones If, Class, Match, Year, Month, Day, Round, Upper, Lower, Trim, Left, Right, Mid, Replace, Alt, Num, Text, Date. El 'name' de una calculada es el campo por el que se agrupa, selecciona y filtra (no puede coincidir con un campo existente). En create_sheet usa la dimension con {source:'master', masterId}. POST|PUT /api/v1/apps/{appId}/master-items.",
     inputShape: {
       ...appId, itemId: z.string().optional().describe("Id para actualizar."),
       kind: z.enum(["dimension", "measure"]).optional(), name: z.string().optional(), expression: z.string().optional(), description: z.string().optional(),
@@ -466,9 +466,68 @@ export const platformTools: ContextTool[] = [
   {
     name: "parse_expression",
     title: "Validar expresion fx",
-    description: "Valida una expresion contra los campos de la app. Medida: Sum([Ventas]). Dimension: campo o dimension calculada (If/Class/Year/&…): devuelve {table, field, expr, calculated:true, distinct, sample (valores de ejemplo)} para probarla antes de guardarla. POST /api/v1/apps/{appId}/expressions/parse.",
+    description: "Valida una expresion contra los campos de la app. Medida: Sum([Ventas]) o compuesta (Count([A]) / Count([B]) * 100, Sum(If(...)), Count(DISTINCT [x])): devuelve {table, field, agg, value (total con todos los datos)} y, si es compuesta, {composite:true, formula, parts, fields}. Dimension: campo o dimension calculada (If/Class/Year/&…): devuelve {table, field, expr, calculated:true, distinct, sample (valores de ejemplo)} para probarla antes de guardarla. POST /api/v1/apps/{appId}/expressions/parse.",
     inputShape: { ...appId, expression: id("Expresion."), kind: z.enum(["dimension", "measure"]).optional().describe("default measure"), name: z.string().optional().describe("Nombre de la dimension calculada.") },
     handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/parse`, { kind: String(a.kind ?? "measure"), expression: String(a.expression), ...(a.name ? { name: String(a.name) } : {}) })),
+  },
+  {
+    name: "certify_master_item",
+    title: "Certificar metrica (elemento maestro)",
+    description: "Marca (certified=true, default) o desmarca (false) un elemento maestro como METRICA CERTIFICADA: la definicion oficial de la empresa, con quien y cuando la certifico y una nota opcional. Se distingue con ✓ en la UI, la IA la usa tal cual y solo quien tiene apps:publish puede modificarla o borrarla. Requiere apps:publish. Devuelve el elemento con {certified, certified_by, certified_at, certified_note, version}. POST /api/v1/apps/{appId}/master-items/{itemId}/certify con {certified, note?}.",
+    inputShape: { ...appId, itemId: id("Id del elemento maestro."), certified: z.boolean().optional().describe("true = certificar (default), false = quitar la certificacion."), note: z.string().optional().describe("Nota: que valida esta definicion.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/master-items/${E(a.itemId)}/certify`, { certified: a.certified !== false, ...(a.note ? { note: String(a.note) } : {}) })),
+  },
+  {
+    name: "list_master_item_versions",
+    title: "Historial de un elemento maestro",
+    description: "Versiones de la definicion de un elemento maestro (la mas reciente primero): [{version, name, expression, description, message, author_name, created_at, is_current}]. Cada cambio de nombre/expresion/descripcion crea una version. GET /api/v1/apps/{appId}/master-items/{itemId}/versions.",
+    inputShape: { ...appId, itemId: id("Id del elemento maestro.") },
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/master-items/${E(a.itemId)}/versions`)),
+  },
+  {
+    name: "restore_master_item_version",
+    title: "Restaurar version de un elemento maestro",
+    description: "Restaura una version anterior de la definicion: se valida de nuevo y queda como una version NUEVA (el historial no se reescribe). Si el elemento esta certificado requiere apps:publish. Devuelve el elemento actualizado. POST /api/v1/apps/{appId}/master-items/{itemId}/versions/{version}/restore.",
+    inputShape: { ...appId, itemId: id("Id del elemento maestro."), version: z.number().int().min(1).describe("Version a restaurar.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/master-items/${E(a.itemId)}/versions/${E(a.version)}/restore`)),
+  },
+
+  /* ============================ Comentarios ============================ */
+  {
+    name: "list_comments",
+    title: "Comentarios de una hoja / objeto",
+    description: "Comentarios del equipo sobre los objetos de las hojas: [{id, sheet_id, object_id, point, selections, text, author_name, resolved, created_at}] (mas antiguos primero). Filtros opcionales sheetId y objectId. GET /api/v1/apps/{appId}/comments?sheetId=&objectId=.",
+    inputShape: { ...appId, sheetId: z.string().optional().describe("Solo los de esta hoja."), objectId: z.string().optional().describe("Solo los de este objeto.") },
+    handler: async (a) => {
+      const q = new URLSearchParams();
+      if (a.sheetId) q.set("sheetId", String(a.sheetId));
+      if (a.objectId) q.set("objectId", String(a.objectId));
+      return toToolText(await get(`${A(a.appId)}/comments${q.toString() ? `?${q}` : ""}`));
+    },
+  },
+  {
+    name: "add_comment",
+    title: "Comentar un objeto de una hoja",
+    description: "Agrega un comentario a un objeto (grafico, KPI, tabla…) de una hoja. 'point' ancla el comentario a un punto legible (p. ej. 'EMPRESA = Vigia') y 'selections' guarda la seleccion {campo:[valores]} para volver a ese punto desde la UI. Requiere dashboard:view. Devuelve 201 con el comentario. POST /api/v1/apps/{appId}/comments con {sheetId, objectId, text, point?, selections?}.",
+    inputShape: {
+      ...appId, sheetId: id("Id de la hoja."), objectId: id("Id del objeto de la hoja (get_sheet -> objects[].id)."), text: id("Texto del comentario (max 2000)."),
+      point: z.string().optional().describe("Punto al que se refiere, legible."), selections: z.record(z.string(), z.array(z.any())).optional().describe("Seleccion {campo: [valores]} del punto."),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/comments`, pick(a, ["sheetId", "objectId", "text", "point", "selections"]))),
+  },
+  {
+    name: "resolve_comment",
+    title: "Resolver / reabrir comentario",
+    description: "Marca un comentario como resuelto (resolved=true, default) o lo reabre (false). PUT /api/v1/apps/{appId}/comments/{commentId} con {resolved}.",
+    inputShape: { ...appId, commentId: id("Id del comentario."), resolved: z.boolean().optional() },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/comments/${E(a.commentId)}`, { resolved: a.resolved !== false })),
+  },
+  {
+    name: "delete_comment",
+    title: "Borrar comentario",
+    description: "ACCION DESTRUCTIVA: borra un comentario. Solo su autor o quien tiene apps:publish. DELETE /api/v1/apps/{appId}/comments/{commentId}.",
+    inputShape: { ...appId, commentId: id("Id del comentario.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/comments/${E(a.commentId)}`)),
   },
 
   /* ============================ Modelo logico ============================ */

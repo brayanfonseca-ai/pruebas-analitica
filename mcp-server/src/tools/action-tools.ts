@@ -32,6 +32,36 @@ function appPath(appId: unknown): string {
 }
 
 /**
+ * Objetos de hoja: cada medida {expression:'fx'} se valida en el motor (/expressions/parse) y se convierte en un
+ * item fx {source:'expr', expression, table, field, agg, formula?, parts?} (asi funcionan las medidas compuestas).
+ */
+async function resolveSheetMeasures(appId: string, objects: unknown[]): Promise<unknown[]> {
+  const resolveOne = async (m: unknown): Promise<unknown> => {
+    if (!m || typeof m !== "object") return m;
+    const mm = m as Record<string, unknown>;
+    if (typeof mm.expression !== "string" || !mm.expression.trim() || mm.source) return m;
+    const r = (await post(`${appPath(appId)}/expressions/parse`, { kind: "measure", expression: mm.expression })) as Record<string, unknown>;
+    return {
+      source: "expr", expression: mm.expression, table: r.table, field: r.field, agg: r.agg,
+      ...(r.formula ? { formula: r.formula, parts: r.parts } : {}),
+      ...(mm.label ? { label: mm.label } : {}),
+    };
+  };
+  const out: unknown[] = [];
+  for (const o of objects ?? []) {
+    if (!o || typeof o !== "object") { out.push(o); continue; }
+    const obj = { ...(o as Record<string, unknown>) };
+    for (const key of ["measure", "measures"]) {
+      const v = obj[key];
+      if (Array.isArray(v)) obj[key] = await Promise.all(v.map(resolveOne));
+      else if (v) obj[key] = await resolveOne(v);
+    }
+    out.push(obj);
+  }
+  return out;
+}
+
+/**
  * Las tools de accion comparten la misma forma que las de contexto
  * (name/title/description/inputShape/handler), por lo que se registran con el
  * mismo bucle en tools.ts.
@@ -58,10 +88,24 @@ export const actionTools: ContextTool[] = [
     name: "run_query",
     title: "Ejecutar query / agregacion",
     description:
-      "Ejecuta una query de agregacion sobre TODO el dataset (en el motor, sin traer filas). Sin 'dimension' -> KPI escalar en QueryResult.value; con 'dimension' -> labels + series. Medidas con agg in sum|count|avg|min|max (default sum). POST /api/v1/apps/{appId}/query con QuerySpec.",
+      "Ejecuta una query de agregacion sobre TODO el dataset (en el motor, sin traer filas). Sin 'dimension' -> KPI escalar en QueryResult.value; con 'dimension' -> labels + series. Cada medida es {table, field, agg} (sum|count|avg|min|max, default sum) o {expression} con una medida fx simple o COMPUESTA (aritmetica entre agregaciones, Sum(If(...)), Count(DISTINCT [x])): el tool la valida con POST /expressions/parse y envia formula+parts. POST /api/v1/apps/{appId}/query con QuerySpec.",
     inputShape: runQueryShape,
     handler: async (args) => {
-      const spec: Record<string, unknown> = { measures: args.measures };
+      const measures = [];
+      for (const m of args.measures as Array<Record<string, unknown>>) {
+        if (typeof m.expression === "string" && m.expression.trim()) {
+          const r = (await post(`${appPath(args.appId)}/expressions/parse`, { kind: "measure", expression: m.expression })) as Record<string, unknown>;
+          measures.push({
+            table: r.table, field: r.field, agg: r.agg, label: m.label ?? m.expression,
+            ...(r.formula ? { formula: r.formula, parts: r.parts } : {}),
+          });
+        } else {
+          if (!m.table || !m.field) throw new Error("Cada medida necesita {table, field} o 'expression'.");
+          const { expression: _e, ...rest } = m;
+          measures.push(rest);
+        }
+      }
+      const spec: Record<string, unknown> = { measures };
       if (args.dimension !== undefined) spec.dimension = args.dimension;
       if (args.chart_type !== undefined) spec.chart_type = args.chart_type;
       if (args.selections !== undefined) spec.selections = args.selections;
@@ -113,13 +157,13 @@ export const actionTools: ContextTool[] = [
     name: "create_sheet",
     title: "Crear hoja / dashboard",
     description:
-      "Crea una hoja (dashboard) con objetos de visualizacion. 'objects' admite tipo kpi|bar|pie|line|table|filterpane con dimension/measure{field,agg} y x,y,w,h en una rejilla de 24 columnas (sin solapes). Devuelve 201 SheetOut. POST /api/v1/apps/{appId}/sheets con {title,description,objects,props}.",
+      "Crea una hoja (dashboard) con objetos de visualizacion. 'objects' admite tipo kpi|bar|pie|line|table|filterpane… con dimension y measure = {field,agg} | {expression:'fx'} (medida simple o COMPUESTA: Count([A]) / Count([B]) * 100, Sum(If(...)), Count(DISTINCT [x]); el tool la valida con /expressions/parse) | {source:'master', masterId}, y x,y,w,h en una rejilla de 24 columnas (sin solapes). Devuelve 201 SheetOut. POST /api/v1/apps/{appId}/sheets con {title,description,objects,props}.",
     inputShape: createSheetShape,
     handler: async (args) => {
       const body: Record<string, unknown> = {};
       if (args.title !== undefined) body.title = args.title;
       if (args.description !== undefined) body.description = args.description;
-      if (args.objects !== undefined) body.objects = args.objects;
+      if (args.objects !== undefined) body.objects = await resolveSheetMeasures(String(args.appId), args.objects as unknown[]);
       if (args.props !== undefined) body.props = args.props;
       return toToolText(await post(`${appPath(args.appId)}/sheets`, body));
     },
@@ -134,7 +178,7 @@ export const actionTools: ContextTool[] = [
       const body: Record<string, unknown> = {};
       if (args.title !== undefined) body.title = args.title;
       if (args.description !== undefined) body.description = args.description;
-      if (args.objects !== undefined) body.objects = args.objects;
+      if (args.objects !== undefined) body.objects = await resolveSheetMeasures(String(args.appId), args.objects as unknown[]);
       if (args.props !== undefined) body.props = args.props;
       return toToolText(
         await put(

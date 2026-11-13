@@ -173,6 +173,11 @@ final class SheetObjectNormalizer {
     @SuppressWarnings("unchecked")
     private static Map<String, Object> dimItem(Object src, Map<String, String> fieldTable) {
         String field;
+        if (src instanceof Map<?, ?> sm && "master".equals(str(sm.get("source"))) && !str(sm.get("masterId")).isBlank()) {
+            Map<String, Object> item = new LinkedHashMap<>((Map<String, Object>) src);
+            item.putIfAbsent("id", Ids.newId());
+            return item;
+        }
         if (src instanceof Map) field = str(((Map<String, Object>) src).get("field"));
         else field = str(src);
         if (field.isBlank()) return null;
@@ -193,6 +198,15 @@ final class SheetObjectNormalizer {
         String agg = "sum";
         if (src instanceof Map) {
             Map<String, Object> m = (Map<String, Object>) src;
+            // Ítem ya resuelto: medida maestra {source:'master', masterId} o fx {source:'expr', expression, table, field,
+            // agg, formula?, parts?} (p. ej. una medida compuesta validada con /expressions/parse). Se conserva tal cual.
+            String source = str(m.get("source"));
+            if (("master".equals(source) && !str(m.get("masterId")).isBlank())
+                    || ("expr".equals(source) && !str(m.get("table")).isBlank() && !str(m.get("field")).isBlank())) {
+                Map<String, Object> item = new LinkedHashMap<>(m);
+                item.putIfAbsent("id", Ids.newId());
+                return item;
+            }
             field = str(m.get("field"));
             String a = str(m.get("agg"));
             if (AGGS.contains(a)) agg = a;

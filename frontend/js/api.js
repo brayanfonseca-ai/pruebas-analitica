@@ -172,6 +172,29 @@ export const deleteMasterItem = (appId, itemId) =>
   request(`/apps/${encodeURIComponent(appId)}/master-items/${encodeURIComponent(itemId)}`, {
     method: "DELETE",
   });
+// Métrica certificada: {certified, note?} (requiere apps:publish).
+export const certifyMasterItem = (appId, itemId, certified, note) =>
+  request(`/apps/${encodeURIComponent(appId)}/master-items/${encodeURIComponent(itemId)}/certify`, {
+    method: "POST", body: note ? { certified, note } : { certified },
+  });
+export const listMasterItemVersions = (appId, itemId) =>
+  request(`/apps/${encodeURIComponent(appId)}/master-items/${encodeURIComponent(itemId)}/versions`);
+export const restoreMasterItemVersion = (appId, itemId, version) =>
+  request(`/apps/${encodeURIComponent(appId)}/master-items/${encodeURIComponent(itemId)}/versions/${encodeURIComponent(version)}/restore`, { method: "POST" });
+
+/* ----------------------- Comentarios ----------------------- */
+export const listComments = (appId, { sheetId, objectId } = {}) => {
+  const q = new URLSearchParams();
+  if (sheetId) q.set("sheetId", sheetId);
+  if (objectId) q.set("objectId", objectId);
+  return request(`/apps/${encodeURIComponent(appId)}/comments${q.toString() ? `?${q}` : ""}`);
+};
+export const createComment = (appId, comment) =>
+  request(`/apps/${encodeURIComponent(appId)}/comments`, { method: "POST", body: comment });
+export const resolveComment = (appId, commentId, resolved) =>
+  request(`/apps/${encodeURIComponent(appId)}/comments/${encodeURIComponent(commentId)}`, { method: "PUT", body: { resolved } });
+export const deleteComment = (appId, commentId) =>
+  request(`/apps/${encodeURIComponent(appId)}/comments/${encodeURIComponent(commentId)}`, { method: "DELETE" });
 
 /* ----------------------- Hojas ----------------------- */
 export const listSheets = (appId) => request(`/apps/${encodeURIComponent(appId)}/sheets`);

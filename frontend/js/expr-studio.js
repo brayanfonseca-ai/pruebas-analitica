@@ -42,6 +42,12 @@ const MEAS_FUNCS = [
   { n: "Avg", sig: "Avg([campo])", d: "Promedio.", t: "Avg([campo])", g: "Agregación" },
   { n: "Min", sig: "Min([campo])", d: "Valor mínimo.", t: "Min([campo])", g: "Agregación" },
   { n: "Max", sig: "Max([campo])", d: "Valor máximo.", t: "Max([campo])", g: "Agregación" },
+  { n: "Count", sig: "Count(DISTINCT [campo])", d: "Cantidad de valores distintos (p. ej. personas únicas).", t: "Count(DISTINCT [campo])", g: "Agregación" },
+  { n: "Sum", sig: "Sum(expresión por fila)", d: "Agrega el resultado de una expresión en cada fila.", t: "Sum(If([campo] = 'valor', 1, 0))", g: "Agregación" },
+  { n: "/", sig: "Agregación / Agregación", d: "Combina agregaciones con + - * / (porcentajes, tasas, diferencias).", t: "Count([campo]) / Count([campo]) * 100", g: "Medida compuesta" },
+  { n: "Round", sig: "Round(medida, decimales)", d: "Redondea el resultado de la medida.", t: "Round(Sum([campo]) / Count([campo]), 2)", g: "Medida compuesta" },
+  { n: "If", sig: "If(condición, medida, otra)", d: "Elige entre dos resultados según una condición sobre agregaciones.", t: "If(Count([campo]) > 0, Sum([campo]) / Count([campo]), 0)", g: "Medida compuesta" },
+  ...DIM_FUNCS.map((f) => ({ ...f, g: `Dentro de la agregación · ${f.g}` })),
 ];
 const OPS = ["&", "+", "-", "*", "/", "=", "<>", ">", ">=", "<", "<=", "AND", "OR", "NOT", "( )", "' '"];
 const FN_NAMES = new Set([...DIM_FUNCS, ...MEAS_FUNCS].map((f) => f.n.toLowerCase()));
@@ -58,7 +64,7 @@ function highlight(src) {
     if (/[A-Za-z_]/.test(c)) {
       let j = i; while (j < s.length && /[A-Za-z_0-9#]/.test(s[j])) j++;
       const w = s.slice(i, j);
-      const cls = FN_NAMES.has(w.toLowerCase()) ? "xs-fn" : /^(AND|OR|NOT)$/i.test(w) ? "xs-k" : "";
+      const cls = FN_NAMES.has(w.toLowerCase()) ? "xs-fn" : /^(AND|OR|NOT|DISTINCT)$/i.test(w) ? "xs-k" : "";
       out += cls ? `<span class="${cls}">${esc(w)}</span>` : esc(w); i = j; continue;
     }
     if ("&+-*/=<>".includes(c)) { out += `<span class="xs-o">${esc(c)}</span>`; i++; continue; }
@@ -72,7 +78,10 @@ function highlight(src) {
 function detect(kind, text) {
   const t = String(text || "").trim().replace(/^=\s*/, "");
   if (!t) return { k: "empty", label: "Sin expresión" };
-  if (kind === "measure") return { k: "measure", label: "Medida (agregación)" };
+  if (kind === "measure") {
+    const simple = /^[A-Za-z]+\s*\(\s*(\[[^\]]+\]|[\w%.]+)\s*\)$/.test(t);
+    return simple ? { k: "measure", label: "Medida (agregación)" } : { k: "composite", label: "Medida compuesta" };
+  }
   if (/^\[[^\]]+\]$/.test(t)) return { k: "field", label: "Campo del modelo" };
   return { k: "calc", label: "Dimensión calculada" };
 }
@@ -131,6 +140,12 @@ export function openExprStudio(o) {
   const dat = fields.find((f) => f.type === "date")?.field || "Fecha";
   const EXAMPLES = isMeasure ? [
     ["Total", `Sum([${num}])`], ["Cantidad de registros", `Count([${txt}])`], ["Promedio", `Avg([${num}])`], ["Máximo", `Max([${num}])`],
+    ["Valores únicos", `Count(DISTINCT [${txt}])`],
+    ["Porcentaje (% del total con dato)", `Count([${dat}]) / Count([${txt}]) * 100`],
+    ["Contar los que cumplen una condición", `Sum(If([${num}] >= 40, 1, 0))`],
+    ["% que cumple una condición", `Round(Sum(If([${num}] >= 40, 1, 0)) / Count([${txt}]) * 100, 2)`],
+    ["Promedio por registro único", `Sum([${num}]) / Count(DISTINCT [${txt}])`],
+    ["Rango (máximo − mínimo)", `Max([${num}]) - Min([${num}])`],
   ] : [
     ["Grupos según un umbral", `If([${num}] >= 40, 'Alto', 'Bajo')`],
     ["Rangos", `Class([${num}], 10)`],
@@ -149,7 +164,7 @@ export function openExprStudio(o) {
     <div class="xs">
       <header class="xs-head">
         <span class="xs-badge ${isMeasure ? "m" : "d"}">${isMeasure ? "Σ" : "≡"}</span>
-        <div class="xs-ttl"><h3>${esc(title)}</h3><small>${isMeasure ? "Agrega valores: Sum, Count, Avg, Min o Max sobre un campo." : "Un campo o una expresión por fila (dimensión calculada)."}</small></div>
+        <div class="xs-ttl"><h3>${esc(title)}</h3><small>${isMeasure ? "Agrega valores (Sum, Count, Avg, Min, Max, Count DISTINCT) y combínalos: porcentajes, tasas, condiciones." : "Un campo o una expresión por fila (dimensión calculada)."}</small></div>
         <button class="ho-x" data-close aria-label="Cerrar">✕</button>
       </header>
       <div class="xs-body">
@@ -158,6 +173,7 @@ export function openExprStudio(o) {
           <label class="xs-lbl">Nombre<input id="xsName" value="${esc(item?.name || "")}" placeholder="${isMeasure ? "Ej.: Total conductores" : "Ej.: Rango de edad"}" maxlength="80" /></label>
           <label class="xs-lbl grow">Descripción<textarea id="xsDesc" placeholder="Qué representa y cómo se calcula. La IA también la lee.">${esc(item?.description || "")}</textarea></label>` : ""}
           <div class="xs-type" id="xsType"></div>
+          ${isMaster && item ? `<div class="xs-gov" id="xsGov"></div>` : ""}
           <div class="xs-tip">
             <b>Atajos</b>
             <span><kbd>Ctrl</kbd>+<kbd>Enter</kbd> probar</span>
@@ -209,7 +225,7 @@ export function openExprStudio(o) {
     $("#xsCount").textContent = `${v.length} caracteres · ${n} línea${n === 1 ? "" : "s"}`;
     const d = detect(o.kind, v);
     $("#xsType").innerHTML = `<span class="xs-tlbl">Tipo</span><span class="xs-tval ${d.k}">${esc(d.label)}</span>
-      ${d.k === "calc" ? `<small>Se evalúa en cada fila con campos de una misma tabla y se usa como cualquier dimensión.</small>` : d.k === "field" ? `<small>Usa el campo tal cual.</small>` : isMeasure && d.k !== "empty" ? `<small>Una agregación sobre un campo.</small>` : ""}`;
+      ${d.k === "calc" ? `<small>Se evalúa en cada fila con campos de una misma tabla y se usa como cualquier dimensión.</small>` : d.k === "field" ? `<small>Usa el campo tal cual.</small>` : d.k === "composite" ? `<small>Combina agregaciones o agrega una expresión por fila. Cada campo va dentro de una agregación y todos en una misma tabla.</small>` : isMeasure && d.k !== "empty" ? `<small>Una agregación sobre un campo.</small>` : ""}`;
     const w = balance(v);
     $("#xsWarn").hidden = !w; $("#xsWarn").textContent = w ? "⚠ " + w : "";
     syncScroll();
@@ -248,7 +264,7 @@ export function openExprStudio(o) {
         if (!vis.length) return "";
         return `<div class="xs-grp">${esc(g)}</div>` + vis.map((f) => `
           <button type="button" class="xs-fn-it" data-tpl="${esc(f.t)}"><code>${esc(f.sig)}</code><small>${esc(f.d)}</small></button>`).join("");
-      }).join("") + (isMeasure ? `<div class="xs-note">Por ahora una medida es una sola agregación sobre un campo. Para lógica por fila (If, rangos, fechas) crea una <b>dimensión calculada</b>.</div>` : "");
+      }).join("") + (isMeasure ? `<div class="xs-note">Dentro de una medida compuesta, <b>Count</b> cuenta valores no vacíos y una división por cero da 0. Las funciones por fila (If, Year, Upper…) se usan dentro de la agregación: <code>Sum(If([campo] = 'x', 1, 0))</code>.</div>` : "");
     } else {
       L.innerHTML = EXAMPLES.filter(([l, x]) => !q || norm(l + " " + x).includes(q)).map(([l, x]) => `
         <button type="button" class="xs-ex" data-ex="${esc(x)}"><b>${esc(l)}</b><code>${esc(x)}</code></button>`).join("");
@@ -299,16 +315,19 @@ export function openExprStudio(o) {
       const res = await api.parseExpression(o.appId, o.kind, expr, name);
       let extra = "";
       if (isMeasure) {
-        try {
-          const qr = await api.query(o.appId, { measures: [{ table: res.table, field: res.field, agg: res.agg || "sum" }] });
-          extra = `<div class="xs-kpi"><span>Resultado con todos los datos</span><b>${Number(qr.value ?? 0).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</b></div>`;
-        } catch { /* sin vista previa del valor */ }
+        // El motor devuelve el valor total al validar (también para medidas compuestas).
+        if (res.value != null) {
+          extra = `<div class="xs-kpi"><span>Resultado con todos los datos</span><b>${Number(res.value).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</b></div>`;
+        }
+        if (res.composite && res.parts?.length) {
+          extra += `<div class="xs-vals"><span>${res.parts.length === 1 ? "1 agregación" : `${res.parts.length} agregaciones combinadas`}:</span>${res.parts.map((p) => `<i>${esc(p.agg)}${p.distinct ? " distinct" : ""}(${esc(p.field ? `[${p.field}]` : p.expr)})</i>`).join("")}</div>`;
+        }
       } else if (res.calculated) {
         extra = `<div class="xs-vals"><span>${res.distinct ?? "?"} valores distintos · ejemplos:</span>${(res.sample || []).map((v) => `<i>${esc(v)}</i>`).join("")}${(res.distinct || 0) > (res.sample || []).length ? "<i>…</i>" : ""}</div>`;
       }
       const used = [...new Set(res.fields || (res.field ? [res.field] : []))];
       r.innerHTML = `<div class="xs-res-ok">✓ Expresión válida
-          <span>Tabla <b>${esc(res.table)}</b>${res.agg ? ` · agregación <b>${esc(res.agg)}</b>` : ""}${res.calculated ? " · <b>calculada</b>" : !isMeasure ? " · <b>campo</b>" : ""}</span></div>
+          <span>Tabla <b>${esc(res.table)}</b>${res.composite ? " · <b>medida compuesta</b>" : res.agg ? ` · agregación <b>${esc(res.agg)}</b>` : ""}${res.calculated ? " · <b>calculada</b>" : !isMeasure ? " · <b>campo</b>" : ""}</span></div>
         ${used.length ? `<div class="xs-used">${used.map((f) => `<span>[${esc(f)}]</span>`).join("")}</div>` : ""}${extra}`;
       return res;
     } catch (e) {
@@ -336,6 +355,67 @@ export function openExprStudio(o) {
     if (!confirm(`¿Eliminar "${item.name}"? Los gráficos que lo usan mostrarán el elemento como eliminado.`)) return;
     try { await o.onDelete(); } catch (e) { $("#xsMsg").textContent = e.message; $("#xsMsg").classList.add("err"); }
   });
+
+  /* ---------- Gobierno: certificación + historial de versiones (solo maestros existentes) ---------- */
+  let cur = item ? { ...item } : null;
+  const fmtDate = (s) => { const d = new Date(s); return isNaN(d) ? "" : d.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }); };
+  function renderGov() {
+    const g = $("#xsGov");
+    if (!g || !cur) return;
+    const certBtn = o.canCertify
+      ? `<button type="button" class="xs-tb ${cur.certified ? "" : "cert"}" id="xsCert">${cur.certified ? "Quitar certificación" : "✓ Certificar"}</button>`
+      : "";
+    g.innerHTML = `
+      <span class="xs-tlbl">Gobierno</span>
+      ${cur.certified
+        ? `<span class="xs-certok">✓ Métrica certificada</span>
+           <small>Por <b>${esc(cur.certified_by || "—")}</b>${cur.certified_at ? ` · ${esc(fmtDate(cur.certified_at))}` : ""}${cur.certified_note ? `<br>«${esc(cur.certified_note)}»` : ""}</small>
+           ${o.canCertify ? "" : `<small>Solo quien puede publicar la modifica.</small>`}`
+        : `<small>Sin certificar. Una métrica certificada es la definición oficial: se distingue con ✓ y la IA la usa tal cual.</small>`}
+      <div class="xs-gov-bar">${certBtn}<button type="button" class="xs-tb" id="xsHist">⟲ Historial · v${cur.version || 1}</button></div>`;
+    $("#xsCert")?.addEventListener("click", async () => {
+      const on = !cur.certified;
+      let note;
+      if (on) { note = prompt("Nota de certificación (opcional): qué valida esta definición.", "") ?? null; if (note === null) return; }
+      try { cur = await o.onCertify(on, note || undefined); renderGov(); }
+      catch (e) { $("#xsMsg").textContent = e.message; $("#xsMsg").classList.add("err"); }
+    });
+    $("#xsHist")?.addEventListener("click", showHistory);
+  }
+  async function showHistory() {
+    const r = $("#xsRes");
+    r.innerHTML = `<div class="xs-res-empty"><span class="xs-spin"></span>Cargando historial…</div>`;
+    try {
+      const vs = await o.onVersions();
+      r.innerHTML = `<div class="xs-hist"><div class="xs-hist-h">Historial de la definición <em>${vs.length === 1 ? "1 versión" : `${vs.length} versiones`}</em></div>
+        ${vs.map((v) => `
+          <div class="xs-hist-it ${v.is_current ? "cur" : ""}">
+            <span class="xs-hist-v">v${v.version}</span>
+            <div class="xs-hist-b">
+              <b>${esc(v.message || "Cambio")}</b>${v.is_current ? ` <span class="xs-hist-cur">actual</span>` : ""}
+              <small>${esc(v.author_name || "—")} · ${esc(fmtDate(v.created_at))}${v.name !== cur.name ? ` · nombre «${esc(v.name)}»` : ""}</small>
+              <code>${esc(v.expression)}</code>
+            </div>
+            ${v.is_current ? "" : `<div class="xs-hist-act"><button type="button" class="xs-op" data-hv-load="${v.version}" title="Cargar en el editor sin guardar">Ver</button><button type="button" class="xs-op" data-hv-restore="${v.version}" title="Restaurar (crea una versión nueva)">Restaurar</button></div>`}
+          </div>`).join("")}</div>`;
+      r.querySelectorAll("[data-hv-load]").forEach((b) => b.addEventListener("click", () => {
+        const v = vs.find((x) => String(x.version) === b.dataset.hvLoad);
+        ta.value = v.expression; paint(); ta.focus();
+        $("#xsMsg").classList.remove("err"); $("#xsMsg").textContent = `Cargada la v${v.version} en el editor. Pulsa Guardar para dejarla como versión nueva.`;
+      }));
+      r.querySelectorAll("[data-hv-restore]").forEach((b) => b.addEventListener("click", async () => {
+        if (!confirm(`¿Restaurar la v${b.dataset.hvRestore}? Se guarda como una versión nueva; el historial no se pierde.`)) return;
+        try {
+          cur = await o.onRestore(Number(b.dataset.hvRestore));
+          ta.value = cur.expression; if ($("#xsName")) $("#xsName").value = cur.name; if ($("#xsDesc")) $("#xsDesc").value = cur.description || "";
+          paint(); renderGov(); showHistory();
+        } catch (e) { r.innerHTML = `<div class="xs-res-err">✕ ${esc(e.message)}</div>`; }
+      }));
+    } catch (e) {
+      r.innerHTML = `<div class="xs-res-err">✕ ${esc(e.message)}</div>`;
+    }
+  }
+  renderGov();
 
   paint();
   renderList();

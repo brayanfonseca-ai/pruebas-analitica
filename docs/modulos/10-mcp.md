@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **93 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **100 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -20,7 +20,10 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (modo all/partial/sample + `transform`: quitar/renombrar columnas, tipos, nulos, calculadas, filtro, duplicados), `delete_connection` |
 | Datos | `upload_table` (CSV/Excel desde una ruta local), `delete_table`, `get_field_overrides`, `set_field_overrides` |
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |
-| Elementos maestros | `list_master_items`, `save_master_item`, `delete_master_item`, `parse_expression` |
+| Elementos maestros | `list_master_items`, `save_master_item` (medidas simples o **compuestas**), `delete_master_item`, `parse_expression` (devuelve `value`, y `formula`/`parts` si es compuesta) |
+| Métricas certificadas | `certify_master_item` (`POST …/master-items/{id}/certify`, requiere `apps:publish`), `list_master_item_versions`, `restore_master_item_version` (crea una versión nueva). Ver [05](./05-editor-hoja.md) |
+| Comentarios | `list_comments`, `add_comment` (con `point` y `selections` opcionales), `resolve_comment`, `delete_comment` (ACCIÓN DESTRUCTIVA). Ver [05](./05-editor-hoja.md) |
+| Medidas compuestas en consultas y hojas | `run_query` y `create_sheet`/`update_sheet` aceptan una medida `{expression: "Count([A]) / Count([B]) * 100"}`: el tool la valida con `/expressions/parse` y envía `formula` + `parts` |
 | Modelo lógico | `get_logical_model`, `set_logical_model`, `logical_model_action` (reset/enable/disable), `logical_model_item` (grupos, paquetes, jerarquías, comportamientos, periodos) |
 | Hojas | `delete_sheet`, `set_sheet_visibility`, `add_ml_chart` (valida que el gráfico aplique a la ejecución y busca hueco libre) |
 | Experimentos de ML | `list_experiments`, `create_experiment`, `get_experiment`, `update_experiment`, `delete_experiment`, `train_model`, `get_ml_run`, `delete_ml_run`, `associate_ml_run` (tabla ML_ + hoja con gráficos), `ml_datasets` |

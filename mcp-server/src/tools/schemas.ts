@@ -55,10 +55,18 @@ const dimensionSchema = z
 
 /** Referencia a una medida dentro de un QuerySpec. */
 const measureSchema = z.object({
-  table: z.string().min(1).describe("Tabla de la medida."),
-  field: z.string().min(1).describe("Campo de la medida."),
+  table: z.string().optional().describe("Tabla de la medida (no hace falta si se envia 'expression')."),
+  field: z.string().optional().describe("Campo de la medida (no hace falta si se envia 'expression')."),
   agg: aggEnum.optional(),
   label: z.string().optional().describe("Etiqueta opcional de la medida."),
+  expression: z
+    .string()
+    .optional()
+    .describe(
+      "Medida fx (simple o COMPUESTA), p. ej. \"Count([FECHA RETIRO]) / Count([CEDULA]) * 100\", \"Sum(If([ESTADO]='Inactivo',1,0))\" o \"Count(DISTINCT [CEDULA])\". El tool la valida con /expressions/parse y envia {table, field, agg, formula, parts}.",
+    ),
+  formula: z.string().optional().describe("Formula externa de una medida compuesta (sobre [__a0], [__a1]…), tal como la devuelve parse_expression."),
+  parts: z.array(z.record(z.string(), z.any())).optional().describe("Partes de una medida compuesta [{agg, field|expr, distinct}], tal como las devuelve parse_expression."),
 });
 
 /**
@@ -100,12 +108,19 @@ const sheetObjectSchema = z
     title: z.string().optional().describe("Titulo del objeto."),
     dimension: z.string().optional().describe("Campo de dimension."),
     measure: z
-      .object({
-        field: z.string().describe("Campo de la medida."),
-        agg: aggEnum.optional(),
-      })
+      .union([
+        z.object({
+          field: z.string().optional().describe("Campo de la medida."),
+          agg: aggEnum.optional(),
+          expression: z.string().optional().describe("Medida fx simple o COMPUESTA (p. ej. \"Count([FECHA RETIRO]) / Count([CEDULA]) * 100\"); se valida y se guarda como item fx."),
+          label: z.string().optional().describe("Etiqueta de la medida."),
+          source: z.enum(["master", "expr"]).optional().describe("'master' + masterId para usar una medida maestra."),
+          masterId: z.string().optional(),
+        }).passthrough(),
+        z.array(z.record(z.string(), z.any())),
+      ])
       .optional()
-      .describe("Medida: {field, agg}."),
+      .describe("Medida: {field, agg} | {expression} (fx, admite compuestas) | {source:'master', masterId}; o una lista de ellas."),
     x: z.number().optional().describe("Columna inicial (rejilla de 24 col)."),
     y: z.number().optional().describe("Fila inicial."),
     w: z.number().optional().describe("Ancho en columnas (rejilla de 24)."),

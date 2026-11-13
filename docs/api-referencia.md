@@ -41,7 +41,19 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 ## Consulta
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/apps/{appId}/query` | Agrega. Body `{dimension?:{table,field}, measures:[{table,field,agg}], selections?}`. Sin dimensión → KPI escalar; con dimensión → labels+values. |
+| POST | `/apps/{appId}/query` | Agrega. Body `{dimension?:{table,field,expr?}, measures:[{table,field,agg,label?,formula?,parts?}], selections?}`. Sin dimensión → KPI escalar; con dimensión → labels+values. `formula`+`parts` = medida compuesta (los devuelve `/expressions/parse`). |
+| POST | `/apps/{appId}/expressions/parse` | `{kind, expression, name?}` → spec compilado; en medidas incluye `value` (total) y, si es compuesta, `{composite, formula, parts, fields}`. |
+
+## Elementos maestros, métricas certificadas y comentarios
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET/POST | `/apps/{appId}/master-items` | Lista / crea (crea la versión 1). Cada ítem trae `certified, certified_by, certified_at, certified_note, version`. |
+| PUT/DELETE | `/apps/{appId}/master-items/{itemId}` | Edita (versión nueva si cambia nombre/expresión/descripción; `message?`) / borra. Si está certificado exige `apps:publish`. |
+| POST | `/apps/{appId}/master-items/{itemId}/certify` | `{certified, note?}` (`apps:publish`). |
+| GET | `/apps/{appId}/master-items/{itemId}/versions` | Historial (más reciente primero). |
+| POST | `/apps/{appId}/master-items/{itemId}/versions/{v}/restore` | Restaura como versión nueva. |
+| GET/POST | `/apps/{appId}/comments` | `?sheetId=&objectId=` / `{sheetId, objectId, text, point?, selections?}` (`dashboard:view`). |
+| PUT/DELETE | `/apps/{appId}/comments/{id}` | `{resolved}` / borrar (autor o `apps:publish`). |
 
 ## Modelo de datos
 | Método | Ruta | Descripción |

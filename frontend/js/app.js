@@ -43,7 +43,7 @@ const VISIBLE_GROUPS = VIEW_GROUPS.map((g) => ({ ...g, views: g.views.filter(all
 const ALL_VIEWS = VISIBLE_GROUPS.flatMap((g) => g.views);
 const DEFAULT_VIEW = "hoja";
 
-const ctx = { appId: APP_ID, can: (perm) => authService.can(perm) };
+const ctx = { appId: APP_ID, can: (perm) => authService.can(perm), me: () => authService.current() };
 let currentCleanup = null;
 let sheetMenuCleanup = null;
 

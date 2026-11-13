@@ -49,3 +49,28 @@ Crear o editar una **medida** o **dimensión** maestra, y el botón **fx** de un
 - **Centro**: editor grande con números de línea y **resaltado de sintaxis** (campos, textos, números, funciones, operadores), barra de operadores, **Probar** (`Ctrl+Enter`, valida en el motor y muestra tabla, campos usados y valores de ejemplo; en medidas, el resultado con todos los datos), **Ordenar** (`Ctrl+Shift+F`, parte If anidados en varias líneas), aviso inmediato de paréntesis, corchetes o comillas sin cerrar, y contador de caracteres y líneas.
 - **Derecha**: catálogo con **Campos** (buscables, por tabla, con tipo; en medidas, accesos rápidos Σ Sum y # Count), **Funciones** (firma y descripción; un clic inserta la plantilla) y **Ejemplos** construidos con los campos reales del modelo.
 - Las expresiones en varias líneas se guardan en una sola línea para el motor.
+
+## Medidas compuestas
+
+Una medida ya no es solo una agregación sobre un campo. Puedes escribir:
+- **Aritmética entre agregaciones**: `Count([FECHA RETIRO]) / Count([CEDULA]) * 100`, `Max([EDAD EN AÑOS]) - Min([EDAD EN AÑOS])`, `Sum([VALOR MOVIMIENTO]) / Count(DISTINCT [CEDULA])`.
+- **Agregación sobre una expresión por fila**: `Sum(If([ESTADO CONTRATO] = 'Inactivo', 1, 0))` (cuántos cumplen una condición). Dentro de la agregación valen todas las funciones de las dimensiones calculadas (If, Year, Upper…) y también los nombres de las dimensiones calculadas maestras.
+- **Count(DISTINCT [campo])**: valores distintos (personas únicas).
+- **Funciones sobre el resultado**: `Round(Sum(If([ESTADO CONTRATO] = 'Inactivo', 1, 0)) / Count([CEDULA]) * 100, 2)`, `If(Count([x]) > 0, …, 0)`.
+- **Reglas**: cada campo va dentro de una agregación; todos los campos en una misma tabla; no se anidan agregaciones (`Sum(Count(…))`). Dentro de una compuesta, **Count cuenta valores no vacíos** y una división por cero da 0.
+- **Cómo funciona**: `Expressions.compile` extrae cada `Func(...)` (paréntesis balanceados), lo sustituye por `[__a0]`, `[__a1]`… y devuelve `{table, field, agg, formula, parts:[{agg, field|expr, distinct}], composite:true}`. `QueryEngine.aggregateComposite` calcula cada parte sobre las filas del grupo y evalúa la fórmula con `RowExpression`. Si la dimensión está en otra tabla, cada fila de la tabla de la medida toma la etiqueta por la clave compartida (no se pre-agrega, porque un % no es aditivo). `/expressions/parse` devuelve además `value` (el total con todos los datos) y el estudio lo muestra al **Probar**, con las agregaciones combinadas.
+
+## Métricas certificadas e historial
+
+- En el estudio de un elemento maestro existente aparece el bloque **Gobierno**: estado (✓ Métrica certificada, por quién, cuándo y la nota) y los botones **✓ Certificar / Quitar certificación** (solo con `apps:publish`) y **⟲ Historial · vN**.
+- Una métrica certificada lleva la insignia **✓ Certificada** en *Elementos maestros* y aparece primero (con ✓) al elegir una medida para un gráfico. Solo quien puede publicar la modifica o la borra (403 para el resto). La IA la recibe en su contexto como definición oficial y la usa tal cual.
+- **Historial**: cada cambio de nombre, expresión o descripción crea una versión (`master_item_versions`) con autor, fecha y mensaje («Creación», «Cambio de expresión»…). Desde el historial puedes **Ver** una versión (la carga en el editor) o **Restaurar** (se valida y queda como versión nueva; nada se reescribe).
+- API: `POST /apps/{id}/master-items/{itemId}/certify` `{certified, note?}`, `GET …/versions`, `POST …/versions/{v}/restore`. MCP: `certify_master_item`, `list_master_item_versions`, `restore_master_item_version`.
+
+## Comentarios sobre objetos
+
+- Menú **⋯** de cualquier objeto → **Comentarios (N)**. El hilo muestra autor, fecha, el punto al que se refiere y acciones **Ver ese punto** (vuelve a aplicar la selección que había al comentar), **Marcar resuelto / Reabrir** y **Borrar** (autor o quien publica).
+- Al escribir con selecciones activas puedes **anclar el comentario a la selección actual** («EMPRESA = Vigía»). `Ctrl+Enter` envía.
+- Los objetos con comentarios sin resolver muestran el chip **💬 N** en la esquina inferior izquierda; un clic abre el hilo.
+- Cualquiera que vea la app comenta (también un visualizador en Producción). No aparece en tableros incrustados.
+- API: `GET/POST /apps/{id}/comments`, `PUT/DELETE /apps/{id}/comments/{commentId}` (tabla `comments`). MCP: `list_comments`, `add_comment`, `resolve_comment`, `delete_comment`.

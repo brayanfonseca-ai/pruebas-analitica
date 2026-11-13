@@ -52,7 +52,16 @@ public final class AppModels {
     /** Dimensión: campo físico, o dimensión calculada si trae {@code expr} (se evalúa por fila y se agrupa como {@code field}). */
     public record FieldRef(String table, String field, String expr) {}
 
-    public record MeasureSpec(String table, String field, String agg, String label) {}
+    /**
+     * Medida de una consulta. Simple: {table, field, agg}. Compuesta (fx con aritmética entre agregaciones,
+     * agregación sobre una expresión o Count DISTINCT): además {@code formula} (expresión de fila sobre los
+     * marcadores [__a0], [__a1]…) y {@code parts} ([{agg, field|expr, distinct}]), tal como los devuelve
+     * {@code Expressions.compile}.
+     */
+    public record MeasureSpec(String table, String field, String agg, String label,
+                              String formula, List<Map<String, Object>> parts) {
+        public boolean composite() { return formula != null && !formula.isBlank() && parts != null && !parts.isEmpty(); }
+    }
 
     public record QuerySpec(FieldRef dimension, List<MeasureSpec> measures,
                             String chart_type, Map<String, List<Object>> selections) {}

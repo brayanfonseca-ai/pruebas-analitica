@@ -33,10 +33,13 @@ public class AiController {
     private final io.datasense.repo.NotesRepository notes;
     private final io.datasense.repo.AppRepository apps;
     private final io.datasense.auth.AccessService access;
+    private final io.datasense.repo.MasterItemRepository masters;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public AiController(BedrockService bedrock, io.datasense.repo.NotesRepository notes,
-                        io.datasense.repo.AppRepository apps, io.datasense.auth.AccessService access) {
+                        io.datasense.repo.AppRepository apps, io.datasense.auth.AccessService access,
+                        io.datasense.repo.MasterItemRepository masters) {
+        this.masters = masters;
         this.bedrock = bedrock;
         this.notes = notes;
         this.apps = apps;
@@ -57,9 +60,33 @@ public class AiController {
             var app = apps.getApp(appId);
             if (app.isEmpty() || !access.canSee(user, app.get())) return "";
             String ctx = notes.contextFor(appId);
-            if (ctx.isBlank()) return "";
-            return "\n\nDICCIONARIO DE DATOS (notas del equipo sobre estos datos). Es la fuente de verdad sobre el SIGNIFICADO de cada tabla "
+            String certified = certifiedBlock(appId);
+            if (ctx.isBlank() && certified.isBlank()) return "";
+            String out = "";
+            if (!ctx.isBlank()) out += "\n\nDICCIONARIO DE DATOS (notas del equipo sobre estos datos). Es la fuente de verdad sobre el SIGNIFICADO de cada tabla "
                     + "y columna, su tipo semántico y con qué se cruzan; úsalo para interpretar, relacionar y modelar, y cítalo cuando ayude:\n" + ctx;
+            return out + certified;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * Métricas certificadas de la app: las definiciones OFICIALES. Cuando la pregunta trata de uno de estos conceptos
+     * el agente debe usar exactamente esta fórmula (y decir que es la métrica certificada) en vez de inventar otra.
+     */
+    private String certifiedBlock(String appId) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Map<String, Object> m : masters.list(appId, "measure")) {
+                if (!Boolean.TRUE.equals(m.get("certified"))) continue;
+                sb.append("- ").append(m.get("name")).append(" = ").append(m.get("expression"));
+                if (m.get("description") != null && !String.valueOf(m.get("description")).isBlank()) sb.append(" · ").append(m.get("description"));
+                sb.append(" (certificada por ").append(m.get("certified_by") == null ? "el equipo" : m.get("certified_by")).append(")\n");
+            }
+            if (sb.length() == 0) return "";
+            return "\n\nMÉTRICAS CERTIFICADAS (definiciones oficiales de la empresa). Si la pregunta trata de alguno de estos conceptos, "
+                    + "usa EXACTAMENTE esta definición y aclara que es la métrica certificada:\n" + sb;
         } catch (Exception e) {
             return "";
         }
