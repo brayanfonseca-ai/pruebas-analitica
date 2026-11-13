@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **100 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **103 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -22,6 +22,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |
 | Elementos maestros | `list_master_items`, `save_master_item` (medidas simples o **compuestas**), `delete_master_item`, `parse_expression` (devuelve `value`, y `formula`/`parts` si es compuesta) |
 | Métricas certificadas | `certify_master_item` (`POST …/master-items/{id}/certify`, requiere `apps:publish`), `list_master_item_versions`, `restore_master_item_version` (crea una versión nueva). Ver [05](./05-editor-hoja.md) |
+| Pregúntale / archivo a tablero | `ask_data` (`POST /apps/{id}/ask`: respuesta + cómo se calculó + consulta + objeto de hoja), `ask_suggestions`, `auto_dashboard` (`POST /apps/{id}/auto-dashboard`). Ver [15](./15-preguntale-y-autotablero.md) |
 | Comentarios | `list_comments`, `add_comment` (con `point` y `selections` opcionales), `resolve_comment`, `delete_comment` (ACCIÓN DESTRUCTIVA). Ver [05](./05-editor-hoja.md) |
 | Medidas compuestas en consultas y hojas | `run_query` y `create_sheet`/`update_sheet` aceptan una medida `{expression: "Count([A]) / Count([B]) * 100"}`: el tool la valida con `/expressions/parse` y envía `formula` + `parts` |
 | Modelo lógico | `get_logical_model`, `set_logical_model`, `logical_model_action` (reset/enable/disable), `logical_model_item` (grupos, paquetes, jerarquías, comportamientos, periodos) |

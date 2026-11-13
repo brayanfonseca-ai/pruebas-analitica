@@ -120,6 +120,8 @@ public final class Permissions {
             if (sub.equals("query") || tail.equals("/fields/values") || tail.equals("/expressions/parse")) return VIEW;
             // Comentarios: cualquiera que vea la hoja conversa sobre ella (el controlador limita borrar/resolver).
             if (sub.equals("comments")) return VIEW;
+            // Pregúntale a tus datos: es una consulta más (como /query).
+            if (sub.equals("ask")) return VIEW;
             // Certificar una métrica la convierte en definición oficial: es una acción de gobierno.
             if (sub.equals("master-items") && tail.endsWith("/certify")) return PUBLISH;
             if (sub.equals("connections")) return CONNECTIONS;

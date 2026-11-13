@@ -44,6 +44,13 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | POST | `/apps/{appId}/query` | Agrega. Body `{dimension?:{table,field,expr?}, measures:[{table,field,agg,label?,formula?,parts?}], selections?}`. Sin dimensión → KPI escalar; con dimensión → labels+values. `formula`+`parts` = medida compuesta (los devuelve `/expressions/parse`). |
 | POST | `/apps/{appId}/expressions/parse` | `{kind, expression, name?}` → spec compilado; en medidas incluye `value` (total) y, si es compuesta, `{composite, formula, parts, fields}`. |
 
+## Pregúntale a tus datos y De archivo a tablero
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/apps/{appId}/ask` | `{question}` → `{ok, answer, chart, result, how, query, sheetObject}` o `{ok:false, message, suggestions}`. Ver [`modulos/15`](./modulos/15-preguntale-y-autotablero.md). |
+| GET | `/apps/{appId}/ask/suggestions` | Preguntas sugeridas verificadas. |
+| POST | `/apps/{appId}/auto-dashboard` | `{table?, title?}` → 201 `{sheet, summary, questions}`. |
+
 ## Elementos maestros, métricas certificadas y comentarios
 | Método | Ruta | Descripción |
 |---|---|---|

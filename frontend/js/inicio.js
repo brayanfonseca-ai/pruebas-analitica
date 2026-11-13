@@ -5,6 +5,7 @@ import { renderNav, wireAppsButton, renderProfileMenu, svg } from "./hub-nav.js"
 import { authService } from "./auth-service.js";
 import { listApps } from "./api.js";
 import { appMenuBtn, registerApps, onAppsChanged } from "./app-menu.js";
+import { mountAsk } from "./ask-home.js";
 
 // Guard de sesión: sin sesión válida -> login.
 if (!authService.isAuthenticated()) {
@@ -72,3 +73,4 @@ renderProfileMenu(authService);
 renderGreeting();
 onAppsChanged(renderHome);
 renderHome();
+mountAsk(document.getElementById("askHome"), { onAppsChanged: renderHome });

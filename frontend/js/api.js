@@ -182,6 +182,13 @@ export const listMasterItemVersions = (appId, itemId) =>
 export const restoreMasterItemVersion = (appId, itemId, version) =>
   request(`/apps/${encodeURIComponent(appId)}/master-items/${encodeURIComponent(itemId)}/versions/${encodeURIComponent(version)}/restore`, { method: "POST" });
 
+/* ----------------------- Pregúntale a tus datos / De archivo a tablero ----------------------- */
+export const askData = (appId, question) =>
+  request(`/apps/${encodeURIComponent(appId)}/ask`, { method: "POST", body: { question } });
+export const askSuggestions = (appId) => request(`/apps/${encodeURIComponent(appId)}/ask/suggestions`);
+export const autoDashboard = (appId, opts = {}) =>
+  request(`/apps/${encodeURIComponent(appId)}/auto-dashboard`, { method: "POST", body: opts });
+
 /* ----------------------- Comentarios ----------------------- */
 export const listComments = (appId, { sheetId, objectId } = {}) => {
   const q = new URLSearchParams();

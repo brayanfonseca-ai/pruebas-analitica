@@ -492,6 +492,29 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await post(`${A(a.appId)}/master-items/${E(a.itemId)}/versions/${E(a.version)}/restore`)),
   },
 
+  /* ===================== Preguntale a tus datos / De archivo a tablero ===================== */
+  {
+    name: "ask_data",
+    title: "Preguntale a tus datos",
+    description: "Responde una pregunta en espanol sobre los datos de una app ('% de inactivos por sucursal', 'top 5 sucursales por cantidad de servicios', 'cuantos conductores hay en 2025', 'evolucion de ventas por periodo'). Interprete determinista (sin IA): reconoce metricas certificadas y maestras, campos (nombre, nombre visible y sinonimos de las Notas para agente), valores como filtros, agregaciones (cuantos, total, promedio, maximo, minimo, distintos, %), agrupacion ('por', 'segun', 'evolucion') y top N. Devuelve {ok, answer (frase), chart kpi|bar|line, result {value | labels, values, groups, total}, how {measure {label, expression, source, certified}, dimension, filters, order, top, table, rows, steps[]}, query (QuerySpec exacto), sheetObject (objeto para create_sheet)} o {ok:false, message, suggestions}. POST /api/v1/apps/{appId}/ask con {question}.",
+    inputShape: { ...appId, question: id("Pregunta en lenguaje natural (max 400).") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/ask`, { question: String(a.question) })),
+  },
+  {
+    name: "ask_suggestions",
+    title: "Preguntas sugeridas",
+    description: "Preguntas de ejemplo construidas con el modelo real de la app (metricas certificadas, categorias, medidas, tiempo) y verificadas con el interprete de ask_data. GET /api/v1/apps/{appId}/ask/suggestions.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/ask/suggestions`)),
+  },
+  {
+    name: "auto_dashboard",
+    title: "De archivo a tablero (tablero automatico)",
+    description: "Genera y guarda una hoja a partir de los datos de una tabla: KPIs (metricas certificadas, registros, distintos del identificador, totales/promedios), barras por la mejor categoria, torta, evolucion en el tiempo, tabla de detalle y panel de filtros, en la rejilla de 24x12. Flujo 'archivo a tablero': create_app -> upload_table -> auto_dashboard. Devuelve 201 {sheet, summary {table, rows, columns, dimensions, measures, time, id, objects}, questions (sugeridas)}. POST /api/v1/apps/{appId}/auto-dashboard con {table?, title?}.",
+    inputShape: { ...appId, table: z.string().optional().describe("Tabla base (default: la de mas filas)."), title: z.string().optional().describe("Titulo de la hoja.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/auto-dashboard`, pick(a, ["table", "title"]))),
+  },
+
   /* ============================ Comentarios ============================ */
   {
     name: "list_comments",
