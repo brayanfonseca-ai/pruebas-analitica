@@ -40,3 +40,12 @@ Una dimensión ya no tiene que ser un campo: puede ser una **expresión por fila
 - **Reglas**: todos los campos deben estar en una misma tabla; el **nombre** es el campo por el que se agrupa, selecciona y filtra, así que no puede coincidir con un campo existente ni con otra dimensión calculada.
 - **Cómo funciona**: `Expressions.compile` marca la dimensión como calculada (`resolved = {table, field: nombre, expr, calculated}`); en cada `/query` `QueryController` añade a la tabla una columna con `Expressions.withCalculated` (evaluada con `RowExpression`) para las dimensiones calculadas maestras y la de la propia consulta (`dimension.expr`). Así funcionan igual que un campo: agrupación, selecciones, filtros por objeto, panel de filtrado (`/fields/values`) y asociación con otras tablas.
 - **MCP**: `save_master_item` (kind `dimension` con la expresión) y `parse_expression` (con `name`) para probarla.
+
+
+## Estudio de expresiones
+
+Crear o editar una **medida** o **dimensión** maestra, y el botón **fx** de un gráfico, abren el **Estudio de expresiones** (`frontend/js/expr-studio.js`): una ventana amplia (hasta 1320 × 820 px) con tres zonas.
+- **Izquierda**: nombre, descripción (amplia) y **tipo detectado en vivo** (Campo · Dimensión calculada · Medida).
+- **Centro**: editor grande con números de línea y **resaltado de sintaxis** (campos, textos, números, funciones, operadores), barra de operadores, **Probar** (`Ctrl+Enter`, valida en el motor y muestra tabla, campos usados y valores de ejemplo; en medidas, el resultado con todos los datos), **Ordenar** (`Ctrl+Shift+F`, parte If anidados en varias líneas), aviso inmediato de paréntesis, corchetes o comillas sin cerrar, y contador de caracteres y líneas.
+- **Derecha**: catálogo con **Campos** (buscables, por tabla, con tipo; en medidas, accesos rápidos Σ Sum y # Count), **Funciones** (firma y descripción; un clic inserta la plantilla) y **Ejemplos** construidos con los campos reales del modelo.
+- Las expresiones en varias líneas se guardan en una sola línea para el motor.
