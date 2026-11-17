@@ -51,6 +51,16 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | GET | `/apps/{appId}/ask/suggestions` | Preguntas sugeridas verificadas. |
 | POST | `/apps/{appId}/auto-dashboard` | `{table?, title?}` → 201 `{sheet, summary, questions}`. |
 
+## Automatizar: carga programada, alertas y salud
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET/PUT/DELETE | `/apps/{appId}/schedule` | Programación de la carga (`PUT`: `{frequency interval\|hourly\|daily\|weekly, interval_minutes?, time_of_day?, weekday?, notify fail\|always\|never, enabled?}`, `data:import`). |
+| POST | `/apps/{appId}/schedule/run` | Ejecuta la carga ahora. |
+| GET | `/apps/{appId}/reload-runs?limit=` | Historial de cargas. |
+| GET/POST | `/apps/{appId}/alerts` | Alertas `{name, expression \| master_id, op, threshold, selections?, check_mode reload\|interval, interval_minutes?, enabled?}`. |
+| PUT/DELETE | `/apps/{appId}/alerts/{id}` · POST `/alerts/{id}/check` | Editar / borrar (dueño o `apps:publish`) · revisar ahora. |
+| GET | `/apps/{appId}/health` | Salud de datos `{score, status, tables, issues, counts}`. Ver [`modulos/16`](./modulos/16-automatizar.md). |
+
 ## Elementos maestros, métricas certificadas y comentarios
 | Método | Ruta | Descripción |
 |---|---|---|

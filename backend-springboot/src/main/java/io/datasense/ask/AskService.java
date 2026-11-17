@@ -78,10 +78,12 @@ public class AskService {
         StringBuilder sb = new StringBuilder();
         for (Map<String, Object> t : tables.listTables(appId)) sb.append(t.get("id")).append(t.get("created_at")).append(';');
         for (Map<String, Object> it : masters.list(appId, null)) sb.append(it.get("id")).append(it.get("updated_at")).append(it.get("certified")).append(';');
-        try {
-            sb.append(jdbc.queryForObject("SELECT COUNT(*) || MAX(updated_at) FROM column_notes WHERE app_id = ?", String.class, appId));
-            sb.append(jdbc.queryForObject("SELECT COUNT(*) FROM field_overrides WHERE app_id = ?", String.class, appId));
-        } catch (RuntimeException ignored) {}
+        for (String sql : List.of(
+                "SELECT COUNT(*) || MAX(updated_at) FROM column_notes WHERE app_id = ?",
+                "SELECT COUNT(*) FROM field_overrides WHERE app_id = ?",
+                "SELECT MAX(loaded_at) FROM table_loads WHERE app_id = ?")) {
+            try { sb.append(jdbc.queryForObject(sql, String.class, appId)).append(';'); } catch (RuntimeException ignored) {}
+        }
         return sb.toString();
     }
 
@@ -106,6 +108,28 @@ public class AskService {
             if (ws.size() < 2) continue;
             for (String w : ws) if (w.length() >= 4 && !STOP.contains(w) && !GENERIC.contains(w) && !w.matches("\\d+") && owners.get(w).size() == 1) f.weak.add(w);
         }
+    }
+
+    /** Olvida el modelo en caché de una app (tras una recarga de datos). */
+    public void invalidate(String appId) { cache.remove(appId); }
+
+    /**
+     * Valor total de una medida (fx simple o compuesta, o la de un elemento maestro si {@code masterId}) con unas
+     * selecciones. Lo usan las alertas. Lanza {@link Expressions.ExpressionError} si la expresión no es válida.
+     */
+    @SuppressWarnings("unchecked")
+    public Double measureValue(String appId, String masterId, String expression, Map<String, List<Object>> selections) {
+        Model m = model(appId);
+        Map<String, Object> r = null;
+        if (masterId != null && !masterId.isBlank()) {
+            for (Map<String, Object> it : m.measures)
+                if (masterId.equals(it.get("id")) && it.get("resolved") instanceof Map<?, ?> rr) r = (Map<String, Object>) rr;
+            if (r == null) throw new Expressions.ExpressionError("La medida maestra de la alerta ya no existe.");
+        } else {
+            r = Expressions.compile("measure", expression, m.fieldIndex);
+        }
+        QueryResult q = run(m, new QuerySpec(null, List.of(toSpec(r, null)), "kpi", selections == null ? Map.of() : selections));
+        return q.value();
     }
 
     private QueryResult run(Model m, QuerySpec spec) {

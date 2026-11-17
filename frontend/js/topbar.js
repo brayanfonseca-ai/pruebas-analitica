@@ -281,9 +281,15 @@ const KIND = {
   connection: { label: "Nueva conexión", group: "datos", color: "#0ea5e9", icon: `<rect ${DUO} x="4" y="3.5" width="6" height="7" rx="1.6" transform="rotate(45 7 7)"/><rect ${DUO} x="14" y="13.5" width="6" height="7" rx="1.6" transform="rotate(45 17 17)"/><path d="m9.5 14.5 5-5"/>` },
   experiment: { label: "Nuevo experimento de ML", group: "ml", color: "#10b981", icon: BRAIN },
   run: { label: "Modelo entrenado", group: "ml", color: "#22c55e", icon: `<path ${DUO} stroke="none" d="M3 17c3-6 6-6 8-3s6 3 10-4v11H3z"/><path d="M3 17c3-6 6-6 8-3s6 3 10-4"/><circle cx="21" cy="10" r="1.4" fill="currentColor"/>` },
+  // Automatización (eventos personales: alertas y recargas programadas)
+  alert: { label: "Alerta disparada", group: "alertas", color: "#e11d48", icon: `<path ${DUO} d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.6a2 2 0 0 0 4 0M12 8v4"/><circle cx="12" cy="14.6" r=".9" fill="currentColor"/>` },
+  alert_ok: { label: "Alerta resuelta", group: "alertas", color: "#10b981", icon: `<circle ${DUO} cx="12" cy="12" r="9"/><path d="m8 12.3 2.6 2.6L16.2 9"/>` },
+  reload: { label: "Recarga completada", group: "alertas", color: "#0ea5e9", icon: '<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5"/>' },
+  reload_fail: { label: "Recarga con problemas", group: "alertas", color: "#f59e0b", icon: '<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5M12 9v4"/><circle cx="12" cy="16" r=".9" fill="currentColor"/>' },
+  health: { label: "Salud de datos", group: "alertas", color: "#f97316", icon: `<path ${DUO} d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8 12h2l1-2 2 4 1-2h2"/>` },
 };
 const FILTERS = [
-  { id: "all", label: "Todas" }, { id: "unread", label: "No leídas" }, { id: "apps", label: "Apps" },
+  { id: "all", label: "Todas" }, { id: "unread", label: "No leídas" }, { id: "alertas", label: "Alertas" }, { id: "apps", label: "Apps" },
   { id: "datos", label: "Datos" }, { id: "hojas", label: "Hojas" }, { id: "ml", label: "ML" },
 ];
 const SEEN_KEY = "ds.notif.seen";
@@ -310,6 +316,7 @@ function describe(n) {
   else if (n.kind === "master" && n.extra) sub = (n.extra === "measure" ? "Medida" : "Dimensión") + (sub ? " · " + sub : "");
   else if (n.kind === "table" && n.extra) sub = "desde " + n.extra + (sub ? " · " + sub : "");
   else if (n.kind === "experiment" && n.extra) sub = "tabla " + n.extra + (sub ? " · " + sub : "");
+  else if (KIND[n.kind]?.group === "alertas") sub = n.detail || "";
   return { k, title, sub, metric };
 }
 function rel(iso) {
@@ -351,13 +358,13 @@ function renderNotif() {
   const list = notifEl.querySelector(".ds-notif-list");
   notifEl.querySelector(".ds-notif-count").textContent = feed.unread ? `${feed.unread} sin leer` : "Al día";
   notifEl.querySelector(".ds-notif-count").classList.toggle("zero", !feed.unread);
-  notifEl.querySelector(".ds-notif-filters").innerHTML = FILTERS.map((f) => {
+  notifEl.querySelector(".ds-notif-filters").innerHTML = FILTERS.filter((f) => isAdmin() || ["all", "unread", "alertas"].includes(f.id)).map((f) => {
     const c = f.id === "all" ? feed.items.length : f.id === "unread" ? feed.items.filter((n) => !n.read).length : feed.items.filter((n) => KIND[n.kind]?.group === f.id).length;
     return `<button type="button" class="ds-notif-chip ${filter === f.id ? "on" : ""}" data-f="${f.id}">${esc(f.label)}<b>${c}</b></button>`;
   }).join("");
   const items = feed.items.filter((n) => filter === "all" || (filter === "unread" ? !n.read : KIND[n.kind]?.group === filter));
   if (!items.length) {
-    list.innerHTML = `<div class="ds-notif-empty"><div class="ds-notif-empty-ico">${SVG.bell}</div><strong>${filter === "unread" ? "Todo al día" : "Sin actividad"}</strong><small>${filter === "unread" ? "No tienes notificaciones sin leer." : "Las nuevas apps, cargas, hojas y modelos aparecerán aquí."}</small></div>`;
+    list.innerHTML = `<div class="ds-notif-empty"><div class="ds-notif-empty-ico">${SVG.bell}</div><strong>${filter === "unread" ? "Todo al día" : "Sin actividad"}</strong><small>${filter === "unread" ? "No tienes notificaciones sin leer." : isAdmin() ? "Las nuevas apps, cargas, hojas, modelos y tus alertas aparecerán aquí." : "Tus alertas y cargas programadas aparecerán aquí. Créalas en la vista «Automatizar» de una app."}</small></div>`;
     return;
   }
   let prev = "", html = "";
@@ -381,7 +388,7 @@ function renderNotif() {
 }
 
 async function refresh(showToasts) {
-  if (!isAdmin()) { setBadge(0); return; }
+  if (!authService.isAuthenticated()) { setBadge(0); return; }
   try {
     const prevIds = new Set(feed.items.map((n) => n.id));
     feed = await fetchFeed();
@@ -475,12 +482,9 @@ async function openNotif() {
   placeNotif();
   requestAnimationFrame(() => notifEl.classList.add("open"));
   notifBell?.setAttribute("aria-expanded", "true");
-  if (!isAdmin()) {
-    notifEl.querySelector(".ds-notif-actions").hidden = true;
-    notifEl.querySelector(".ds-notif-filters").hidden = true;
-    notifEl.querySelector(".ds-notif-list").innerHTML = `<div class="ds-notif-empty"><div class="ds-notif-empty-ico">${SVG.bell}</div><strong>Solo para administradores</strong><small>La actividad de la plataforma (nuevas apps, cargas, hojas y modelos) la recibe el rol administrador.</small></div>`;
-    return;
-  }
+  notifEl.querySelector(".ds-notif-foot").textContent = isAdmin()
+    ? "Actividad de toda la plataforma y tus alertas · se actualiza sola"
+    : "Tus alertas y cargas programadas · se actualiza sola";
   renderNotif();
   await refresh(false);
 }

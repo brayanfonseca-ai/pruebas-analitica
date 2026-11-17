@@ -96,7 +96,8 @@ esa contraseña, actualiza las variables en `mcp.json`.
 ## Limitaciones honestas
 - Es seguridad de aplicación para uso local/equipo: no hay HTTPS, recuperación por correo ni doble factor.
 - Los experimentos de ML se filtran por permiso (`ml:run`), no por la etapa de su app.
-- Las notificaciones y la Configuración son para administradores.
+- La Configuración es para administradores. La campana la tiene todo usuario: cada uno ve sus alertas y cargas programadas, y solo el administrador ve además la actividad de la plataforma (ver [16](./16-automatizar.md)).
+- Alertas: las crea cualquiera que vea la app; editar o borrar una ajena exige `apps:publish`. Programar la carga exige `data:import` y corre con los permisos de quien la guardó.
 
 
 ## Permisos de cada rol, editables por el administrador

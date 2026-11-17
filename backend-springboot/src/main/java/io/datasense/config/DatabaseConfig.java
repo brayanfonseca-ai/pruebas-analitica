@@ -353,6 +353,86 @@ public class DatabaseConfig {
                     created_at TEXT NOT NULL,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
+            // ---- Automatización: eventos de la campana, carga programada, alertas e historial de cargas ----
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS automation_events (
+                    id TEXT PRIMARY KEY,
+                    kind TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    detail TEXT,
+                    app_id TEXT,
+                    ref_id TEXT,
+                    extra TEXT,
+                    user_id TEXT,
+                    created_at TEXT NOT NULL
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS schedules (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL UNIQUE,
+                    frequency TEXT NOT NULL,
+                    interval_minutes INTEGER,
+                    time_of_day TEXT,
+                    weekday INTEGER,
+                    enabled INTEGER NOT NULL DEFAULT 1,
+                    notify TEXT NOT NULL DEFAULT 'fail',
+                    owner_id TEXT,
+                    last_run_at TEXT,
+                    last_status TEXT,
+                    last_message TEXT,
+                    last_duration_ms INTEGER,
+                    next_run_at TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS reload_runs (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    trigger TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    message TEXT,
+                    duration_ms INTEGER,
+                    user_id TEXT,
+                    started_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS table_loads (
+                    app_id TEXT NOT NULL,
+                    table_name TEXT NOT NULL,
+                    rows INTEGER NOT NULL,
+                    columns INTEGER NOT NULL,
+                    trigger TEXT NOT NULL,
+                    loaded_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS alerts (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    expression TEXT NOT NULL,
+                    op TEXT NOT NULL,
+                    threshold REAL NOT NULL,
+                    master_id TEXT,
+                    selections_json TEXT,
+                    check_mode TEXT NOT NULL DEFAULT 'reload',
+                    interval_minutes INTEGER,
+                    enabled INTEGER NOT NULL DEFAULT 1,
+                    owner_id TEXT,
+                    owner_name TEXT,
+                    state TEXT NOT NULL DEFAULT 'unknown',
+                    last_value REAL,
+                    prev_value REAL,
+                    last_checked_at TEXT,
+                    last_triggered_at TEXT,
+                    last_message TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
             addColumn("apps", "owner_id", "TEXT");
             // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
             addColumn("apps", "stage", "TEXT NOT NULL DEFAULT 'desarrollo'");

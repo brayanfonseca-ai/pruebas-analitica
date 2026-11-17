@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * {@link io.datasense.config.WebConfig}).</p>
  */
 @SpringBootApplication
+@org.springframework.scheduling.annotation.EnableScheduling   // reloj de la automatización (cargas programadas y alertas)
 public class DataSenseApplication {
     public static void main(String[] args) {
         SpringApplication.run(DataSenseApplication.class, args);

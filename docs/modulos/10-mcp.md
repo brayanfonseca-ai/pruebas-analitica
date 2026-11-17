@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **103 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **113 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -23,6 +23,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Elementos maestros | `list_master_items`, `save_master_item` (medidas simples o **compuestas**), `delete_master_item`, `parse_expression` (devuelve `value`, y `formula`/`parts` si es compuesta) |
 | Métricas certificadas | `certify_master_item` (`POST …/master-items/{id}/certify`, requiere `apps:publish`), `list_master_item_versions`, `restore_master_item_version` (crea una versión nueva). Ver [05](./05-editor-hoja.md) |
 | Pregúntale / archivo a tablero | `ask_data` (`POST /apps/{id}/ask`: respuesta + cómo se calculó + consulta + objeto de hoja), `ask_suggestions`, `auto_dashboard` (`POST /apps/{id}/auto-dashboard`). Ver [15](./15-preguntale-y-autotablero.md) |
+| Automatizar | `get_schedule`, `set_schedule`, `delete_schedule` (ACCIÓN DESTRUCTIVA), `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert` (ACCIÓN DESTRUCTIVA), `get_data_health`. Ver [16](./16-automatizar.md) |
 | Comentarios | `list_comments`, `add_comment` (con `point` y `selections` opcionales), `resolve_comment`, `delete_comment` (ACCIÓN DESTRUCTIVA). Ver [05](./05-editor-hoja.md) |
 | Medidas compuestas en consultas y hojas | `run_query` y `create_sheet`/`update_sheet` aceptan una medida `{expression: "Count([A]) / Count([B]) * 100"}`: el tool la valida con `/expressions/parse` y envía `formula` + `parts` |
 | Modelo lógico | `get_logical_model`, `set_logical_model`, `logical_model_action` (reset/enable/disable), `logical_model_item` (grupos, paquetes, jerarquías, comportamientos, periodos) |
@@ -35,7 +36,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes`. Ver [13](./13-notas-agente.md) |
 | Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed`. Ver [14](./14-embedding.md) |
 | Usuarios, permisos y etapas | `get_current_user`, `get_security_catalog`, `list_users`, `create_user`, `update_user`, `reset_user_password`, `delete_user`, `set_app_stage` (personal → desarrollo → produccion); `set_sheet_visibility` publica hojas. Ver [12](./12-configuracion-seguridad.md) |
-| Notificaciones | `list_notifications` (`GET /api/v1/notifications`), `mark_notifications_read` (una o todas), `clear_notifications` (vacía el panel, no borra datos) |
+| Notificaciones | `list_notifications` (`GET /api/v1/notifications`; eventos de alertas/recargas del usuario y, para el administrador, la actividad de la plataforma), `mark_notifications_read` (una o todas), `clear_notifications` (vacía el panel, no borra datos) |
 | Centro de ayuda | `get_help` (manual técnico, FAQ y atajos de `/help/ayuda.json`, con búsqueda y filtro por sección) |
 
 - Verificado por stdio con un cliente MCP real: conexión Athena → explorar → vista previa → cargar → subir CSV → script con LIB CONNECT → recarga → experimento → K-Means y AutoML → Asociar a → añadir gráficos ML → hoja libre con `ml-elbow` + barras → limpieza.

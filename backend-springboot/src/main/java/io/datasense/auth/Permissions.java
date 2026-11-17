@@ -102,7 +102,9 @@ public final class Permissions {
      */
     public static String required(String method, String path) {
         boolean read = "GET".equals(method) || "HEAD".equals(method);
-        if (path.startsWith("/users") || path.startsWith("/notifications")) return USERS;
+        if (path.startsWith("/users")) return USERS;
+        // La campana es de todos: cada uno ve sus alertas y recargas; el administrador, además, la actividad global.
+        if (path.startsWith("/notifications")) return VIEW;
         if (path.startsWith("/connections")) return CONNECTIONS;
         if (path.startsWith("/embeds")) return EMBED;
         // Lectura de un experimento/corrida: la necesitan los tableros publicados que muestran gráficos de ML.
@@ -122,6 +124,10 @@ public final class Permissions {
             if (sub.equals("comments")) return VIEW;
             // Pregúntale a tus datos: es una consulta más (como /query).
             if (sub.equals("ask")) return VIEW;
+            // Alertas: personales; cualquiera que vea la app se suscribe (el controlador limita editar/borrar ajenas).
+            if (sub.equals("alerts")) return VIEW;
+            // Carga programada: lo mismo que «Cargar datos».
+            if (sub.equals("schedule")) return read ? VIEW : DATA;
             // Certificar una métrica la convierte en definición oficial: es una acción de gobierno.
             if (sub.equals("master-items") && tail.endsWith("/certify")) return PUBLISH;
             if (sub.equals("connections")) return CONNECTIONS;

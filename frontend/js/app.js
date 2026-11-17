@@ -37,6 +37,10 @@ const VIEW_GROUPS = [
     label: "Lógica de negocio",
     views: [{ key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G", module: "./app-logico.js", perm: "charts:edit" }],
   },
+  {
+    label: "Operar",
+    views: [{ key: "automatizar", label: "Automatizar · alertas y salud", icon: "auto", shortcut: "T", module: "./app-automatizar.js" }],
+  },
 ];
 const allowed = (v) => !v.perm || authService.can(v.perm);
 const VISIBLE_GROUPS = VIEW_GROUPS.map((g) => ({ ...g, views: g.views.filter(allowed) })).filter((g) => g.views.length);

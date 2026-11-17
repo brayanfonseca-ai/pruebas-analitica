@@ -237,11 +237,29 @@ public class ScriptController {
         return out;
     }
 
-    @SuppressWarnings("unchecked")
     @PostMapping("/script/run")
     public Map<String, Object> run(@PathVariable String appId, jakarta.servlet.http.HttpServletRequest request) {
         requireApp(appId);
         io.datasense.auth.UserRecord user = io.datasense.auth.AccessService.current(request);
+        long t0 = System.currentTimeMillis();
+        Map<String, Object> out = runAs(appId, user);
+        // Historial de cargas, salud de datos y alertas «al recargar» (lo atiende AutomationService).
+        events.publishEvent(new ReloadDone(appId, "manual", user == null ? null : user.id(), out, System.currentTimeMillis() - t0));
+        return out;
+    }
+
+    /** Recarga terminada (manual o programada): {@code result} = {ok, log, tables}. */
+    public record ReloadDone(String appId, String trigger, String userId, Map<String, Object> result, long durationMs) {}
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.context.ApplicationEventPublisher events;
+
+    /**
+     * Ejecuta la carga con los permisos de {@code user} (las conexiones privadas solo se usan si son suyas o se las
+     * compartieron). La usa el botón «Cargar datos» y la carga programada.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> runAs(String appId, io.datasense.auth.UserRecord user) {
         List<String> log = new ArrayList<>();
         List<Map<String, Object>> summary = new ArrayList<>();
         log.add("Reconstruyendo el modelo desde las tablas cargadas…");

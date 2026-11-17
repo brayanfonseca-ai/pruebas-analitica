@@ -189,6 +189,20 @@ export const askSuggestions = (appId) => request(`/apps/${encodeURIComponent(app
 export const autoDashboard = (appId, opts = {}) =>
   request(`/apps/${encodeURIComponent(appId)}/auto-dashboard`, { method: "POST", body: opts });
 
+/* ----------------------- Automatización: carga programada, alertas, salud ----------------------- */
+const A = (appId) => `/apps/${encodeURIComponent(appId)}`;
+export const getSchedule = (appId) => request(`${A(appId)}/schedule`);
+export const saveSchedule = (appId, s) => request(`${A(appId)}/schedule`, { method: "PUT", body: s });
+export const deleteSchedule = (appId) => request(`${A(appId)}/schedule`, { method: "DELETE" });
+export const runScheduleNow = (appId) => request(`${A(appId)}/schedule/run`, { method: "POST" });
+export const listReloadRuns = (appId, limit = 20) => request(`${A(appId)}/reload-runs?limit=${limit}`);
+export const listAlerts = (appId) => request(`${A(appId)}/alerts`);
+export const createAlert = (appId, a) => request(`${A(appId)}/alerts`, { method: "POST", body: a });
+export const updateAlert = (appId, id, a) => request(`${A(appId)}/alerts/${encodeURIComponent(id)}`, { method: "PUT", body: a });
+export const deleteAlert = (appId, id) => request(`${A(appId)}/alerts/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const checkAlert = (appId, id) => request(`${A(appId)}/alerts/${encodeURIComponent(id)}/check`, { method: "POST" });
+export const getHealth = (appId) => request(`${A(appId)}/health`);
+
 /* ----------------------- Comentarios ----------------------- */
 export const listComments = (appId, { sheetId, objectId } = {}) => {
   const q = new URLSearchParams();

@@ -5,15 +5,23 @@ import org.springframework.stereotype.Repository;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Notificaciones de actividad para el administrador. No hay tabla de eventos: el
- * feed se DERIVA de lo que ya existe con {@code created_at} (apps, tablas cargadas,
- * hojas, colecciones, elementos maestros, conexiones, experimentos y ejecuciones de
- * ML), así cualquier creación —desde la UI, la API o el MCP— aparece sola.
- * Solo se persiste el estado de lectura: {@code notification_state} (marcas
- * {@code read_all_at} / {@code cleared_at}) y {@code notification_reads} (una a una).
+ * Notificaciones (campana). Dos fuentes:
+ * <ul>
+ *   <li><b>Actividad de la plataforma</b> (solo administradores): se DERIVA de lo que ya existe con
+ *   {@code created_at} (apps, tablas cargadas, hojas, colecciones, maestros, conexiones, experimentos y ML), así
+ *   cualquier creación —UI, API o MCP— aparece sola.</li>
+ *   <li><b>Eventos de automatización</b> ({@code automation_events}): alertas disparadas, recargas programadas que
+ *   fallan o terminan; cada evento es de un usuario (el dueño de la alerta o de la programación). Cada persona ve
+ *   los suyos; el administrador ve todos.</li>
+ * </ul>
+ * El estado de lectura es por usuario: {@code notification_state} (claves {@code <userId>:read_all_at} /
+ * {@code <userId>:cleared_at}) y {@code notification_reads} ({@code <userId>|<nid>}).
  */
 @Repository
 public class NotificationRepository {
@@ -56,76 +64,90 @@ public class NotificationRepository {
           FROM ml_runs r JOIN ml_experiments e ON e.id = r.experiment_id
         """;
 
+    private static final String EVENTS =
+            "SELECT 'evt:' || id AS nid, kind, title, detail, app_id, ref_id, extra, created_at FROM automation_events";
+
     private final JdbcTemplate jdbc;
 
     public NotificationRepository(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 
-    private String state(String key) {
-        List<String> v = jdbc.queryForList("SELECT value FROM notification_state WHERE key = ?", String.class, key);
-        return v.isEmpty() ? "" : v.get(0);
+    /** Registra un evento de automatización para {@code userId} (aparece en su campana). */
+    public void addEvent(String kind, String title, String detail, String appId, String refId, String extra, String userId) {
+        jdbc.update("INSERT INTO automation_events (id, kind, title, detail, app_id, ref_id, extra, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                Ids.newId(), kind, title, detail, appId, refId, extra, userId, Ids.now());
     }
 
-    private void setState(String key, String value) {
+    private String state(String userId, String key, boolean legacy) {
+        List<String> v = jdbc.queryForList("SELECT value FROM notification_state WHERE key = ?", String.class, userId + ":" + key);
+        if (!v.isEmpty()) return v.get(0);
+        if (legacy) {
+            v = jdbc.queryForList("SELECT value FROM notification_state WHERE key = ?", String.class, key);
+            if (!v.isEmpty()) return v.get(0);
+        }
+        return "";
+    }
+
+    private void setState(String userId, String key, String value) {
         jdbc.update("INSERT INTO notification_state (key, value) VALUES (?, ?) "
-                + "ON CONFLICT(key) DO UPDATE SET value = excluded.value", key, value);
+                + "ON CONFLICT(key) DO UPDATE SET value = excluded.value", userId + ":" + key, value);
     }
 
     /**
-     * @param limit       máximo de notificaciones (1..200)
-     * @param unreadOnly  solo las no leídas
+     * @param userId     quien consulta
+     * @param admin      ve también la actividad de la plataforma y los eventos de todos
+     * @param limit      máximo de notificaciones (1..200)
+     * @param unreadOnly solo las no leídas
      */
-    public NotificationFeed feed(int limit, boolean unreadOnly) {
+    public NotificationFeed feed(String userId, boolean admin, int limit, boolean unreadOnly) {
         int lim = Math.max(1, Math.min(200, limit));
-        String cleared = state("cleared_at");
-        String readAll = state("read_all_at");
-        String unreadCond = " AND u.created_at > ? AND u.nid NOT IN (SELECT id FROM notification_reads)";
-        String base = "SELECT u.* FROM (" + FEED + ") u WHERE u.created_at > ?";
+        String cleared = state(userId, "cleared_at", admin);
+        String readAll = state(userId, "read_all_at", admin);
+        String source = admin ? FEED + " UNION ALL " + EVENTS : EVENTS + " WHERE user_id = ?";
+        List<Object> args = new ArrayList<>();
+        if (!admin) args.add(userId);
+        args.add(cleared);
+        List<NotificationOut> all = jdbc.query("SELECT u.* FROM (" + source + ") u WHERE u.created_at > ? ORDER BY u.created_at DESC LIMIT 1000",
+                (rs, i) -> new NotificationOut(rs.getString("nid"), rs.getString("kind"), rs.getString("title"), rs.getString("detail"),
+                        rs.getString("app_id"), rs.getString("ref_id"), rs.getString("extra"), rs.getString("created_at"),
+                        false, link(rs.getString("kind"), rs.getString("app_id"), rs.getString("ref_id"))), args.toArray());
 
-        List<NotificationOut> items = jdbc.query(
-                base + (unreadOnly ? unreadCond : "") + " ORDER BY u.created_at DESC LIMIT ?",
-                (rs, i) -> {
-                    String nid = rs.getString("nid");
-                    String kind = rs.getString("kind");
-                    String created = rs.getString("created_at");
-                    return new NotificationOut(nid, kind, rs.getString("title"), rs.getString("detail"),
-                            rs.getString("app_id"), rs.getString("ref_id"), rs.getString("extra"), created,
-                            false, link(kind, rs.getString("app_id"), rs.getString("ref_id")));
-                },
-                unreadOnly ? new Object[]{cleared, readAll, lim} : new Object[]{cleared, lim});
-
-        // Marca de leído (global o individual).
-        List<String> readIds = jdbc.queryForList("SELECT id FROM notification_reads", String.class);
-        java.util.Set<String> readSet = new java.util.HashSet<>(readIds);
-        List<NotificationOut> marked = items.stream().map(n -> new NotificationOut(n.id(), n.kind(), n.title(),
-                n.detail(), n.app_id(), n.ref_id(), n.extra(), n.created_at(),
-                n.created_at().compareTo(readAll) <= 0 || readSet.contains(n.id()), n.link())).toList();
-
-        Integer unread = jdbc.queryForObject("SELECT COUNT(*) FROM (" + FEED + ") u WHERE u.created_at > ?" + unreadCond,
-                Integer.class, cleared, readAll);
-        Integer total = jdbc.queryForObject("SELECT COUNT(*) FROM (" + FEED + ") u WHERE u.created_at > ?",
-                Integer.class, cleared);
-        return new NotificationFeed(marked, unread == null ? 0 : unread, total == null ? 0 : total);
+        Set<String> reads = new HashSet<>();
+        String prefix = userId + "|";
+        for (String id : jdbc.queryForList("SELECT id FROM notification_reads", String.class)) {
+            if (id.startsWith(prefix)) reads.add(id.substring(prefix.length()));
+            else if (admin && !id.contains("|")) reads.add(id);   // marcas anteriores al estado por usuario
+        }
+        List<NotificationOut> marked = new ArrayList<>();
+        int unread = 0;
+        for (NotificationOut n : all) {
+            boolean read = n.created_at().compareTo(readAll) <= 0 || reads.contains(n.id());
+            if (!read) unread++;
+            if (unreadOnly && read) continue;
+            if (marked.size() < lim) marked.add(new NotificationOut(n.id(), n.kind(), n.title(), n.detail(), n.app_id(), n.ref_id(),
+                    n.extra(), n.created_at(), read, n.link()));
+        }
+        return new NotificationFeed(marked, unread, all.size());
     }
 
     /** Marca todas como leídas (las futuras seguirán llegando como no leídas). */
-    public void markAllRead() {
-        setState("read_all_at", Ids.now());
-        jdbc.update("DELETE FROM notification_reads");
+    public void markAllRead(String userId) {
+        setState(userId, "read_all_at", Ids.now());
+        jdbc.update("DELETE FROM notification_reads WHERE id LIKE ?", userId + "|%");
     }
 
     /** Marca una como leída. */
-    public void markRead(String id) {
-        jdbc.update("INSERT OR IGNORE INTO notification_reads (id, read_at) VALUES (?, ?)", id, Ids.now());
+    public void markRead(String userId, String id) {
+        jdbc.update("INSERT OR IGNORE INTO notification_reads (id, read_at) VALUES (?, ?)", userId + "|" + id, Ids.now());
     }
 
     /** Oculta del panel todo lo existente (no borra ningún dato de la plataforma). */
-    public void clear() {
+    public void clear(String userId) {
         String now = Ids.now();
-        setState("cleared_at", now);
-        setState("read_all_at", now);
-        jdbc.update("DELETE FROM notification_reads");
+        setState(userId, "cleared_at", now);
+        setState(userId, "read_all_at", now);
+        jdbc.update("DELETE FROM notification_reads WHERE id LIKE ?", userId + "|%");
     }
 
     private static String enc(String s) {
@@ -143,6 +165,7 @@ public class NotificationRepository {
             case "master" -> app + "#logico";
             case "connection" -> "/pages/conexiones.html";
             case "experiment", "run" -> "/pages/experimento.html?id=" + enc(refId);
+            case "alert", "alert_ok", "reload", "reload_fail", "health" -> app + "#automatizar";
             default -> "/pages/inicio.html";
         };
     }

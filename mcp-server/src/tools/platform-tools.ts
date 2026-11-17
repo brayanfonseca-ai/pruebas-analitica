@@ -515,6 +515,92 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await post(`${A(a.appId)}/auto-dashboard`, pick(a, ["table", "title"]))),
   },
 
+  /* ===================== Automatizar: carga programada, alertas, salud ===================== */
+  {
+    name: "get_schedule",
+    title: "Carga programada (leer)",
+    description: "Programacion de la carga de una app y su historial reciente: {schedule: {frequency, interval_minutes, time_of_day, weekday, notify, enabled, description, next_run_at, last_run_at, last_status ok|warn|fail, last_message, owner_name} | null, runs: [...]}. GET /api/v1/apps/{appId}/schedule.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/schedule`)),
+  },
+  {
+    name: "set_schedule",
+    title: "Programar la carga de datos",
+    description: "Crea o reemplaza la carga programada (una por app). Corre el mismo 'Cargar datos' del editor con los permisos de quien la guarda. frequency: interval (interval_minutes 5-10080) | hourly | daily (time_of_day HH:MM) | weekly (weekday 1=lunes..7 y time_of_day). notify: fail (default) | always | never: avisos en la campana del dueno. Requiere data:import. PUT /api/v1/apps/{appId}/schedule.",
+    inputShape: {
+      ...appId,
+      frequency: z.enum(["interval", "hourly", "daily", "weekly"]),
+      interval_minutes: z.number().int().optional(), time_of_day: z.string().optional().describe("HH:MM 24 h."),
+      weekday: z.number().int().min(1).max(7).optional(), notify: z.enum(["fail", "always", "never"]).optional(), enabled: z.boolean().optional(),
+    },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/schedule`, pick(a, ["frequency", "interval_minutes", "time_of_day", "weekday", "notify", "enabled"]))),
+  },
+  {
+    name: "delete_schedule",
+    title: "Quitar la carga programada",
+    description: "ACCION DESTRUCTIVA: elimina la programacion (los datos no se tocan). DELETE /api/v1/apps/{appId}/schedule.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/schedule`)),
+  },
+  {
+    name: "run_reload_now",
+    title: "Ejecutar la carga ahora",
+    description: "Recarga los datos ahora (como 'Ejecutar ahora'): queda en el historial, actualiza la salud y revisa las alertas 'al recargar'. Devuelve {ok, status ok|warn|fail, message, log, tables, alerts_checked}. POST /api/v1/apps/{appId}/schedule/run.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/schedule/run`)),
+  },
+  {
+    name: "list_reload_runs",
+    title: "Historial de cargas",
+    description: "Cargas recientes (manuales, programadas y 'ejecutar ahora'): [{trigger manual|schedule|now, status, message, duration_ms, started_at, user_name}]. GET /api/v1/apps/{appId}/reload-runs?limit=.",
+    inputShape: { ...appId, limit: z.number().int().min(1).max(60).optional() },
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/reload-runs?limit=${E(a.limit ?? 20)}`)),
+  },
+  {
+    name: "list_alerts",
+    title: "Alertas de una app",
+    description: "Alertas de datos: [{id, name, expression | master_id, op, threshold, condition, selections, check_mode reload|interval, interval_minutes, enabled, state ok|triggered|error|unknown, last_value, last_message, last_checked_at, last_triggered_at, owner_name}]. GET /api/v1/apps/{appId}/alerts.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/alerts`)),
+  },
+  {
+    name: "save_alert",
+    title: "Crear/editar alerta",
+    description: "Sin alertId crea; con alertId actualiza (solo su dueno o quien publica). La medida es una fx simple o compuesta (expression, p. ej. \"Count([FECHA RETIRO]) / Count([CEDULA]) * 100\") o una medida maestra (master_id). op: > >= < <= = != o change (cambio en % respecto a la revision anterior; threshold en %). selections {campo:[valores]} filtra. check_mode: reload (al recargar, default) | interval (cada interval_minutes >= 5). Se valida en el motor y se revisa al guardar; al dispararse o resolverse avisa en la campana de su dueno. POST|PUT /api/v1/apps/{appId}/alerts[/{alertId}].",
+    inputShape: {
+      ...appId, alertId: z.string().optional(), name: id("Nombre de la alerta."),
+      expression: z.string().optional(), master_id: z.string().optional(),
+      op: z.enum([">", ">=", "<", "<=", "=", "!=", "change"]), threshold: z.number(),
+      selections: z.record(z.string(), z.array(z.any())).optional(),
+      check_mode: z.enum(["reload", "interval"]).optional(), interval_minutes: z.number().int().optional(), enabled: z.boolean().optional(),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["name", "expression", "master_id", "op", "threshold", "selections", "check_mode", "interval_minutes", "enabled"]);
+      return toToolText(a.alertId ? await put(`${A(a.appId)}/alerts/${E(a.alertId)}`, body) : await post(`${A(a.appId)}/alerts`, body));
+    },
+  },
+  {
+    name: "check_alert",
+    title: "Revisar una alerta ahora",
+    description: "Calcula la medida de la alerta y la compara con su condicion (avisa en la campana si cambia de estado). Devuelve la alerta con state y last_value. POST /api/v1/apps/{appId}/alerts/{alertId}/check.",
+    inputShape: { ...appId, alertId: id("Id de la alerta.") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/alerts/${E(a.alertId)}/check`)),
+  },
+  {
+    name: "delete_alert",
+    title: "Borrar alerta",
+    description: "ACCION DESTRUCTIVA: borra una alerta (solo su dueno o quien publica). DELETE /api/v1/apps/{appId}/alerts/{alertId}.",
+    inputShape: { ...appId, alertId: id("Id de la alerta.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/alerts/${E(a.alertId)}`)),
+  },
+  {
+    name: "get_data_health",
+    title: "Salud de datos",
+    description: "Revisa la calidad de los datos de una app: {score 0-100, status buena|regular|mala, tables [{table, rows, previous_rows, rows_change_pct, last_load, newest_date, duplicate_rows}], issues [{severity critical|warning|info, table, column, message, fix}], counts}. Detecta tablas vacias o que perdieron filas, columnas vacias o constantes, duplicados, numeros mezclados con texto, datos viejos y cargas programadas fallidas o atrasadas. GET /api/v1/apps/{appId}/health.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/health`)),
+  },
+
   /* ============================ Comentarios ============================ */
   {
     name: "list_comments",
@@ -743,7 +829,8 @@ export const platformTools: ContextTool[] = [
     name: "list_notifications",
     title: "Notificaciones de actividad",
     description:
-      "Actividad de la plataforma para el administrador (lo que muestra la campana): nuevas apps, datos cargados, hojas, " +
+      "Lo que muestra la campana del usuario del MCP. Todos ven sus eventos de automatizacion (kind alert | alert_ok | reload | " +
+      "reload_fail | health, ids 'evt:...'); el administrador ve ademas la actividad de la plataforma: nuevas apps, datos cargados, hojas, " +
       "colecciones, elementos maestros, conexiones, experimentos y ejecuciones de ML. Devuelve {items:[{id, kind, title, " +
       "detail, app_id, ref_id, extra, created_at, read, link}], unread, total}. GET /api/v1/notifications?limit=&unread=.",
     inputShape: {
