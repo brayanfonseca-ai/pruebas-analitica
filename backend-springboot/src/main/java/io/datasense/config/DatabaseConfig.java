@@ -433,6 +433,45 @@ public class DatabaseConfig {
                     updated_at TEXT NOT NULL,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
+            // ---- Del dato a la acción: listas guardadas (filtros + condición + columnas) que se exportan o se envían a un webhook ----
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS action_lists (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    table_name TEXT,
+                    selections_json TEXT,
+                    where_expr TEXT,
+                    fields_json TEXT,
+                    sort_field TEXT,
+                    sort_desc INTEGER NOT NULL DEFAULT 1,
+                    webhook_url TEXT,
+                    owner_id TEXT,
+                    owner_name TEXT,
+                    last_run_at TEXT,
+                    last_count INTEGER,
+                    last_status TEXT,
+                    last_message TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
+            addColumn("alerts", "action_id", "TEXT");
+            // ---- Agente de guardia: vigila las métricas de la app tras cada carga (y a diario) y avisa de cambios fuertes ----
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS watchdogs (
+                    app_id TEXT PRIMARY KEY,
+                    enabled INTEGER NOT NULL DEFAULT 1,
+                    threshold_pct REAL NOT NULL DEFAULT 15,
+                    measures_json TEXT,
+                    owner_id TEXT,
+                    last_run_at TEXT,
+                    last_summary_json TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
             addColumn("apps", "owner_id", "TEXT");
             // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
             addColumn("apps", "stage", "TEXT NOT NULL DEFAULT 'desarrollo'");

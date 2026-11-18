@@ -573,9 +573,10 @@ export const platformTools: ContextTool[] = [
       op: z.enum([">", ">=", "<", "<=", "=", "!=", "change"]), threshold: z.number(),
       selections: z.record(z.string(), z.array(z.any())).optional(),
       check_mode: z.enum(["reload", "interval"]).optional(), interval_minutes: z.number().int().optional(), enabled: z.boolean().optional(),
+      action_id: z.string().optional().describe("Lista de accion a ejecutar (y enviar a su webhook) cuando la alerta se dispare."),
     },
     handler: async (a) => {
-      const body = pick(a, ["name", "expression", "master_id", "op", "threshold", "selections", "check_mode", "interval_minutes", "enabled"]);
+      const body = pick(a, ["name", "expression", "master_id", "op", "threshold", "selections", "check_mode", "interval_minutes", "enabled", "action_id"]);
       return toToolText(a.alertId ? await put(`${A(a.appId)}/alerts/${E(a.alertId)}`, body) : await post(`${A(a.appId)}/alerts`, body));
     },
   },
@@ -599,6 +600,102 @@ export const platformTools: ContextTool[] = [
     description: "Revisa la calidad de los datos de una app: {score 0-100, status buena|regular|mala, tables [{table, rows, previous_rows, rows_change_pct, last_load, newest_date, duplicate_rows}], issues [{severity critical|warning|info, table, column, message, fix}], counts}. Detecta tablas vacias o que perdieron filas, columnas vacias o constantes, duplicados, numeros mezclados con texto, datos viejos y cargas programadas fallidas o atrasadas. GET /api/v1/apps/{appId}/health.",
     inputShape: appId,
     handler: async (a) => toToolText(await get(`${A(a.appId)}/health`)),
+  },
+
+  /* ===================== Que cambio y por que · registros · que pasaria si ===================== */
+  {
+    name: "explain_change",
+    title: "Que cambio y por que",
+    description: "Compara una medida (expression fx simple/compuesta o master_id) entre dos periodos de un campo de tiempo (automatico: el periodo mas fino; current/previous por defecto el ultimo y el anterior) y descompone el cambio por las dimensiones candidatas (o las de 'dimensions'). En medidas aditivas (Sum/Count) cada segmento trae share = % del cambio; en no aditivas (%, promedios) los segmentos se ordenan por cambio ponderado por su volumen (weight). Devuelve {measure, time_field, periods, current, previous, current_value, previous_value, delta, delta_pct, drivers:[{dimension, display, items:[{value, previous, current, delta, share|weight}]}], story (relato en espanol)}. POST /api/v1/apps/{appId}/insights/explain.",
+    inputShape: {
+      ...appId, expression: z.string().optional(), master_id: z.string().optional(), label: z.string().optional(),
+      time_field: z.string().optional(), current: z.string().optional(), previous: z.string().optional(),
+      selections: z.record(z.string(), z.array(z.any())).optional(), dimensions: z.array(z.string()).optional(), top: z.number().int().min(1).max(10).optional(),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/insights/explain`, pick(a, ["expression", "master_id", "label", "time_field", "current", "previous", "selections", "dimensions", "top"]))),
+  },
+  {
+    name: "find_rows",
+    title: "Registros detras de una cifra",
+    description: "Del dato a la accion: los registros concretos de una tabla que cumplen filtros (selections {campo:[valores]}) y una condicion por fila opcional (where, p. ej. \"[probabilidad_retiro] > 0.6 AND [horizonte_meses] <= 3\"), con columnas (fields), orden (sort, desc) y limit (max 10000). Si no se indica table, se elige la que tiene los campos usados. Devuelve {table, columns, rows, total, truncated, table_rows}. POST /api/v1/apps/{appId}/insights/rows (CSV: /insights/rows.csv).",
+    inputShape: {
+      ...appId, table: z.string().optional(), selections: z.record(z.string(), z.array(z.any())).optional(), where: z.string().optional(),
+      fields: z.array(z.string()).optional(), sort: z.string().optional(), desc: z.boolean().optional(), limit: z.number().int().min(1).max(10000).optional(),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/insights/rows`, pick(a, ["table", "selections", "where", "fields", "sort", "desc", "limit"]))),
+  },
+  {
+    name: "simulate_whatif",
+    title: "Que pasaria si (simulacion)",
+    description: "Aplica cambios hipoteticos a una COPIA de los datos y recalcula medidas antes/despues (no modifica nada). changes: [{field, op: set|multiply|add, value, share? (% de filas elegibles, 1-100, reparto determinista), selections? {campo:[valores]}, where? (condicion por fila)}]. Ej.: retener el 20% de los inactivos de GALAPA = {field:'ESTADO CONTRATO', op:'set', value:'Activo', share:20, selections:{'ESTADO CONTRATO':['Inactivo'], SUCURSAL:['GALAPA']}}. measures: [{expression | master_id, label?}]; dimension opcional para ver el efecto por segmento. Devuelve {changes (con rows_changed y texto), results:[{label, before, after, delta, delta_pct, by?}], story}. POST /api/v1/apps/{appId}/insights/whatif.",
+    inputShape: {
+      ...appId,
+      measures: z.array(z.object({ expression: z.string().optional(), master_id: z.string().optional(), label: z.string().optional() })).min(1),
+      changes: z.array(z.object({
+        field: z.string(), op: z.enum(["set", "multiply", "add"]), value: z.union([z.string(), z.number()]),
+        share: z.number().min(1).max(100).optional(), selections: z.record(z.string(), z.array(z.any())).optional(), where: z.string().optional(),
+      })).min(1),
+      dimension: z.string().optional(), selections: z.record(z.string(), z.array(z.any())).optional(),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/insights/whatif`, pick(a, ["measures", "changes", "dimension", "selections"]))),
+  },
+
+  /* ===================== Del dato a la accion: listas · agente de guardia ===================== */
+  {
+    name: "list_action_lists",
+    title: "Listas de accion",
+    description: "Listas guardadas de la app: [{id, name, table_name, selections, where_expr, fields, sort_field, has_webhook, webhook_url (enmascarada), last_count, last_run_at, last_status, last_message}]. GET /api/v1/apps/{appId}/actions.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/actions`)),
+  },
+  {
+    name: "save_action_list",
+    title: "Crear/editar lista de accion",
+    description: "Sin actionId crea; con actionId actualiza. {name, table?, selections?, where?, fields?, sort?, desc?, webhook_url? (http/https: Teams, Power Automate, Zapier, n8n, un API propio; recibe JSON {source, app, list, reason, count, columns, rows, text}), description?}. Se valida contra los datos. Una alerta puede ejecutarla al dispararse (save_alert con action_id). Requiere charts:edit. POST|PUT /api/v1/apps/{appId}/actions[/{actionId}].",
+    inputShape: {
+      ...appId, actionId: z.string().optional(), name: id("Nombre de la lista."), description: z.string().optional(),
+      table: z.string().optional(), selections: z.record(z.string(), z.array(z.any())).optional(), where: z.string().optional(),
+      fields: z.array(z.string()).optional(), sort: z.string().optional(), desc: z.boolean().optional(), webhook_url: z.string().optional(),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["name", "description", "table", "selections", "where", "fields", "sort", "desc", "webhook_url"]);
+      return toToolText(a.actionId ? await put(`${A(a.appId)}/actions/${E(a.actionId)}`, body) : await post(`${A(a.appId)}/actions`, body));
+    },
+  },
+  {
+    name: "run_action_list",
+    title: "Ejecutar lista de accion",
+    description: "Ejecuta la lista: cuenta los registros y devuelve una muestra; con send=true la envia tambien a su webhook (ENVIA DATOS FUERA de DataSense). Devuelve {count, sent, status ok|fail|no_webhook, message, columns, rows}. POST /api/v1/apps/{appId}/actions/{actionId}/run.",
+    inputShape: { ...appId, actionId: id("Id de la lista."), send: z.boolean().optional() },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/actions/${E(a.actionId)}/run`, { send: a.send === true })),
+  },
+  {
+    name: "delete_action_list",
+    title: "Borrar lista de accion",
+    description: "ACCION DESTRUCTIVA: borra la lista (las alertas que la usaban quedan sin lista). DELETE /api/v1/apps/{appId}/actions/{actionId}.",
+    inputShape: { ...appId, actionId: id("Id de la lista.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/actions/${E(a.actionId)}`)),
+  },
+  {
+    name: "get_watchdog",
+    title: "Agente de guardia (leer)",
+    description: "Configuracion y ultima revision del agente de guardia: {watchdog: {enabled, threshold_pct, measures (ids de maestras; vacio = certificadas, si no maestras, si no registros y totales), last_run_at, last_summary {measures, findings, headline, health_score}} | null}. GET /api/v1/apps/{appId}/watchdog.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/watchdog`)),
+  },
+  {
+    name: "set_watchdog",
+    title: "Activar/configurar agente de guardia",
+    description: "Activa el agente de guardia: tras cada carga y al menos a diario compara el ultimo periodo con el anterior en las metricas vigiladas; si alguna cambia mas que threshold_pct (en metricas que son %, en puntos) o la salud de datos tiene problemas criticos, avisa en la campana del dueno con el relato del porque. Requiere charts:edit. PUT /api/v1/apps/{appId}/watchdog con {threshold_pct?, measures?, enabled?}.",
+    inputShape: { ...appId, threshold_pct: z.number().positive().optional(), measures: z.array(z.string()).optional(), enabled: z.boolean().optional() },
+    handler: async (a) => toToolText(await put(`${A(a.appId)}/watchdog`, pick(a, ["threshold_pct", "measures", "enabled"]))),
+  },
+  {
+    name: "run_watchdog",
+    title: "Revisar ahora (agente de guardia)",
+    description: "Ejecuta la revision del agente ahora y devuelve el resumen {measures:[{label, previous, current, previous_value, current_value, change, unit, flag, story}], findings, headline, health_score, health_critical}; si hay hallazgos avisa en la campana. POST /api/v1/apps/{appId}/watchdog/run.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/watchdog/run`)),
   },
 
   /* ============================ Comentarios ============================ */

@@ -286,6 +286,7 @@ const KIND = {
   alert_ok: { label: "Alerta resuelta", group: "alertas", color: "#10b981", icon: `<circle ${DUO} cx="12" cy="12" r="9"/><path d="m8 12.3 2.6 2.6L16.2 9"/>` },
   reload: { label: "Recarga completada", group: "alertas", color: "#0ea5e9", icon: '<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5"/>' },
   reload_fail: { label: "Recarga con problemas", group: "alertas", color: "#f59e0b", icon: '<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5M12 9v4"/><circle cx="12" cy="16" r=".9" fill="currentColor"/>' },
+  insight: { label: "Agente de guardia", group: "alertas", color: "#7c3aed", icon: `<path ${DUO} d="M12 3 4.5 6v5.5c0 4.4 3 7.6 7.5 9.5 4.5-1.9 7.5-5.1 7.5-9.5V6z"/><path d="M8.5 13.5 11 11l2 2 3-3.5"/>` },
   health: { label: "Salud de datos", group: "alertas", color: "#f97316", icon: `<path ${DUO} d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8 12h2l1-2 2 4 1-2h2"/>` },
 };
 const FILTERS = [

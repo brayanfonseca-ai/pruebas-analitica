@@ -61,6 +61,15 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | PUT/DELETE | `/apps/{appId}/alerts/{id}` · POST `/alerts/{id}/check` | Editar / borrar (dueño o `apps:publish`) · revisar ahora. |
 | GET | `/apps/{appId}/health` | Salud de datos `{score, status, tables, issues, counts}`. Ver [`modulos/16`](./modulos/16-automatizar.md). |
 
+## Qué cambió · ¿qué pasaría si…? · del dato a la acción · agente de guardia
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/apps/{appId}/insights/explain` | Compara una medida entre dos periodos y la descompone por dimensión (relato + aportes). |
+| POST | `/apps/{appId}/insights/rows` · `/insights/rows.csv` | Registros detrás de una cifra (filtros + condición por fila); CSV para Excel. |
+| POST | `/apps/{appId}/insights/whatif` | Escenario hipotético sobre una copia de los datos: medidas antes/después. |
+| GET/POST/PUT/DELETE | `/apps/{appId}/actions[/{id}]` · POST `/{id}/run` · GET `/{id}/export.csv` | Listas de acción (exportar / enviar a webhook). |
+| GET/PUT/DELETE | `/apps/{appId}/watchdog` · POST `/watchdog/run` | Agente de guardia. Ver [`modulos/17`](./modulos/17-que-cambio-simular-actuar.md). |
+
 ## Elementos maestros, métricas certificadas y comentarios
 | Método | Ruta | Descripción |
 |---|---|---|

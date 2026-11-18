@@ -49,10 +49,15 @@ public class AutomationService {
     private final AskService ask;
     private final NotificationRepository notifications;
     private final HealthService health;
+    private final WatchdogService watchdog;
+    private final ActionService actions;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public AutomationService(JdbcTemplate jdbc, ScriptController scripts, UserRepository users, AppRepository apps,
-                             AskService ask, NotificationRepository notifications, HealthService health) {
+                             AskService ask, NotificationRepository notifications, HealthService health,
+                             WatchdogService watchdog, ActionService actions) {
+        this.watchdog = watchdog;
+        this.actions = actions;
         this.jdbc = jdbc;
         this.scripts = scripts;
         this.users = users;
@@ -229,6 +234,8 @@ public class AutomationService {
         List<Map<String, Object>> checked = new ArrayList<>();
         for (Map<String, Object> a : jdbc.queryForList("SELECT * FROM alerts WHERE app_id = ? AND enabled = 1 AND check_mode = 'reload'", appId))
             checked.add(evaluate(a));
+        // agente de guardia: qué cambió con esta carga
+        watchdog.afterReload(appId);
 
         Map<String, Object> out = new LinkedHashMap<>(r);
         out.put("status", status);
@@ -284,19 +291,23 @@ public class AutomationService {
         try { ask.measureValue(appId, masterId.isEmpty() ? null : masterId, expression, parseSel(selJson)); }
         catch (RuntimeException e) { throw new IllegalArgumentException("La medida no es válida: " + e.getMessage()); }
         boolean enabled = !Boolean.FALSE.equals(body.get("enabled")) && !"false".equals(str(body.get("enabled")));
+        String actionId = str(body.get("action_id")).strip();
+        if (!actionId.isEmpty() && actions.get(actionId).filter(x -> appId.equals(x.get("app_id"))).isEmpty())
+            throw new IllegalArgumentException("La lista de acción elegida no existe en esta app.");
+        String act = actionId.isEmpty() ? null : actionId;
         String now = Ids.now();
         if (id == null) {
             id = Ids.newId();
             jdbc.update("""
                 INSERT INTO alerts (id, app_id, name, expression, master_id, op, threshold, selections_json, check_mode, interval_minutes, enabled,
-                  owner_id, owner_name, state, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unknown', ?, ?)""",
+                  owner_id, owner_name, state, action_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unknown', ?, ?, ?)""",
                     id, appId, name, expression, masterId.isEmpty() ? null : masterId, op, th, selJson, mode, every, enabled ? 1 : 0,
-                    owner.id(), owner.name(), now, now);
+                    owner.id(), owner.name(), act, now, now);
         } else {
             jdbc.update("""
                 UPDATE alerts SET name = ?, expression = ?, master_id = ?, op = ?, threshold = ?, selections_json = ?, check_mode = ?,
-                  interval_minutes = ?, enabled = ?, updated_at = ? WHERE id = ?""",
-                    name, expression, masterId.isEmpty() ? null : masterId, op, th, selJson, mode, every, enabled ? 1 : 0, now, id);
+                  interval_minutes = ?, enabled = ?, action_id = ?, updated_at = ? WHERE id = ?""",
+                    name, expression, masterId.isEmpty() ? null : masterId, op, th, selJson, mode, every, enabled ? 1 : 0, act, now, id);
         }
         Map<String, Object> a = alert(id).orElseThrow();
         return enabled ? evaluate(a) : alertOut(a);
@@ -342,7 +353,21 @@ public class AutomationService {
         jdbc.update("UPDATE alerts SET state = ?, prev_value = last_value, last_value = ?, last_checked_at = ?, last_message = ?"
                 + (hit && !"triggered".equals(prevState) ? ", last_triggered_at = '" + now + "'" : "") + " WHERE id = ?",
                 state, v, now, clip(why, 400), id);
-        if (hit && !"triggered".equals(prevState)) event(a, "alert", "Alerta: " + a.get("name"), why, "triggered");
+        if (hit && !"triggered".equals(prevState)) {
+            String extra = "";
+            // Del dato a la acción: la lista asociada se ejecuta (y se envía a su webhook, si tiene)
+            Object actId = a.get("action_id");
+            if (actId != null && !str(actId).isBlank()) {
+                try {
+                    Optional<Map<String, Object>> act = actions.get(str(actId));
+                    if (act.isPresent()) {
+                        Map<String, Object> rr = actions.run(act.get(), true, "Alerta «" + a.get("name") + "»: " + why);
+                        extra = " Lista «" + act.get().get("name") + "»: " + rr.get("message");
+                    }
+                } catch (RuntimeException ex) { extra = " La lista de acción falló: " + ex.getMessage(); }
+            }
+            event(a, "alert", "Alerta: " + a.get("name"), why + extra, "triggered");
+        }
         else if (!hit && "triggered".equals(prevState)) event(a, "alert_ok", "Alerta resuelta: " + a.get("name"), why, "ok");
         return alertOut(alert(id).orElseThrow());
     }

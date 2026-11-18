@@ -117,22 +117,30 @@ public class AskService {
      * Valor total de una medida (fx simple o compuesta, o la de un elemento maestro si {@code masterId}) con unas
      * selecciones. Lo usan las alertas. Lanza {@link Expressions.ExpressionError} si la expresión no es válida.
      */
-    @SuppressWarnings("unchecked")
     public Double measureValue(String appId, String masterId, String expression, Map<String, List<Object>> selections) {
         Model m = model(appId);
-        Map<String, Object> r = null;
-        if (masterId != null && !masterId.isBlank()) {
-            for (Map<String, Object> it : m.measures)
-                if (masterId.equals(it.get("id")) && it.get("resolved") instanceof Map<?, ?> rr) r = (Map<String, Object>) rr;
-            if (r == null) throw new Expressions.ExpressionError("La medida maestra de la alerta ya no existe.");
-        } else {
-            r = Expressions.compile("measure", expression, m.fieldIndex);
-        }
-        QueryResult q = run(m, new QuerySpec(null, List.of(toSpec(r, null)), "kpi", selections == null ? Map.of() : selections));
+        QueryResult q = run(m, new QuerySpec(null, List.of(measureSpec(m, masterId, expression, null)), "kpi", selections == null ? Map.of() : selections));
         return q.value();
     }
 
-    private QueryResult run(Model m, QuerySpec spec) {
+    /** Medida lista para el motor a partir de una medida maestra o una fx. Lanza ExpressionError si no es válida. */
+    @SuppressWarnings("unchecked")
+    MeasureSpec measureSpec(Model m, String masterId, String expression, String label) {
+        Map<String, Object> r = null;
+        String lbl = label;
+        if (masterId != null && !masterId.isBlank()) {
+            for (Map<String, Object> it : m.measures)
+                if (masterId.equals(it.get("id")) && it.get("resolved") instanceof Map<?, ?> rr) { r = (Map<String, Object>) rr; if (lbl == null) lbl = String.valueOf(it.get("name")); }
+            if (r == null) throw new Expressions.ExpressionError("La medida maestra ya no existe.");
+        } else {
+            if (expression == null || expression.isBlank()) throw new Expressions.ExpressionError("Falta la medida (expresión fx o medida maestra).");
+            r = Expressions.compile("measure", expression, m.fieldIndex);
+            if (lbl == null) lbl = expression;
+        }
+        return toSpec(r, lbl);
+    }
+
+    QueryResult run(Model m, QuerySpec spec) {
         return io.datasense.engine.QueryEngine.run(m.frames, spec, m.types, m.displays);
     }
 
@@ -544,7 +552,7 @@ public class AskService {
         return null;
     }
 
-    private static Field bestTimeField(Model m, String grain) {
+    static Field bestTimeField(Model m, String grain) {
         Field best = null; int score = -1;
         for (Field f : m.fields) {
             if (!f.timeLike || f.distinct < 2 || f.distinct > 400) continue;
@@ -693,7 +701,7 @@ public class AskService {
     }
 
     @SuppressWarnings("unchecked")
-    private static MeasureSpec toSpec(Map<String, Object> r, String label) {
+    static MeasureSpec toSpec(Map<String, Object> r, String label) {
         return new MeasureSpec(String.valueOf(r.get("table")), String.valueOf(r.get("field")),
                 r.get("agg") == null ? "sum" : String.valueOf(r.get("agg")), label,
                 r.get("formula") == null ? null : String.valueOf(r.get("formula")),
@@ -774,7 +782,7 @@ public class AskService {
         return sb.toString();
     }
 
-    private static int naturalCmp(String a, String b) {
+    static int naturalCmp(String a, String b) {
         boolean na = a.matches("-?\\d+(\\.\\d+)?"), nb = b.matches("-?\\d+(\\.\\d+)?");
         if (na && nb) return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
         return a.compareTo(b);

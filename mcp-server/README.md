@@ -105,7 +105,7 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (113 tools en total; `run_query`, `create_sheet` y `update_sheet` aceptan medidas `{expression}` simples o compuestas):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (123 tools en total; `run_query`, `create_sheet` y `update_sheet` aceptan medidas `{expression}` simples o compuestas):
 
 | Grupo | Tools |
 |---|---|
@@ -122,6 +122,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Metricas certificadas | `certify_master_item` (requiere apps:publish), `list_master_item_versions`, `restore_master_item_version` |
 | Comentarios | `list_comments`, `add_comment`, `resolve_comment`, `delete_comment` |
 | Preguntale / archivo a tablero | `ask_data`, `ask_suggestions`, `auto_dashboard` |
+| Que cambio / simular / actuar | `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list`, `delete_action_list`, `get_watchdog`, `set_watchdog`, `run_watchdog` |
 | Automatizar | `get_schedule`, `set_schedule`, `delete_schedule`, `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert`, `get_data_health` |
 | Modelo logico | `get_logical_model`, `set_logical_model`, `logical_model_action`, `logical_model_item` |
 | Hojas | `delete_sheet`, `set_sheet_visibility`, `add_ml_chart` |

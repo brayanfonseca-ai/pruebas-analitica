@@ -22,7 +22,7 @@ export async function render(mount, ctx) {
   const canData = ctx.can("data:import");
   const me = ctx.me?.() || {};
   const canModerate = ctx.can("apps:publish");
-  const st = { health: null, schedule: null, runs: [], alerts: [], masters: [] };
+  const st = { health: null, schedule: null, runs: [], alerts: [], masters: [], actions: [] };
 
   mount.innerHTML = `
     <div class="au">
@@ -38,7 +38,8 @@ export async function render(mount, ctx) {
   const $ = (s) => mount.querySelector(s);
 
   async function load() {
-    const [h, s, a, m] = await Promise.allSettled([api.getHealth(ctx.appId), api.getSchedule(ctx.appId), api.listAlerts(ctx.appId), api.listMasterItems(ctx.appId)]);
+    const [h, s, a, m, ac] = await Promise.allSettled([api.getHealth(ctx.appId), api.getSchedule(ctx.appId), api.listAlerts(ctx.appId), api.listMasterItems(ctx.appId), api.listActions(ctx.appId)]);
+    st.actions = ac.status === "fulfilled" ? ac.value : [];
     st.health = h.status === "fulfilled" ? h.value : { error: h.reason?.message };
     if (s.status === "fulfilled") { st.schedule = s.value.schedule; st.runs = s.value.runs || []; }
     st.alerts = a.status === "fulfilled" ? a.value : [];
@@ -168,6 +169,7 @@ export async function render(mount, ctx) {
           <div class="au-a-main">
             <div class="au-a-t"><b>${esc(a.name)}</b><span class="au-pill ${cls}">${lbl}</span>${a.enabled ? "" : `<span class="au-pill muted">Pausada</span>`}</div>
             <div class="au-a-c"><code>${esc(master ? `${master.name} (maestra)` : a.expression)}</code> ${esc(a.condition)}${a.selections && Object.keys(a.selections).length ? ` · con ${esc(Object.entries(a.selections).map(([k, v]) => `${k} = ${v.join(", ")}`).join("; "))}` : ""}</div>
+            ${a.action_id ? `<small>⚡ Ejecuta la lista «${esc((st.actions.find((x) => x.id === a.action_id) || {}).name || "—")}» al dispararse</small>` : ""}
             <small>Valor: <b>${nf(a.last_value)}</b> · ${esc(a.last_message || "")} · ${a.check_mode === "interval" ? `revisa cada ${a.interval_minutes} min` : "revisa al recargar"} · revisada ${when(a.last_checked_at)} · de ${esc(a.owner_name || "—")}</small>
           </div>
           <div class="au-a-act">
@@ -206,6 +208,7 @@ export async function render(mount, ctx) {
         expression: form.source.value === "expr" ? form.expression.value.trim() : "",
         master_id: form.source.value === "master" ? form.master_id.value : "",
         selections: sel, check_mode: form.check_mode.value, interval_minutes: Number(form.interval_minutes.value), enabled: form.enabled.checked,
+        action_id: form.action_id.value,
       };
       const btn = form.querySelector("[type=submit]"); btn.disabled = true;
       try {
@@ -233,6 +236,7 @@ export async function render(mount, ctx) {
       <label>Valores (separados por coma)<input name="sel_values" value="${esc(selEntry?.[1]?.join(", ") || "")}" placeholder="CALI, NEIVA"/></label>
       <label>Revisar<select name="check_mode"><option value="reload" ${(a?.check_mode || "reload") === "reload" ? "selected" : ""}>Cada vez que se recarguen los datos</option><option value="interval" ${a?.check_mode === "interval" ? "selected" : ""}>Cada N minutos</option></select></label>
       <label data-for="every">Cada (minutos)<input name="interval_minutes" type="number" min="5" value="${esc(a?.interval_minutes || 60)}"/></label>
+      <label class="wide">Al dispararse, ejecutar la lista<select name="action_id"><option value="">Ninguna (solo avisar)</option>${(st.actions || []).map((x) => `<option value="${esc(x.id)}" ${a?.action_id === x.id ? "selected" : ""}>${esc(x.name)}${x.has_webhook ? " · envía al webhook" : ""}</option>`).join("")}</select></label>
       <label class="au-chk"><input type="checkbox" name="enabled" ${a?.enabled === false ? "" : "checked"}/> Activa</label>
       <div class="au-err full" id="auAErr" role="alert"></div>
       <div class="au-actions full"><button type="submit" class="au-btn">${a ? "Guardar" : "Crear alerta"}</button><button type="button" class="au-btn ghost" data-cancel>Cancelar</button>

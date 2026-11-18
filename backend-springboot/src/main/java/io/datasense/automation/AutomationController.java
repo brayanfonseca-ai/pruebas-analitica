@@ -37,8 +37,13 @@ public class AutomationController {
     private final AppRepository apps;
     private final AutomationService auto;
     private final HealthService health;
+    private final ActionService actions;
+    private final WatchdogService watchdog;
 
-    public AutomationController(AppRepository apps, AutomationService auto, HealthService health) {
+    public AutomationController(AppRepository apps, AutomationService auto, HealthService health,
+                                ActionService actions, WatchdogService watchdog) {
+        this.actions = actions;
+        this.watchdog = watchdog;
         this.apps = apps;
         this.auto = auto;
         this.health = health;
@@ -131,6 +136,92 @@ public class AutomationController {
         boolean own = me != null && me.id().equals(a.get("owner_id"));
         if (!own && (me == null || !(me.isAdmin() || me.has(Permissions.PUBLISH))))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño de la alerta (o quien publica) puede cambiarla o borrarla.");
+    }
+
+    /* ------------------------------ Del dato a la acción: listas ------------------------------ */
+
+    @GetMapping("/actions")
+    public List<Map<String, Object>> actions(@PathVariable String appId) {
+        requireApp(appId);
+        return actions.list(appId);
+    }
+
+    @PostMapping("/actions")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, Object> createAction(HttpServletRequest req, @PathVariable String appId, @RequestBody Map<String, Object> body) {
+        requireApp(appId);
+        try { return actions.save(appId, null, body, AccessService.current(req)); } catch (IllegalArgumentException e) { throw bad(e); }
+    }
+
+    @PutMapping("/actions/{actionId}")
+    public Map<String, Object> updateAction(HttpServletRequest req, @PathVariable String appId, @PathVariable String actionId, @RequestBody Map<String, Object> body) {
+        requireApp(appId);
+        action(appId, actionId);
+        try { return actions.save(appId, actionId, body, AccessService.current(req)); } catch (IllegalArgumentException e) { throw bad(e); }
+    }
+
+    @DeleteMapping("/actions/{actionId}")
+    public ResponseEntity<Void> deleteAction(@PathVariable String appId, @PathVariable String actionId) {
+        requireApp(appId);
+        action(appId, actionId);
+        actions.delete(actionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Ejecuta la lista: {send?: true} la envía también al webhook. */
+    @PostMapping("/actions/{actionId}/run")
+    public Map<String, Object> runAction(@PathVariable String appId, @PathVariable String actionId, @RequestBody(required = false) Map<String, Object> body) {
+        requireApp(appId);
+        boolean send = body != null && (Boolean.TRUE.equals(body.get("send")) || "true".equals(String.valueOf(body.get("send"))));
+        try { return actions.run(action(appId, actionId), send, "Ejecución manual"); } catch (IllegalArgumentException e) { throw bad(e); }
+    }
+
+    @GetMapping(value = "/actions/{actionId}/export.csv")
+    public ResponseEntity<byte[]> exportAction(@PathVariable String appId, @PathVariable String actionId) {
+        requireApp(appId);
+        Map<String, Object> a = action(appId, actionId);
+        Map<String, Object> r;
+        try { r = actions.rows(a, 10000); } catch (IllegalArgumentException e) { throw bad(e); }
+        String name = String.valueOf(a.get("name")).replaceAll("[^\\w\\-]+", "_");
+        return ResponseEntity.ok()
+                .contentType(new org.springframework.http.MediaType("text", "csv", java.nio.charset.StandardCharsets.UTF_8))
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + name + ".csv\"")
+                .body(io.datasense.ask.InsightService.csv(r).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private Map<String, Object> action(String appId, String id) {
+        return actions.get(id).filter(x -> appId.equals(x.get("app_id")))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lista de acción no encontrada."));
+    }
+
+    /* ------------------------------ Agente de guardia ------------------------------ */
+
+    @GetMapping("/watchdog")
+    public Map<String, Object> watchdog(@PathVariable String appId) {
+        requireApp(appId);
+        Map<String, Object> out = new HashMap<>();
+        out.put("watchdog", watchdog.get(appId));
+        return out;
+    }
+
+    @PutMapping("/watchdog")
+    public Map<String, Object> saveWatchdog(HttpServletRequest req, @PathVariable String appId, @RequestBody Map<String, Object> body) {
+        requireApp(appId);
+        try { return watchdog.save(appId, body, AccessService.current(req)); } catch (IllegalArgumentException e) { throw bad(e); }
+    }
+
+    @DeleteMapping("/watchdog")
+    public ResponseEntity<Void> deleteWatchdog(@PathVariable String appId) {
+        requireApp(appId);
+        watchdog.delete(appId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Revisa ahora (y avisa en la campana del dueño si encuentra algo). */
+    @PostMapping("/watchdog/run")
+    public Map<String, Object> runWatchdog(@PathVariable String appId) {
+        requireApp(appId);
+        return watchdog.run(appId, true);
     }
 
     /* ------------------------------ Salud de datos ------------------------------ */

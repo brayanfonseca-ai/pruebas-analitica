@@ -202,6 +202,36 @@ export const updateAlert = (appId, id, a) => request(`${A(appId)}/alerts/${encod
 export const deleteAlert = (appId, id) => request(`${A(appId)}/alerts/${encodeURIComponent(id)}`, { method: "DELETE" });
 export const checkAlert = (appId, id) => request(`${A(appId)}/alerts/${encodeURIComponent(id)}/check`, { method: "POST" });
 export const getHealth = (appId) => request(`${A(appId)}/health`);
+// Qué cambió · registros · ¿qué pasaría si…? · listas de acción · agente de guardia
+export const explainChange = (appId, body) => request(`${A(appId)}/insights/explain`, { method: "POST", body });
+export const insightRows = (appId, body) => request(`${A(appId)}/insights/rows`, { method: "POST", body });
+export const whatIf = (appId, body) => request(`${A(appId)}/insights/whatif`, { method: "POST", body });
+export async function downloadRowsCsv(appId, body, filename) {
+  const r = await fetch(`/api/v1${A(appId)}/insights/rows.csv`, { method: "POST", headers: { ...authHeader(), "Content-Type": "application/json" }, body: JSON.stringify({ ...body, filename }) });
+  if (!r.ok) { let m = `Error ${r.status}`; try { m = (await r.json()).message || m; } catch {} throw new Error(m); }
+  return saveBlob(await r.blob(), `${filename || "registros"}.csv`);
+}
+export async function downloadActionCsv(appId, id, filename) {
+  const r = await fetch(`/api/v1${A(appId)}/actions/${encodeURIComponent(id)}/export.csv`, { headers: authHeader() });
+  if (!r.ok) throw new Error(`Error ${r.status}`);
+  return saveBlob(await r.blob(), `${filename || "lista"}.csv`);
+}
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  return blob.size;
+}
+export const listActions = (appId) => request(`${A(appId)}/actions`);
+export const createAction = (appId, a) => request(`${A(appId)}/actions`, { method: "POST", body: a });
+export const updateAction = (appId, id, a) => request(`${A(appId)}/actions/${encodeURIComponent(id)}`, { method: "PUT", body: a });
+export const deleteAction = (appId, id) => request(`${A(appId)}/actions/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const runAction = (appId, id, send) => request(`${A(appId)}/actions/${encodeURIComponent(id)}/run`, { method: "POST", body: { send: !!send } });
+export const getWatchdog = (appId) => request(`${A(appId)}/watchdog`);
+export const saveWatchdog = (appId, w) => request(`${A(appId)}/watchdog`, { method: "PUT", body: w });
+export const deleteWatchdog = (appId) => request(`${A(appId)}/watchdog`, { method: "DELETE" });
+export const runWatchdog = (appId) => request(`${A(appId)}/watchdog/run`, { method: "POST" });
 
 /* ----------------------- Comentarios ----------------------- */
 export const listComments = (appId, { sheetId, objectId } = {}) => {

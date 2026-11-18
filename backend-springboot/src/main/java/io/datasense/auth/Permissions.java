@@ -126,6 +126,9 @@ public final class Permissions {
             if (sub.equals("ask")) return VIEW;
             // Alertas: personales; cualquiera que vea la app se suscribe (el controlador limita editar/borrar ajenas).
             if (sub.equals("alerts")) return VIEW;
+            // Qué cambió, registros, ¿qué pasaría si…?: análisis de solo lectura (nada se guarda).
+            if (sub.equals("insights")) return VIEW;
+            // Listas de acción (pueden enviar datos a un webhook) y agente de guardia: leerlos basta con ver; cambiarlos, editar.
             // Carga programada: lo mismo que «Cargar datos».
             if (sub.equals("schedule")) return read ? VIEW : DATA;
             // Certificar una métrica la convierte en definición oficial: es una acción de gobierno.

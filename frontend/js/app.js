@@ -19,7 +19,13 @@ if (!APP_ID) location.replace("catalogo.html");
 
 // «perm»: permiso que exige la vista. Quien no lo tiene ni la ve en el selector (el servidor también lo exige).
 const VIEW_GROUPS = [
-  { label: "Analizar", views: [{ key: "hoja", label: "Hoja", icon: "pages", shortcut: "A", module: "./app-hoja.js" }] },
+  {
+    label: "Analizar",
+    views: [
+      { key: "hoja", label: "Hoja", icon: "pages", shortcut: "A", module: "./app-hoja.js" },
+      { key: "insights", label: "Qué cambió · simular · actuar", icon: "predict", shortcut: "Q", module: "./app-insights.js" },
+    ],
+  },
   { label: "Narrar", views: [{ key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" }] },
   {
     label: "Ciencia de datos",
