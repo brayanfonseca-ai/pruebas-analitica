@@ -280,7 +280,32 @@ async function renderEditor(id) {
 
   /* ---------- coordenadas ---------- */
   const toWorld = (cx, cy) => { const r = canvas.getBoundingClientRect(); return { x: (cx - r.left - E.view.x) / E.view.k, y: (cy - r.top - E.view.y) / E.view.k }; };
-  const applyView = () => { world.style.transform = `translate(${E.view.x}px, ${E.view.y}px) scale(${E.view.k})`; };
+  const applyView = () => {
+    world.style.transform = `translate(${E.view.x}px, ${E.view.y}px) scale(${E.view.k})`;
+    // los puertos nunca se ven más pequeños que ~13 px en pantalla, aunque el flujo esté alejado
+    world.style.setProperty("--pk", String(Math.max(1, 0.95 / E.view.k)));
+  };
+  /** Puerto de entrada más cercano al puntero (imán de 48 px en pantalla). */
+  const nearestIn = (cx, cy, except) => {
+    let best = null, bd = 48;
+    nodesEl.querySelectorAll(".fe-port.in").forEach((p) => {
+      if (p.dataset.in === except) return;
+      const r = p.getBoundingClientRect(), d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy);
+      if (d < bd) { bd = d; best = p; }
+    });
+    return best;
+  };
+  /** Conecta from:port → to si es válido. Devuelve un texto de error o null. */
+  const connect = (from, port, to) => {
+    const toNode = nodeById(to);
+    if (!toNode || to === from) return "Elige otro nodo.";
+    if (!S.byType[toNode.type]?.input) return `«${toNode.name}» es un disparador: no recibe conexiones.`;
+    if (E.graph.edges.some((x) => x.from === from && x.port === port && x.to === to)) return "Ya están conectados.";
+    E.graph.edges.push({ from, port, to });
+    changed();
+    if (E.sel) paintInspector();
+    return null;
+  };
   const nodeById = (id) => E.graph.nodes.find((n) => n.id === id);
   const outPorts = (n) => S.byType[n.type]?.outputs || ["out"];
   const portPos = (n, port) => {
@@ -429,7 +454,7 @@ async function renderEditor(id) {
     if (edel) { E.graph.edges.splice(Number(edel.dataset.edel), 1); E.selEdge = null; changed(); return; }
     if (out) {
       e.preventDefault(); e.stopPropagation();
-      drag = { kind: "link", from: out.dataset.out, port: out.dataset.port };
+      drag = { kind: "link", from: out.dataset.out, port: out.dataset.port, sx: e.clientX, sy: e.clientY };
       canvas.setPointerCapture(e.pointerId);
       return;
     }
@@ -460,7 +485,11 @@ async function renderEditor(id) {
     } else if (drag.kind === "link") {
       const a = portPos(nodeById(drag.from), drag.port), b = toWorld(e.clientX, e.clientY);
       paintEdges(curve(a, b));
-      nodesEl.querySelectorAll(".fe-port.in").forEach((p) => p.classList.toggle("hot", p === document.elementFromPoint(e.clientX, e.clientY)?.closest(".fe-port.in")));
+      const under = document.elementFromPoint(e.clientX, e.clientY);
+      const overNode = under?.closest(".fe-node");
+      const hot = (overNode && overNode.dataset.id !== drag.from ? overNode.querySelector(".fe-port.in") : null) || nearestIn(e.clientX, e.clientY, drag.from);
+      nodesEl.querySelectorAll(".fe-port.in").forEach((p) => p.classList.toggle("hot", p === hot));
+      nodesEl.querySelectorAll(".fe-node").forEach((n) => n.classList.toggle("drop", !!hot && n.dataset.id === hot.dataset.in));
     }
   });
   canvas.addEventListener("pointerup", (e) => {
@@ -469,14 +498,20 @@ async function renderEditor(id) {
     if (d.kind === "pan" && !d.moved) { select(null); return; }
     if (d.kind === "node" && d.moved) changed();
     if (d.kind === "link") {
+      nodesEl.querySelectorAll(".fe-port.in.hot, .fe-node.drop").forEach((x) => x.classList.remove("hot", "drop"));
       const tgt = document.elementFromPoint(e.clientX, e.clientY);
-      const inPort = tgt?.closest("[data-in]") || tgt?.closest(".fe-node");
-      const to = inPort?.dataset.in || inPort?.dataset.id;
-      const toNode = to && nodeById(to);
-      if (toNode && to !== d.from && S.byType[toNode.type]?.input && !E.graph.edges.some((x) => x.from === d.from && x.port === d.port && x.to === to)) {
-        E.graph.edges.push({ from: d.from, port: d.port, to });
-        changed();
-      } else paintEdges();
+      let hit = tgt?.closest(".fe-node");
+      if (!hit || hit.dataset.id === d.from) hit = nearestIn(e.clientX, e.clientY, d.from);
+      const to = hit?.dataset.in || hit?.dataset.id;
+      const moved = Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 6;
+      if (to && to !== d.from) {
+        const err = connect(d.from, d.port, to);
+        if (err) { paintEdges(); if (!/Ya están/.test(err)) toast(err, "err"); }
+      } else {
+        paintEdges();
+        if (moved) toast("Suelta la línea sobre otro nodo para conectarlos (o usa «Conectar a» en el panel derecho).", "err");
+        else select(d.from);
+      }
     }
   });
   canvas.addEventListener("wheel", (e) => {
@@ -493,8 +528,10 @@ async function renderEditor(id) {
     const r = canvas.getBoundingClientRect();
     const minX = Math.min(...ns.map((n) => n.x)), minY = Math.min(...ns.map((n) => n.y));
     const maxX = Math.max(...ns.map((n) => n.x + NODE_W)), maxY = Math.max(...ns.map((n) => n.y + NODE_H));
-    const k = Math.min(1.15, Math.max(0.4, Math.min((r.width - 120) / (maxX - minX || 1), (r.height - 120) / (maxY - minY || 1))));
-    E.view = { k, x: (r.width - (maxX - minX) * k) / 2 - minX * k, y: (r.height - (maxY - minY) * k) / 2 - minY * k };
+    // no se aleja de más (por debajo del 60 % los nodos ya no se pueden usar); si no cabe, se ve desde el inicio
+    const k = Math.min(1.1, Math.max(0.6, Math.min((r.width - 100) / (maxX - minX || 1), (r.height - 120) / (maxY - minY || 1))));
+    const wpx = (maxX - minX) * k, hpx = (maxY - minY) * k;
+    E.view = { k, x: wpx <= r.width - 60 ? (r.width - wpx) / 2 - minX * k : 40 - minX * k, y: hpx <= r.height - 60 ? (r.height - hpx) / 2 - minY * k : 40 - minY * k };
     applyView();
   };
   main.querySelectorAll("[data-z]").forEach((b) => b.addEventListener("click", () => {
@@ -582,6 +619,7 @@ async function renderEditor(id) {
           return `<div class="fe-var-node"><b>${esc(u.name)}</b>${keys.length ? keys.map((k) => `<button type="button" class="fe-chip" data-var="${esc(upstreamExpr(n, u, k))}" title="${esc(Templates(s[k]))}">${esc(k)}</button>`).join("") : `<small>Ejecuta el flujo para ver sus campos.</small>`}
             <button type="button" class="fe-chip all" data-var="${esc(`{{ $node["${u.name}"].items | table }}`)}">tabla</button></div>`; }).join("")}
         <small class="fl-muted">Haz clic para insertar en el último campo que tocaste.</small></details>` : ""}
+      ${connBox(n, def)}
       <label class="fe-chk"><input type="checkbox" id="fiOff" ${n.disabled ? "checked" : ""}/> Desactivar (deja pasar los datos sin ejecutarlo)</label>
       ${def.input ? `<label class="fe-chk"><input type="checkbox" id="fiCont" ${n.params?.on_error === "continue" ? "checked" : ""}/> Si falla, seguir con el resto del flujo</label>` : ""}
       ${st ? `<div class="fe-out ${st.status}"><div class="fe-out-h"><b>Última ejecución</b><span>${st.status === "error" ? "✕ Error" : st.status === "skipped" ? "Omitido" : st.status === "warning" ? "⚠ Falló, pero siguió" : `✓ ${st.ms} ms`}</span></div>
@@ -613,6 +651,17 @@ async function renderEditor(id) {
     box.querySelector("#fiName").addEventListener("change", (e) => { n.name = e.target.value.trim() || def.label; changed(); });
     box.querySelector("#fiOff").addEventListener("change", (e) => { n.disabled = e.target.checked; changed(); });
     box.querySelector("#fiCont")?.addEventListener("change", (e) => { n.params.on_error = e.target.checked ? "continue" : undefined; changed(false); });
+    box.querySelectorAll("[data-conn]").forEach((s) => s.addEventListener("change", () => {
+      if (!s.value) return;
+      const err = connect(n.id, s.dataset.conn, s.value);
+      if (err) toast(err, "err"); else toast(`Conectado con «${nodeById(s.value).name}»`);
+      paintInspector();
+    }));
+    box.querySelectorAll("[data-unconn]").forEach((b) => b.addEventListener("click", () => {
+      const [port, to] = b.dataset.unconn.split("|");
+      E.graph.edges = E.graph.edges.filter((x) => !(x.from === n.id && (x.port || "out") === port && x.to === to));
+      changed(); paintInspector();
+    }));
     box.querySelector("#fiDup").addEventListener("click", () => duplicate(n.id));
     box.querySelector("#fiDel").addEventListener("click", () => removeNode(n.id));
     box.querySelectorAll("[data-var]").forEach((b) => b.addEventListener("click", () => {
@@ -626,6 +675,22 @@ async function renderEditor(id) {
       box.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("on", x === b));
       box.querySelectorAll("[data-pane]").forEach((x) => { x.hidden = x.dataset.pane !== b.dataset.tab; });
     }));
+  }
+  /** «Conectar a»: une nodos eligiendo de una lista (sin arrastrar) y muestra de dónde recibe. */
+  function connBox(n, def) {
+    const pl = (p) => (p === "true" ? "Si se cumple (sí)" : p === "false" ? "Si no se cumple (no)" : "Siguiente paso");
+    const ins = E.graph.edges.filter((x) => x.to === n.id).map((x) => nodeById(x.from)).filter(Boolean);
+    const cands = E.graph.nodes.filter((o) => o.id !== n.id && S.byType[o.type]?.input);
+    const rows = (def.outputs || ["out"]).map((p) => {
+      const cur = E.graph.edges.filter((x) => x.from === n.id && (x.port || "out") === p).map((x) => nodeById(x.to)).filter(Boolean);
+      const free = cands.filter((o) => !cur.includes(o));
+      return `<div class="fe-conn-row"><span class="fe-conn-p ${p}">${pl(p)}</span>
+        <div class="fe-conn-list">${cur.map((o) => `<span class="fe-conn-chip" style="--c:${color(o.type)}">→ ${esc(o.name)}<button type="button" data-unconn="${esc(p)}|${esc(o.id)}" title="Quitar conexión" aria-label="Quitar conexión con ${esc(o.name)}">✕</button></span>`).join("")}
+        ${free.length ? `<select data-conn="${esc(p)}" aria-label="Conectar ${esc(pl(p))}"><option value="">＋ Conectar a…</option>${free.map((o) => `<option value="${esc(o.id)}">${esc(o.name)}</option>`).join("")}</select>` : cur.length ? "" : `<small class="fl-muted">Agrega otro nodo para conectarlo.</small>`}</div></div>`;
+    }).join("");
+    return `<div class="fe-conn"><b>Conexiones</b>
+      ${def.input ? `<div class="fe-conn-row"><span class="fe-conn-p">Recibe de</span><div class="fe-conn-list">${ins.length ? ins.map((o) => `<span class="fe-conn-chip in" style="--c:${color(o.type)}">${esc(o.name)} →</span>`).join("") : `<small class="fe-warn">Nada todavía: este nodo no se ejecutará.</small>`}</div></div>` : ""}
+      ${rows}</div>`;
   }
   const Templates = (v) => (v == null ? "" : typeof v === "object" ? JSON.stringify(v).slice(0, 80) : String(v).slice(0, 80));
   const upstreamExpr = (n, u, k) => {

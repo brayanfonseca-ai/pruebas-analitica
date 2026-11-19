@@ -87,7 +87,7 @@ export async function render(mount, ctx) {
   if (st.tab === "pulso") st.tab = "cambio";
 
   mount.innerHTML = `
-    <div class="in">
+    <div class="in-root">
       <header class="in-hero">
         <div><h1>Entiende tus cifras y actúa</h1>
           <p>Mira qué métricas se movieron, descubre por qué, prueba qué pasaría si cambias algo y llega a las personas o registros concretos para actuar.</p></div>
