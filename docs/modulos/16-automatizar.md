@@ -2,6 +2,8 @@
 
 Vista **Automatizar · alertas y salud** de cada app (selector de vistas → *Operar*, atajo `Alt+Shift+T`). La ve cualquiera que vea la app; programar la carga exige *Importar datos* (`data:import`).
 
+> Para flujos más completos (recargar y luego consultar, pasar el resultado a un agente de IA y enviarlo por correo, WhatsApp o Teams) usa **Automatizaciones por nodos** ([18](./18-automatizaciones.md)). Pueden arrancar al recargar los datos o al dispararse una de estas alertas.
+
 ## Salud de datos
 Puntaje 0–100 (Buena ≥ 85, Regular ≥ 60, Mala) con los problemas ordenados por gravedad y una recomendación:
 - **Crítico** (−25 c/u): tabla vacía; perdió ≥ 50 % de filas frente a la carga anterior; la última carga programada falló.

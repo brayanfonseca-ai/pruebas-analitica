@@ -56,6 +56,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (path.endsWith("/") && path.length() > 1) path = path.substring(0, path.length() - 1);
 
         if ("POST".equals(method) && path.equals("/auth/login")) return true;
+        // Disparador webhook de una automatización: lo autentica su token secreto en la URL (flw_…).
+        if (path.startsWith("/hooks/flows/flw_") && ("POST".equals(method) || "GET".equals(method))) return true;
 
         String token = bearer(req);
         if (token != null && token.startsWith("dse_")) return embedRequest(req, res, method, path, token);

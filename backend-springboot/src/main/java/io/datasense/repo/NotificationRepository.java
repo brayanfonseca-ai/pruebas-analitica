@@ -167,6 +167,7 @@ public class NotificationRepository {
             case "experiment", "run" -> "/pages/experimento.html?id=" + enc(refId);
             case "alert", "alert_ok", "reload", "reload_fail", "health" -> app + "#automatizar";
             case "insight" -> app + "#insights";
+            case "flow" -> "/pages/automatizaciones.html?flow=" + enc(refId);
             default -> "/pages/inicio.html";
         };
     }

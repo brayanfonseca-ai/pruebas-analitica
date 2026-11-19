@@ -233,6 +233,25 @@ export const saveWatchdog = (appId, w) => request(`${A(appId)}/watchdog`, { meth
 export const deleteWatchdog = (appId) => request(`${A(appId)}/watchdog`, { method: "DELETE" });
 export const runWatchdog = (appId) => request(`${A(appId)}/watchdog/run`, { method: "POST" });
 
+/* ----------------------- Automatizaciones por nodos ----------------------- */
+export const flowCatalog = () => request("/flows/catalog");
+export const flowTemplates = () => request("/flows/templates");
+export const listFlows = () => request("/flows");
+export const getFlow = (id) => request(`/flows/${encodeURIComponent(id)}`);
+export const createFlow = (f) => request("/flows", { method: "POST", body: f });
+export const updateFlow = (id, f) => request(`/flows/${encodeURIComponent(id)}`, { method: "PUT", body: f });
+export const deleteFlow = (id) => request(`/flows/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const setFlowEnabled = (id, enabled) => request(`/flows/${encodeURIComponent(id)}/enabled`, { method: "POST", body: { enabled } });
+export const runFlow = (id, data) => request(`/flows/${encodeURIComponent(id)}/run`, { method: "POST", body: data ? { data } : {} });
+export const listFlowRuns = (id) => request(`/flows/${encodeURIComponent(id)}/runs?limit=30`);
+export const getFlowRun = (id, runId) => request(`/flows/${encodeURIComponent(id)}/runs/${encodeURIComponent(runId)}`);
+export const rotateFlowWebhook = (id) => request(`/flows/${encodeURIComponent(id)}/webhook/rotate`, { method: "POST" });
+export const listFlowCredentials = () => request("/flows/credentials");
+export const createFlowCredential = (c) => request("/flows/credentials", { method: "POST", body: c });
+export const updateFlowCredential = (id, c) => request(`/flows/credentials/${encodeURIComponent(id)}`, { method: "PUT", body: c });
+export const deleteFlowCredential = (id) => request(`/flows/credentials/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const testFlowCredential = (id) => request(`/flows/credentials/${encodeURIComponent(id)}/test`, { method: "POST" });
+
 /* ----------------------- Comentarios ----------------------- */
 export const listComments = (appId, { sheetId, objectId } = {}) => {
   const q = new URLSearchParams();

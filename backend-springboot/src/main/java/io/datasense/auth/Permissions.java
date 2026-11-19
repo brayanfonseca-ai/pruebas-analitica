@@ -107,6 +107,8 @@ public final class Permissions {
         if (path.startsWith("/notifications")) return VIEW;
         if (path.startsWith("/connections")) return CONNECTIONS;
         if (path.startsWith("/embeds")) return EMBED;
+        // Automatizaciones por nodos: las crea quien construye (envían correos, WhatsApp y llaman APIs).
+        if (path.startsWith("/flows")) return EDIT;
         // Lectura de un experimento/corrida: la necesitan los tableros publicados que muestran gráficos de ML.
         if (read && path.matches("/ml/experiments/[^/]+(/runs/[^/]+)?")) return VIEW;
         if (path.startsWith("/ml/")) return ML;

@@ -472,6 +472,45 @@ public class DatabaseConfig {
                     updated_at TEXT NOT NULL,
                     FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
                 )""");
+            // ---- Automatizaciones por nodos (estilo n8n): flujos, ejecuciones y credenciales ----
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS flows (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    graph_json TEXT NOT NULL,
+                    enabled INTEGER NOT NULL DEFAULT 0,
+                    webhook_token TEXT UNIQUE,
+                    owner_id TEXT,
+                    owner_name TEXT,
+                    next_run_at TEXT,
+                    last_run_at TEXT,
+                    last_status TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS flow_runs (
+                    id TEXT PRIMARY KEY,
+                    flow_id TEXT NOT NULL,
+                    trigger TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    error TEXT,
+                    steps_json TEXT,
+                    duration_ms INTEGER,
+                    started_at TEXT NOT NULL,
+                    FOREIGN KEY (flow_id) REFERENCES flows (id) ON DELETE CASCADE
+                )""");
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS flow_credentials (
+                    id TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    config_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )""");
             addColumn("apps", "owner_id", "TEXT");
             // Las apps que ya existían quedan en Desarrollo (nadie las ve en Producción hasta que se publiquen).
             addColumn("apps", "stage", "TEXT NOT NULL DEFAULT 'desarrollo'");

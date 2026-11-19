@@ -698,6 +698,128 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await post(`${A(a.appId)}/watchdog/run`)),
   },
 
+  /* ======================= Automatizaciones (flujos por nodos) ======================= */
+  {
+    name: "list_flow_nodes",
+    title: "Catalogo de nodos de automatizacion",
+    description: "Catalogo para construir automatizaciones: {categories:[{id,label,color}], nodes:[{type, category, label, description, icon, input (false = disparador), outputs (puertos; logic.if: true/false), params:[{key,label,type (text|textarea|number|bool|select|app|table|field|measure|json|kv|credential:<kind>),default,required,options,show_if}]}], credentials:[{kind,label,help,fields:[{key,label,secret}]}], template_help}. Tipos (23): trigger.manual|schedule|webhook|reload|alert, data.reload|query|rows|ask|explain|health|whatif, ai.agent (role analyst|writer|classifier|hr|custom; consulta la app con herramientas), logic.if|filter|set|aggregate|wait, action.email|whatsapp|chat|http|notify. Plantillas {{ }}: $json, $items, $node[\"Nombre\"].json, $trigger, $now, $today; filtros number, percent, upper, lower, json, count, join, list:campo, table, default, round. GET /api/v1/flows/catalog.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/flows/catalog")),
+  },
+  {
+    name: "list_flow_templates",
+    title: "Plantillas de automatizacion",
+    description: "Galeria de plantillas [{id, name, description, node_types, graph}]. El graph trae marcadores {{app}}, {{smtp}}, {{email}}, {{phone}}, {{whatsapp}}, {{webhook}}, {{measure}}, {{measure_label}} que hay que reemplazar (ids de app/credencial, correo, telefono, expresion fx) antes de save_flow. GET /api/v1/flows/templates.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/flows/templates")),
+  },
+  {
+    name: "list_flows",
+    title: "Listar automatizaciones",
+    description: "Automatizaciones del usuario (el admin ve todas): [{id, name, description, enabled, trigger, node_types, nodes_count, last_run_at, last_status, next_run_at, owner_name}]. GET /api/v1/flows.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/flows")),
+  },
+  {
+    name: "get_flow",
+    title: "Leer automatizacion",
+    description: "Automatizacion completa: {id, name, description, enabled, graph {nodes:[{id,type,name,x,y,params,disabled?}], edges:[{from,port,to}]}, problems (pendientes: sin disparador, parametros obligatorios vacios…), webhook_path, next_run_at, last_*}. GET /api/v1/flows/{id}.",
+    inputShape: { flowId: id("Id de la automatizacion.") },
+    handler: async (a) => toToolText(await get(`/api/v1/flows/${E(a.flowId)}`)),
+  },
+  {
+    name: "save_flow",
+    title: "Crear o actualizar automatizacion",
+    description: "Crea (sin flowId; POST /api/v1/flows, 201) o reemplaza (con flowId; PUT /api/v1/flows/{id}) una automatizacion. graph = {nodes:[{id, type (ver list_flow_nodes), name (unico; lo usa $node[\"Nombre\"]), x, y, params, disabled?}], edges:[{from, port ('out' o 'true'/'false' en logic.if), to}]}. Cada nodo acepta params.on_error='continue' para seguir si falla. Un disparador no puede recibir conexiones. Devuelve la automatizacion con problems y webhook_path. Si estaba activa y quedan pendientes, se pausa. Requiere charts:edit.",
+    inputShape: {
+      flowId: z.string().optional().describe("Id para actualizar; omitir para crear."),
+      name: z.string().optional().describe("Nombre (obligatorio al crear)."),
+      description: z.string().optional(),
+      graph: free("Grafo {nodes, edges}.").optional(),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["name", "description", "graph"]);
+      return toToolText(a.flowId ? await put(`/api/v1/flows/${E(a.flowId)}`, body) : await post("/api/v1/flows", body));
+    },
+  },
+  {
+    name: "delete_flow",
+    title: "Eliminar automatizacion",
+    description: "ACCION DESTRUCTIVA: elimina la automatizacion y todo su historial de ejecuciones. 204. DELETE /api/v1/flows/{id}.",
+    inputShape: { flowId: id("Id de la automatizacion.") },
+    handler: async (a) => toToolText(await del(`/api/v1/flows/${E(a.flowId)}`)),
+  },
+  {
+    name: "set_flow_enabled",
+    title: "Activar / pausar automatizacion",
+    description: "Activa (corre sola segun su disparador: programado, al recargar, alerta o webhook) o pausa. Falla con 400 si tiene pendientes. Devuelve la automatizacion con next_run_at. POST /api/v1/flows/{id}/enabled con {enabled}.",
+    inputShape: { flowId: id("Id de la automatizacion."), enabled: z.boolean() },
+    handler: async (a) => toToolText(await post(`/api/v1/flows/${E(a.flowId)}/enabled`, { enabled: a.enabled })),
+  },
+  {
+    name: "run_flow",
+    title: "Ejecutar automatizacion ahora",
+    description: "Ejecuta la automatizacion ya (aunque este pausada) y espera el resultado: {run_id, status (ok|error), error, duration_ms, steps:[{node_id, name, type, status (ok|warning|error|skipped), ms, input_count, output_count {puerto:n}, output (muestra), error, note}], output (registros del ultimo nodo)}. ENVIA de verdad correos/WhatsApp/mensajes si el flujo los tiene. 'data' llega como $trigger. POST /api/v1/flows/{id}/run con {data?}.",
+    inputShape: { flowId: id("Id de la automatizacion."), data: free("Datos de arranque ($trigger).").optional() },
+    handler: async (a) => toToolText(await post(`/api/v1/flows/${E(a.flowId)}/run`, a.data ? { data: a.data } : {})),
+  },
+  {
+    name: "list_flow_runs",
+    title: "Historial de ejecuciones",
+    description: "Ultimas ejecuciones: [{id, flow_id, trigger (manual|schedule|webhook|reload|alert), status, error, duration_ms, started_at}]. GET /api/v1/flows/{id}/runs?limit=.",
+    inputShape: { flowId: id("Id de la automatizacion."), limit: z.number().int().positive().max(200).optional() },
+    handler: async (a) => toToolText(await get(`/api/v1/flows/${E(a.flowId)}/runs${a.limit ? `?limit=${a.limit}` : ""}`)),
+  },
+  {
+    name: "get_flow_run",
+    title: "Detalle de una ejecucion",
+    description: "Ejecucion con el detalle por nodo (steps con salida de muestra y errores). GET /api/v1/flows/{id}/runs/{runId}.",
+    inputShape: { flowId: id("Id de la automatizacion."), runId: id("Id de la ejecucion.") },
+    handler: async (a) => toToolText(await get(`/api/v1/flows/${E(a.flowId)}/runs/${E(a.runId)}`)),
+  },
+  {
+    name: "rotate_flow_webhook",
+    title: "Regenerar URL del webhook",
+    description: "Genera una URL nueva para el disparador webhook; la anterior deja de funcionar (404). Devuelve la automatizacion con webhook_path. La URL publica (POST JSON o GET con parametros) es http://<host>/api/v1/hooks/flows/{token} y responde {ok, run_id, data}. POST /api/v1/flows/{id}/webhook/rotate.",
+    inputShape: { flowId: id("Id de la automatizacion.") },
+    handler: async (a) => toToolText(await post(`/api/v1/flows/${E(a.flowId)}/webhook/rotate`)),
+  },
+  {
+    name: "list_flow_credentials",
+    title: "Credenciales de automatizacion",
+    description: "Credenciales propias (SMTP, WhatsApp Meta/Twilio, webhook de Teams/Slack, cabecera HTTP): [{id, kind, name, config}] con los secretos ocultos como '••••••'. GET /api/v1/flows/credentials.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/flows/credentials")),
+  },
+  {
+    name: "save_flow_credential",
+    title: "Crear o editar credencial",
+    description: "Crea (sin credentialId; POST /api/v1/flows/credentials con {kind, name, config}) o edita (PUT /api/v1/flows/credentials/{id} con {name, config}). kind: smtp {host, port, security (starttls|ssl|none), user, password, from} | whatsapp_meta {phone_number_id, token, api_base?} | whatsapp_twilio {account_sid, auth_token, from} | webhook {url} | http {header, value}. Al editar, un secreto vacio o '••••••' conserva el guardado. Devuelve la credencial con secretos ocultos.",
+    inputShape: {
+      credentialId: z.string().optional().describe("Id para editar; omitir para crear."),
+      kind: z.enum(["smtp", "whatsapp_meta", "whatsapp_twilio", "webhook", "http"]).optional().describe("Tipo (obligatorio al crear)."),
+      name: id("Nombre visible."),
+      config: free("Campos del tipo (ver list_flow_nodes -> credentials)."),
+    },
+    handler: async (a) => toToolText(a.credentialId
+      ? await put(`/api/v1/flows/credentials/${E(a.credentialId)}`, pick(a, ["name", "config"]))
+      : await post("/api/v1/flows/credentials", pick(a, ["kind", "name", "config"]))),
+  },
+  {
+    name: "delete_flow_credential",
+    title: "Borrar credencial",
+    description: "ACCION DESTRUCTIVA: borra la credencial; los nodos que la usan dejan de enviar. 204. DELETE /api/v1/flows/credentials/{id}.",
+    inputShape: { credentialId: id("Id de la credencial.") },
+    handler: async (a) => toToolText(await del(`/api/v1/flows/credentials/${E(a.credentialId)}`)),
+  },
+  {
+    name: "test_flow_credential",
+    title: "Probar credencial",
+    description: "SMTP: se conecta y se autentica de verdad; los demas tipos validan que esten completos. {ok, message}. POST /api/v1/flows/credentials/{id}/test.",
+    inputShape: { credentialId: id("Id de la credencial.") },
+    handler: async (a) => toToolText(await post(`/api/v1/flows/credentials/${E(a.credentialId)}/test`)),
+  },
+
   /* ============================ Comentarios ============================ */
   {
     name: "list_comments",

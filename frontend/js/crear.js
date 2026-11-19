@@ -53,7 +53,7 @@ function createCardsHtml(cards) {
 const RECOMMENDED = [
   { icon: "app", title: "Aplicación", desc: "Crea una aplicación para visualizar y presentar sus datos.", action: "create-app" },
   { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento sobre tus datos: segmentación, regresión, clasificación, pronóstico y AutoML.", action: "open-lab" },
-  { icon: "automation", title: "Automatización", desc: "Utiliza una interfaz visual de código para crear análisis de datos y flujos de trabajo automatizados." },
+  { icon: "automation", title: "Automatización", desc: "Flujos por nodos: recarga tus datos, consulta, usa agentes de IA y envía correos, WhatsApp o mensajes a Teams.", action: "open-flows" },
   { icon: "connection", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", action: "create-connection" },
   { icon: "dataflow", title: "Flujo de datos", desc: "Crea un flujo de datos para preparar sus datos con un flujo gráfico o script." },
 ];
@@ -61,7 +61,7 @@ const RECOMMENDED = [
 const CONTENT = [
   { icon: "app", title: "Aplicación", desc: "Crea una aplicación para visualizar y presentar sus datos.", action: "create-app" },
   { icon: "assistant", title: "Asistente", desc: "Crea un asistente de chat personalizado para responder preguntas." },
-  { icon: "automation", title: "Automatización", desc: "Configure análisis y flujos de trabajo sin necesidad de programar." },
+  { icon: "automation", title: "Automatización", desc: "Configure análisis y flujos de trabajo sin necesidad de programar.", action: "open-flows" },
   { icon: "knowledge", title: "Base de conocimientos", desc: "Fuentes y archivos de datos no estructurados." },
   { icon: "surround", title: "Rodear a", desc: "Agregue enlaces a contenido útil." },
   { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento de aprendizaje automático y compara modelos.", action: "open-lab" },
@@ -73,7 +73,7 @@ const CONTENT = [
 
 const DATA = [
   { icon: "upload", title: "Cargar", desc: "Cargar archivos existentes en la nube." },
-  { icon: "automation", title: "Conexión de automatización", desc: "Crear conexiones para flujos de trabajo automatizados." },
+  { icon: "automation", title: "Conexión de automatización", desc: "Cuentas de correo (SMTP), WhatsApp, webhooks de Teams/Slack y APIs para tus automatizaciones.", action: "open-flow-credentials" },
   { icon: "connection", title: "Conexión de datos", desc: "Conéctese a fuentes de datos, bases de datos y destinos.", action: "create-connection" },
   { icon: "dataset", title: "Conjunto de datos", desc: "Cargar un archivo de datos o registre datos externos." },
   { icon: "product", title: "Producto de datos", desc: "Crear productos de datos seleccionados y controlados." },
@@ -107,6 +107,8 @@ function wireCreateActions() {
       if (action === "create-app") { e.preventDefault(); handleCreateApp(); }
       else if (action === "create-connection") { e.preventDefault(); openConnectionsFromHub(); }
       else if (action === "open-lab") { e.preventDefault(); location.href = "experimentos.html?new=1"; }
+      else if (action === "open-flows") { e.preventDefault(); location.href = "automatizaciones.html?new=1"; }
+      else if (action === "open-flow-credentials") { e.preventDefault(); location.href = "automatizaciones.html?credentials=1"; }
     });
   });
 }

@@ -70,6 +70,17 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | GET/POST/PUT/DELETE | `/apps/{appId}/actions[/{id}]` · POST `/{id}/run` · GET `/{id}/export.csv` | Listas de acción (exportar / enviar a webhook). |
 | GET/PUT/DELETE | `/apps/{appId}/watchdog` · POST `/watchdog/run` | Agente de guardia. Ver [`modulos/17`](./modulos/17-que-cambio-simular-actuar.md). |
 
+## Automatizaciones por nodos (`charts:edit`)
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/flows/catalog` · `/flows/templates` | Catálogo de 23 nodos (parámetros, puertos, credenciales) y plantillas. |
+| GET/POST | `/flows` | Lista / crea `{name, description?, graph {nodes, edges}}` (201). |
+| GET/PUT/DELETE | `/flows/{id}` | Leer (con `problems`, `webhook_path`) / reemplazar / borrar. |
+| POST | `/flows/{id}/enabled` · `/flows/{id}/run` · `/flows/{id}/webhook/rotate` | Activar/pausar `{enabled}` · ejecutar `{data?}` → `{run_id, status, steps[], output}` · URL nueva. |
+| GET | `/flows/{id}/runs?limit=` · `/flows/{id}/runs/{runId}` | Historial y detalle por nodo. |
+| GET/POST/PUT/DELETE | `/flows/credentials[/{id}]` · POST `/{id}/test` | Credenciales privadas (SMTP, WhatsApp Meta/Twilio, webhook de canal, cabecera HTTP); secretos ocultos. |
+| POST/GET | `/hooks/flows/{token}` | **Público** (solo el token): dispara el flujo y responde `{ok, run_id, data}`; 404 token inválido, 409 pausada. Ver [`modulos/18`](./modulos/18-automatizaciones.md). |
+
 ## Elementos maestros, métricas certificadas y comentarios
 | Método | Ruta | Descripción |
 |---|---|---|

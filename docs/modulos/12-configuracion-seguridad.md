@@ -35,7 +35,7 @@ usuario llega a **Mi cuenta** desde el menú de su perfil (avatar).
 | `users:manage` Administrar usuarios | ✓ | | |
 | `embed:manage` Gestionar embedding (tokens para incrustar tableros) | ✓ | | |
 
-Son **11 permisos**. Las conexiones son privadas por usuario (ni el administrador ve las ajenas): ver [07](./07-conexiones.md). Las notas para agente exigen `charts:edit` ([13](./13-notas-agente.md)) y el módulo Embedding `embed:manage` ([14](./14-embedding.md)).
+Son **11 permisos**. Las conexiones son privadas por usuario (ni el administrador ve las ajenas): ver [07](./07-conexiones.md). Las notas para agente exigen `charts:edit` ([13](./13-notas-agente.md)) y el módulo Embedding `embed:manage` ([14](./14-embedding.md)). Las **Automatizaciones** (`/flows/**`) exigen `charts:edit`, corren con los permisos de quien las creó y sus credenciales son privadas. Su webhook `/api/v1/hooks/flows/{token}` es **público**: `AuthInterceptor` lo exime y se autentica solo con el token (regenerarlo invalida el anterior) ([18](./18-automatizaciones.md)).
 
 El administrador no se puede restringir. Cualquier permiso se puede conceder o quitar a una persona concreta
 sin cambiarle el rol.

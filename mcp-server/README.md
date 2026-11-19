@@ -105,7 +105,7 @@ En `run_query` las medidas aceptan `agg` en `sum|count|avg|min|max` (default `su
 
 ### Tools de plataforma (`src/tools/platform-tools.ts`)
 
-Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (123 tools en total; `run_query`, `create_sheet` y `update_sheet` aceptan medidas `{expression}` simples o compuestas):
+Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que hace la UI (138 tools en total; `run_query`, `create_sheet` y `update_sheet` aceptan medidas `{expression}` simples o compuestas):
 
 | Grupo | Tools |
 |---|---|
@@ -124,6 +124,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Preguntale / archivo a tablero | `ask_data`, `ask_suggestions`, `auto_dashboard` |
 | Que cambio / simular / actuar | `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list`, `delete_action_list`, `get_watchdog`, `set_watchdog`, `run_watchdog` |
 | Automatizar | `get_schedule`, `set_schedule`, `delete_schedule`, `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert`, `get_data_health` |
+| Automatizaciones por nodos | `list_flow_nodes`, `list_flow_templates`, `list_flows`, `get_flow`, `save_flow`, `delete_flow`, `set_flow_enabled`, `run_flow`, `list_flow_runs`, `get_flow_run`, `rotate_flow_webhook`, `list_flow_credentials`, `save_flow_credential`, `delete_flow_credential`, `test_flow_credential` |
 | Modelo logico | `get_logical_model`, `set_logical_model`, `logical_model_action`, `logical_model_item` |
 | Hojas | `delete_sheet`, `set_sheet_visibility`, `add_ml_chart` |
 | Experimentos de ML | `list_experiments`, `create_experiment`, `get_experiment`, `update_experiment`, `delete_experiment`, `train_model`, `get_ml_run`, `delete_ml_run`, `associate_ml_run`, `ml_datasets` |

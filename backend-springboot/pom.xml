@@ -78,6 +78,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- Automatizaciones: nodo «Enviar correo» (SMTP). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <!-- Persistencia ligera: JDBC + SQLite (mismo enfoque que el backend Python) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

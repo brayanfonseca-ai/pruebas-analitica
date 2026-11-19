@@ -123,6 +123,41 @@ public class AskService {
         return q.value();
     }
 
+    /**
+     * Medida (maestra o fx) en total o por una dimensión, con filtros. Lo usan las automatizaciones.
+     * @return {label, value} sin dimensión; {label, dimension, rows:[{label, value}]} con dimensión
+     */
+    public Map<String, Object> measure(String appId, String masterId, String expression, String label, String dimension,
+                                       Map<String, List<Object>> selections) {
+        Model m = model(appId);
+        MeasureSpec ms = measureSpec(m, masterId, expression, label);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("label", ms.label());
+        if (dimension == null || dimension.isBlank()) {
+            out.put("value", run(m, new QuerySpec(null, List.of(ms), "kpi", selections == null ? Map.of() : selections)).value());
+            return out;
+        }
+        final String mt = ms.table();
+        String table = mt;
+        boolean inMeasureTable = m.fields.stream().anyMatch(g -> g.table.equals(mt) && g.name.equals(dimension));
+        if (!inMeasureTable) for (Field f : m.fields) if (f.name.equals(dimension)) { table = f.table; break; }
+        QueryResult r = run(m, new QuerySpec(new FieldRef(table, dimension, null), List.of(ms), "bar", selections == null ? Map.of() : selections));
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (int i = 0; i < r.labels().size(); i++) {
+            Object l = r.labels().get(i);
+            if (l == null || String.valueOf(l).isBlank()) continue;
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put(dimension, String.valueOf(l));
+            row.put("label", String.valueOf(l));
+            row.put("value", r.values().get(i));
+            rows.add(row);
+        }
+        rows.sort((a, b) -> Double.compare((Double) b.get("value"), (Double) a.get("value")));
+        out.put("dimension", dimension);
+        out.put("rows", rows);
+        return out;
+    }
+
     /** Medida lista para el motor a partir de una medida maestra o una fx. Lanza ExpressionError si no es válida. */
     @SuppressWarnings("unchecked")
     MeasureSpec measureSpec(Model m, String masterId, String expression, String label) {

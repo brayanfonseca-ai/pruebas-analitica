@@ -19,6 +19,7 @@ export const NAV = [
   { divider: true },
   { key: "analizar", label: "Analizar", icon: "analyze", href: "hub.html?page=analizar" },
   { key: "prediccion", label: "Experimentos de ML", icon: "predict", href: "experimentos.html", perm: "ml:run" },
+  { key: "automatizaciones", label: "Automatizaciones", icon: "auto", href: "automatizaciones.html", perm: "charts:edit" },
   { divider: true },
   { key: "conexiones", label: "Conexiones", icon: "plug", href: "conexiones.html", perm: "connections:manage" },
   { key: "notas", label: "Notas para agente", icon: "notes", href: "notas.html", perm: "charts:edit" },

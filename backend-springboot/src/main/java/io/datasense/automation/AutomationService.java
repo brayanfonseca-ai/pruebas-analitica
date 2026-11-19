@@ -67,6 +67,9 @@ public class AutomationService {
         this.health = health;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.context.ApplicationEventPublisher publisher;
+
     public static final Set<String> FREQUENCIES = Set.of("interval", "hourly", "daily", "weekly");
     public static final Set<String> NOTIFY = Set.of("fail", "always", "never");
     public static final Set<String> OPS = Set.of(">", ">=", "<", "<=", "=", "!=", "change");
@@ -236,6 +239,8 @@ public class AutomationService {
             checked.add(evaluate(a));
         // agente de guardia: qué cambió con esta carga
         watchdog.afterReload(appId);
+        // automatizaciones por nodos con disparador «Al recargar datos»
+        if (publisher != null) publisher.publishEvent(new AutomationEvents.AppReloaded(appId, trigger, status, message, tables));
 
         Map<String, Object> out = new LinkedHashMap<>(r);
         out.put("status", status);
@@ -367,6 +372,7 @@ public class AutomationService {
                 } catch (RuntimeException ex) { extra = " La lista de acción falló: " + ex.getMessage(); }
             }
             event(a, "alert", "Alerta: " + a.get("name"), why + extra, "triggered");
+            if (publisher != null) publisher.publishEvent(new AutomationEvents.AlertFired(appId, id, str(a.get("name")), why, v, a));
         }
         else if (!hit && "triggered".equals(prevState)) event(a, "alert_ok", "Alerta resuelta: " + a.get("name"), why, "ok");
         return alertOut(alert(id).orElseThrow());
