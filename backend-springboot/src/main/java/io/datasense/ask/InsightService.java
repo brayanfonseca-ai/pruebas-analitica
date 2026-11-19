@@ -43,7 +43,8 @@ public class InsightService {
     /* ================================ Qué cambió y por qué ================================ */
 
     /**
-     * @param body {expression | master_id, label?, time_field?, current?, previous?, selections?, dimensions?, top?}
+     * @param body {expression | master_id, label?, time_field?, current?, previous?, selections?, dimensions?, top?,
+     *             drivers? (false = sin desglose, más rápido), trend? (true = serie de hasta 12 periodos)}
      */
     @SuppressWarnings("unchecked")
     public Map<String, Object> explain(String appId, Map<String, Object> body) {
@@ -87,7 +88,8 @@ public class InsightService {
         Set<String> wanted = new LinkedHashSet<>();
         if (body.get("dimensions") instanceof List<?> l) for (Object o : l) wanted.add(String.valueOf(o));
         List<AskService.Field> cands = new ArrayList<>();
-        for (AskService.Field f : m.fields) {
+        boolean withDrivers = !Boolean.FALSE.equals(body.get("drivers")) && !"false".equals(str(body.get("drivers")));
+        for (AskService.Field f : withDrivers ? m.fields : List.<AskService.Field>of()) {
             if (!f.table.equals(table) || f == time || base.containsKey(f.name)) continue;
             if (!wanted.isEmpty() ? wanted.contains(f.name) : ("text".equals(f.type) && !f.idLike && !f.timeLike && f.distinct >= 2 && f.distinct <= 60))
                 cands.add(f);
@@ -192,6 +194,17 @@ public class InsightService {
         out.put("drivers", drivers);
         out.put("story", story);
         out.put("selections", base);
+        // tendencia opcional: la medida en los últimos 12 periodos hasta el actual (para minigráficas)
+        if (Boolean.TRUE.equals(body.get("trend")) || "true".equals(str(body.get("trend")))) {
+            int end = periods.indexOf(cur);
+            List<Map<String, Object>> trend = new ArrayList<>();
+            for (int i = Math.max(0, end - 11); i <= end; i++) {
+                String p = periods.get(i);
+                double v = p.equals(cur) ? vCur : p.equals(prev) ? vPrev : val(ask.run(m, kpi(ms, with(base, time.name, p))));
+                trend.add(Map.of("period", p, "value", v));
+            }
+            out.put("trend", trend);
+        }
         return out;
     }
 

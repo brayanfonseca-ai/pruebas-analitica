@@ -606,13 +606,15 @@ export const platformTools: ContextTool[] = [
   {
     name: "explain_change",
     title: "Que cambio y por que",
-    description: "Compara una medida (expression fx simple/compuesta o master_id) entre dos periodos de un campo de tiempo (automatico: el periodo mas fino; current/previous por defecto el ultimo y el anterior) y descompone el cambio por las dimensiones candidatas (o las de 'dimensions'). En medidas aditivas (Sum/Count) cada segmento trae share = % del cambio; en no aditivas (%, promedios) los segmentos se ordenan por cambio ponderado por su volumen (weight). Devuelve {measure, time_field, periods, current, previous, current_value, previous_value, delta, delta_pct, drivers:[{dimension, display, items:[{value, previous, current, delta, share|weight}]}], story (relato en espanol)}. POST /api/v1/apps/{appId}/insights/explain.",
+    description: "Compara una medida (expression fx simple/compuesta o master_id) entre dos periodos de un campo de tiempo (automatico: el periodo mas fino; current/previous por defecto el ultimo y el anterior) y descompone el cambio por las dimensiones candidatas (o las de 'dimensions'). En medidas aditivas (Sum/Count) cada segmento trae share = % del cambio; en no aditivas (%, promedios) los segmentos se ordenan por cambio ponderado por su volumen (weight). Devuelve {measure, time_field, periods, current, previous, current_value, previous_value, delta, delta_pct, drivers:[{dimension, display, items:[{value, previous, current, delta, share|weight}]}], story (relato en espanol), trend? [{period, value}]}. Con drivers:false omite el desglose; con trend:true agrega la serie de los ultimos 12 periodos. POST /api/v1/apps/{appId}/insights/explain.",
     inputShape: {
       ...appId, expression: z.string().optional(), master_id: z.string().optional(), label: z.string().optional(),
       time_field: z.string().optional(), current: z.string().optional(), previous: z.string().optional(),
       selections: z.record(z.string(), z.array(z.any())).optional(), dimensions: z.array(z.string()).optional(), top: z.number().int().min(1).max(10).optional(),
+      drivers: z.boolean().optional().describe("false = sin desglose por dimensiones (mas rapido)."),
+      trend: z.boolean().optional().describe("true = agrega trend [{period, value}] con hasta 12 periodos hasta el actual."),
     },
-    handler: async (a) => toToolText(await post(`${A(a.appId)}/insights/explain`, pick(a, ["expression", "master_id", "label", "time_field", "current", "previous", "selections", "dimensions", "top"]))),
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/insights/explain`, pick(a, ["expression", "master_id", "label", "time_field", "current", "previous", "selections", "dimensions", "top", "drivers", "trend"]))),
   },
   {
     name: "find_rows",

@@ -2,6 +2,23 @@
 
 Vista **Qué cambió · simular · actuar** de cada app (selector de vistas → *Analizar*, atajo `Alt+Shift+Q`). La ve cualquiera que vea la app; guardar listas y configurar el agente exige *Editar hojas* (`charts:edit`). Todo se calcula en el motor, sin IA, y nada modifica los datos.
 
+## Cómo se usa (4 pasos encadenados)
+La vista se recorre como cuatro pasos numerados: **1 Qué cambió → 2 ¿Qué pasaría si…? → 3 Actuar → 4 Vigilar**. Cada paso lleva al siguiente con el contexto ya puesto.
+1. **Qué cambió**: al abrir, aparece un **tablero de tarjetas** que se calcula solo, una por métrica. Las métricas son las medidas maestras (certificadas primero). Si la app no tiene maestras, se sugieren a partir de los campos (registros de la tabla principal, totales y promedios). Cada tarjeta muestra:
+   - el valor actual con animación;
+   - el cambio contra el periodo anterior, en verde si sube y en rojo si baja;
+   - una minigráfica de los últimos 12 periodos.
+
+   **⚙ Ajustar** cambia el campo de tiempo, los periodos o un filtro. **＋ Métrica** agrega una expresión fx al tablero (se guarda en la sesión del navegador).
+   - Al hacer clic en una tarjeta se abre **Por qué cambió**: antes → ahora, barras por periodo, el relato en tarjetas (resumen, lo que más lo explica, en sentido contrario) y los segmentos en **barras divergentes** (verde a la derecha, rojo a la izquierda). Los segmentos se pueden ver por cualquier dimensión.
+   - Cada segmento tiene los atajos **Registros** (abre el paso 3 con el periodo y el segmento) y **Simular** (abre el paso 2 con «las filas donde segmento = valor»).
+2. **¿Qué pasaría si…?**: el escenario se arma como una frase. Por ejemplo: «¿Qué le pasaría a *% Inactivos* si en *las filas donde SUCURSAL es GALAPA*, el campo *ESTADO CONTRATO* *pasa a ser* *Activo* en el *20* % de ellas?».
+   - Se recalcula solo al completar la frase.
+   - El resultado se muestra en barras **Hoy / Con el escenario**, en total y por dimensión.
+   - Se pueden combinar varios cambios, y cada uno admite una condición avanzada opcional.
+3. **Actuar**: muestra la tabla de registros. Si vienes de *Qué cambió*, una franja indica de dónde vienen los filtros y «← volver» te regresa. Desde aquí puedes **Exportar CSV** o **Guardar como lista** (en un modal, con webhook opcional).
+4. **Vigilar**: interruptor del agente, umbral con deslizador (de *sensible* a *solo lo grande*), métricas como chips y «Revisar ahora» con tarjetas por métrica. Un enlace lleva a **Automatizaciones** ([18](./18-automatizaciones.md)) para avisar por correo, WhatsApp o Teams.
+
 ## Qué cambió y por qué
 - Eliges una medida (maestra —las certificadas con ✓— o fx simple/compuesta), opcionalmente el campo de tiempo, los dos periodos (por defecto el último contra el anterior) y un filtro.
 - Devuelve los dos valores, la variación (en puntos si la medida es un %; en valor y % si no) y un **relato**: «% Inactivos bajó 9,32 puntos: pasó de 19,43 % en 2026-09 a 10,11 % en 2026-10. Lo que más lo explica: TIPO DE NOMINA — CONDUCTORES (21,02 % → 11,4 %; −9,62 puntos, con el 81,49 % de las filas)…».
@@ -30,7 +47,7 @@ Vista **Qué cambió · simular · actuar** de cada app (selector de vistas → 
 ## API
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/apps/{id}/insights/explain` | `{expression \| master_id, label?, time_field?, current?, previous?, selections?, dimensions?, top?}` |
+| POST | `/apps/{id}/insights/explain` | `{expression \| master_id, label?, time_field?, current?, previous?, selections?, dimensions?, top?, drivers? (false = sin desglose, más rápido), trend? (true = serie [{period, value}] de hasta 12 periodos)}` |
 | POST | `/apps/{id}/insights/rows` · `/rows.csv` | `{table?, selections?, where?, fields?, sort?, desc?, limit?}` |
 | POST | `/apps/{id}/insights/whatif` | `{measures:[{expression \| master_id, label?}], changes:[{field, op set\|multiply\|add, value, share?, selections?, where?}], dimension?, selections?}` |
 | GET/POST | `/apps/{id}/actions` | Listas `{name, table?, selections?, where?, fields?, sort?, desc?, webhook_url?}` (`charts:edit` para crear) |
@@ -43,4 +60,4 @@ Tablas: `action_lists`, `watchdogs`; `alerts.action_id`.
 `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list` (con `send` ENVÍA DATOS FUERA), `delete_action_list`, `get_watchdog`, `set_watchdog`, `run_watchdog`; `save_alert` acepta `action_id`.
 
 ## Archivos
-`backend-springboot/.../ask/InsightService.java`, `InsightController.java`; `automation/ActionService.java`, `WatchdogService.java`; `frontend/js/app-insights.js`, `app-automatizar.js` (lista en la alerta), `topbar.js`, `css/theme.css` (sección 37).
+`backend-springboot/.../ask/InsightService.java`, `InsightController.java`; `automation/ActionService.java`, `WatchdogService.java`; `frontend/js/app-insights.js`, `app-automatizar.js` (lista en la alerta), `topbar.js`, `css/theme.css` (secciones 37 y 37b).
