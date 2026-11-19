@@ -354,7 +354,10 @@ async function renderEditor(id) {
   };
   const paintEdges = (temp) => {
     const maxX = Math.max(1200, ...E.graph.nodes.map((n) => n.x + NODE_W + 200)), maxY = Math.max(800, ...E.graph.nodes.map((n) => n.y + NODE_H + 200));
+    // tamaño explícito en style: hub.css tiene «svg { width: 100%; height: 100% }» y dentro de .fe-world (sin tamaño)
+    // dejaba el SVG en 0×0, y Chrome no pinta un SVG de tamaño cero (las líneas existían pero no se veían)
     edgesEl.setAttribute("width", maxX); edgesEl.setAttribute("height", maxY);
+    edgesEl.style.width = maxX + "px"; edgesEl.style.height = maxY + "px";
     edgesEl.innerHTML = E.graph.edges.map((e, i) => {
       const a = nodeById(e.from), b = nodeById(e.to);
       if (!a || !b) return "";

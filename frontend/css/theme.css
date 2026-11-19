@@ -1988,7 +1988,7 @@ html[data-theme="dark"] .au-pill.ok { color: #6ee7b7; } html[data-theme="dark"] 
   background: radial-gradient(circle at 1px 1px, rgba(var(--ds-a-rgb), .16) 1px, transparent 0) 0 0 / 22px 22px, var(--ds-surface-2); }
 .fe-canvas:active { cursor: grabbing; }
 .fe-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-.fe-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.fe-edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; min-width: 1200px; min-height: 800px; }
 .fe-edge { pointer-events: auto; cursor: pointer; }
 .fe-edge .hit { fill: none; stroke: transparent; stroke-width: 14; }
 .fe-edge .line { fill: none; stroke: #94a3b8; stroke-width: 2.2; }
