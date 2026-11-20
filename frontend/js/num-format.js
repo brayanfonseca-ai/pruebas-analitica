@@ -13,43 +13,49 @@ const SCALE = { K: [1e3, " mil"], M: [1e6, " M"], B: [1e9, " mil M"] };
 /** Preajustes: un clic deja el formato listo (luego se puede afinar). */
 export const PRESETS = {
   measure: [
-    { id: "auto", label: "Automático", f: { type: "auto" } },
-    { id: "number", label: "Número", f: { type: "number", decimals: 2 } },
-    { id: "integer", label: "Entero", f: { type: "integer", decimals: 0 } },
-    { id: "percent", label: "Porcentaje", f: { type: "percent", decimals: 1 } },
-    { id: "cop", label: "Pesos $", f: { type: "currency", currency: "COP", decimals: 0 } },
-    { id: "usd", label: "Dólares US$", f: { type: "currency", currency: "USD", decimals: 2 } },
-    { id: "eur", label: "Euros €", f: { type: "currency", currency: "EUR", decimals: 2 } },
-    { id: "k", label: "Miles (mil)", f: { type: "number", scale: "K", decimals: 1 } },
-    { id: "m", label: "Millones (M)", f: { type: "number", scale: "M", decimals: 1 } },
-    { id: "b", label: "Miles de millones", f: { type: "number", scale: "B", decimals: 1 } },
-    { id: "short", label: "Abreviado auto", f: { type: "number", scale: "auto", decimals: 1 } },
-    { id: "copm", label: "$ en millones", f: { type: "currency", currency: "COP", scale: "M", decimals: 1 } },
-    { id: "kg", label: "Kilos (kg)", f: { type: "unit", suffix: " kg", decimals: 1 } },
-    { id: "t", label: "Toneladas (t)", f: { type: "unit", suffix: " t", decimals: 2 } },
-    { id: "l", label: "Litros (L)", f: { type: "unit", suffix: " L", decimals: 1 } },
-    { id: "gal", label: "Galones (gal)", f: { type: "unit", suffix: " gal", decimals: 1 } },
-    { id: "km", label: "Kilómetros (km)", f: { type: "unit", suffix: " km", decimals: 1 } },
-    { id: "c", label: "Grados (°C)", f: { type: "unit", suffix: " °C", decimals: 1 } },
-    { id: "deg", label: "Grados (°)", f: { type: "unit", suffix: "°", decimals: 0 } },
-    { id: "h", label: "Horas (h)", f: { type: "unit", suffix: " h", decimals: 1 } },
-    { id: "days", label: "Días", f: { type: "unit", suffix: " días", decimals: 0 } },
-    { id: "people", label: "Personas", f: { type: "unit", suffix: " personas", decimals: 0 } },
+    { id: "auto", g: "general", label: "Automático", f: { type: "auto" } },
+    { id: "number", g: "general", label: "Número", f: { type: "number", decimals: 2 } },
+    { id: "integer", g: "general", label: "Entero", f: { type: "integer", decimals: 0 } },
+    { id: "percent", g: "general", label: "Porcentaje", f: { type: "percent", decimals: 1 } },
+    { id: "cop", g: "money", label: "Pesos", full: "Pesos $", f: { type: "currency", currency: "COP", decimals: 0 } },
+    { id: "copm", g: "money", label: "Pesos en millones", full: "$ en millones", f: { type: "currency", currency: "COP", scale: "M", decimals: 1 } },
+    { id: "usd", g: "money", label: "Dólares", full: "Dólares US$", f: { type: "currency", currency: "USD", decimals: 2 } },
+    { id: "eur", g: "money", label: "Euros", full: "Euros €", f: { type: "currency", currency: "EUR", decimals: 2 } },
+    { id: "k", g: "scale", label: "Miles", full: "Miles (mil)", f: { type: "number", scale: "K", decimals: 1 } },
+    { id: "m", g: "scale", label: "Millones", full: "Millones (M)", f: { type: "number", scale: "M", decimals: 1 } },
+    { id: "b", g: "scale", label: "Miles de millones", f: { type: "number", scale: "B", decimals: 1 } },
+    { id: "short", g: "scale", label: "Automática", full: "Abreviado auto", f: { type: "number", scale: "auto", decimals: 1 } },
+    { id: "kg", g: "unit", label: "Kilos", full: "Kilos (kg)", f: { type: "unit", suffix: " kg", decimals: 1 } },
+    { id: "t", g: "unit", label: "Toneladas", full: "Toneladas (t)", f: { type: "unit", suffix: " t", decimals: 2 } },
+    { id: "l", g: "unit", label: "Litros", full: "Litros (L)", f: { type: "unit", suffix: " L", decimals: 1 } },
+    { id: "gal", g: "unit", label: "Galones", full: "Galones (gal)", f: { type: "unit", suffix: " gal", decimals: 1 } },
+    { id: "km", g: "unit", label: "Kilómetros", full: "Kilómetros (km)", f: { type: "unit", suffix: " km", decimals: 1 } },
+    { id: "c", g: "unit", label: "Grados °C", full: "Grados (°C)", f: { type: "unit", suffix: " °C", decimals: 1 } },
+    { id: "deg", g: "unit", label: "Grados °", full: "Grados (°)", f: { type: "unit", suffix: "°", decimals: 0 } },
+    { id: "h", g: "unit", label: "Horas", full: "Horas (h)", f: { type: "unit", suffix: " h", decimals: 1 } },
+    { id: "days", g: "unit", label: "Días", f: { type: "unit", suffix: " días", decimals: 0 } },
+    { id: "people", g: "unit", label: "Personas", f: { type: "unit", suffix: " personas", decimals: 0 } },
   ],
   dimension: [
-    { id: "auto", label: "Tal cual", f: { type: "auto" } },
-    { id: "integer", label: "Número sin decimales", f: { type: "integer", decimals: 0 } },
-    { id: "plain", label: "Código (sin puntos)", f: { type: "number", decimals: 0, thousands: false } },
-    { id: "cop", label: "Pesos $", f: { type: "currency", currency: "COP", decimals: 0 } },
-    { id: "d1", label: "Fecha 31/12/2026", f: { type: "date", date: "dd/mm/aaaa" } },
-    { id: "d2", label: "31 dic 2026", f: { type: "date", date: "d mmm aaaa" } },
-    { id: "d3", label: "dic 2026", f: { type: "date", date: "mmm aaaa" } },
-    { id: "d4", label: "2026-12", f: { type: "date", date: "aaaa-mm" } },
-    { id: "d5", label: "Solo el año", f: { type: "date", date: "aaaa" } },
-    { id: "up", label: "MAYÚSCULAS", f: { type: "text", case: "upper" } },
-    { id: "low", label: "minúsculas", f: { type: "text", case: "lower" } },
-    { id: "title", label: "Tipo Título", f: { type: "text", case: "title" } },
+    { id: "auto", g: "general", label: "Tal cual", f: { type: "auto" } },
+    { id: "integer", g: "general", label: "Sin decimales", full: "Número sin decimales", f: { type: "integer", decimals: 0 } },
+    { id: "plain", g: "general", label: "Código", full: "Código (sin puntos)", f: { type: "number", decimals: 0, thousands: false } },
+    { id: "cop", g: "general", label: "Pesos", full: "Pesos $", f: { type: "currency", currency: "COP", decimals: 0 } },
+    { id: "d1", g: "date", label: "Día/mes/año", full: "Fecha 31/12/2026", f: { type: "date", date: "dd/mm/aaaa" } },
+    { id: "d2", g: "date", label: "Día y mes corto", full: "31 dic 2026", f: { type: "date", date: "d mmm aaaa" } },
+    { id: "d3", g: "date", label: "Mes y año", full: "dic 2026", f: { type: "date", date: "mmm aaaa" } },
+    { id: "d4", g: "date", label: "Año-mes", full: "2026-12", f: { type: "date", date: "aaaa-mm" } },
+    { id: "d5", g: "date", label: "Solo el año", f: { type: "date", date: "aaaa" } },
+    { id: "up", g: "text", label: "Mayúsculas", full: "MAYÚSCULAS", f: { type: "text", case: "upper" } },
+    { id: "low", g: "text", label: "Minúsculas", full: "minúsculas", f: { type: "text", case: "lower" } },
+    { id: "title", g: "text", label: "Tipo título", full: "Tipo Título", f: { type: "text", case: "title" } },
   ],
+};
+
+/** Pestañas del panel, en orden. */
+const GROUPS = {
+  measure: [["general", "General"], ["money", "Moneda"], ["scale", "Escala"], ["unit", "Unidades"]],
+  dimension: [["general", "General"], ["date", "Fecha"], ["text", "Texto"]],
 };
 
 const LEGACY = { number: { type: "number", decimals: 2 }, integer: { type: "integer", decimals: 0 }, percent: { type: "percent", decimals: 1 }, money: { type: "currency", currency: "USD", decimals: 2 } };
@@ -125,7 +131,7 @@ export function describeFormat(fmt, kind = "measure") {
   const f = normFormat(fmt);
   if (!f) return kind === "dimension" ? "Tal cual" : "Automático";
   const p = [...PRESETS.measure, ...PRESETS.dimension].find((x) => JSON.stringify(x.f) === JSON.stringify(f));
-  if (p) return p.label;
+  if (p) return p.full || p.label;
   return formatValue(kind === "dimension" && f.type === "date" ? "2026-12-31" : 1234567.891, f);
 }
 
@@ -142,14 +148,28 @@ export function mountFormatPanel(host, o) {
     if (kind === "dimension") return f.type === "date" ? "2026-12-31" : f.type === "text" ? "cali norte" : 20261;
     return 6000000.6156;
   };
+  const same = (p) => JSON.stringify(p.f) === JSON.stringify(f) || (p.id === "auto" && f.type === "auto");
+  // Ejemplo de cada opción: fechas con una fecha, texto con un texto y números con la muestra.
+  const exampleOf = (p) => {
+    if (p.f.type === "date") return formatValue("2026-12-31", p.f);
+    if (p.f.type === "text") return formatValue("cali norte", p.f);
+    const s = o.sample != null && o.sample !== "" && Number.isFinite(toNum(o.sample)) ? o.sample : (kind === "dimension" ? 20261 : 6000000.6156);
+    return formatValue(s, p.f);
+  };
+  let tab = (PRESETS[kind].find(same) || {}).g
+    || (f.type === "currency" ? "money" : f.type === "unit" ? "unit" : f.type === "date" ? "date" : f.type === "text" ? "text" : f.scale ? "scale" : "general");
+  if (!GROUPS[kind].some(([g]) => g === tab)) tab = "general";
   const paint = () => {
     const isNum = !["date", "text", "auto"].includes(f.type);
     const sample = sampleOf();
+    const opts = PRESETS[kind].filter((p) => p.g === tab);
     host.innerHTML = `
       <div class="nfp">
         <div class="nfp-prev"><span>${esc(typeof sample === "number" ? autoNf.format(sample) : sample)}</span><i>→</i><b>${esc(formatValue(sample, f))}</b></div>
-        <div class="nfp-chips">${PRESETS[kind].map((p) => `<button type="button" class="nfp-chip ${JSON.stringify(p.f) === JSON.stringify(f) || (p.id === "auto" && f.type === "auto") ? "on" : ""}" data-p="${p.id}">${esc(p.label)}</button>`).join("")}</div>
+        <div class="nfp-tabs" role="tablist">${GROUPS[kind].map(([g, l]) => `<button type="button" role="tab" data-g="${g}" class="${g === tab ? "on" : ""}" aria-selected="${g === tab}">${l}${PRESETS[kind].some((p) => p.g === g && same(p)) ? '<i class="nfp-dot"></i>' : ""}</button>`).join("")}</div>
+        <div class="nfp-grid">${opts.map((p) => `<button type="button" class="nfp-opt ${same(p) ? "on" : ""}" data-p="${p.id}" title="${esc(p.full || p.label)}"><b>${esc(p.label)}</b><small>${esc(exampleOf(p))}</small></button>`).join("")}</div>
         ${isNum ? `
+        <div class="nfp-adv-t">Ajustar</div>
         <div class="nfp-row">
           <label>Decimales<span class="nfp-seg">${[0, 1, 2, 3].map((d) => `<button type="button" data-dec="${d}" class="${Number(f.decimals ?? 2) === d ? "on" : ""}">${d}</button>`).join("")}</span></label>
           <label>Escala<select data-k="scale">${[["none", "Sin escala"], ["K", "Miles (mil)"], ["M", "Millones (M)"], ["B", "Miles de millones"], ["auto", "Automática"]].map(([v, l]) => `<option value="${v}" ${(f.scale || "none") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
@@ -157,6 +177,8 @@ export function mountFormatPanel(host, o) {
         <div class="nfp-row">
           <label>Antes<input data-k="prefix" maxlength="8" value="${esc(f.prefix || "")}" placeholder="${f.type === "currency" ? esc(CUR[f.currency || "COP"]) : "p. ej. $"}"/></label>
           <label>Después<input data-k="suffix" maxlength="12" value="${esc(f.suffix || "")}" placeholder="p. ej. kg, L, °C"/></label>
+        </div>
+        <div class="nfp-row">
           <label class="nfp-chk"><input type="checkbox" data-k="thousands" ${f.thousands === false ? "" : "checked"}/> Separador de miles</label>
         </div>` : ""}
       </div>`;
@@ -164,6 +186,7 @@ export function mountFormatPanel(host, o) {
       const p = PRESETS[kind].find((x) => x.id === b.dataset.p);
       f = { ...p.f }; emit(); paint();
     }));
+    host.querySelectorAll("[data-g]").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.g; paint(); }));
     host.querySelectorAll("[data-dec]").forEach((b) => b.addEventListener("click", () => {
       if (f.type === "auto") f.type = "number";
       f.decimals = Number(b.dataset.dec); if (f.type === "integer" && f.decimals > 0) f.type = "number"; emit(); paint();

@@ -40,6 +40,8 @@ La sintaxis anterior, estilo Qlik (`Sum([x])`, `If(…)`, `LOAD … ;`), se sigu
 ## Formato de presentación
 Disponible en el Estudio de expresiones (panel izquierdo, junto al editor) y en el panel de propiedades de cada gráfico (botón **Formato** de cada medida y dimensión).
 
+El panel tiene pestañas por categoría: **General · Moneda · Escala · Unidades** en medidas y **General · Fecha · Texto** en dimensiones. Cada opción es una tarjeta con su nombre y un ejemplo del resultado. Un punto en la pestaña indica dónde está el formato elegido. Debajo, **Ajustar** permite afinar decimales, escala, texto antes y después y el separador de miles.
+
 - **Medidas**: Automático, Número, Entero, Porcentaje, Pesos $, Dólares US$, Euros €, Miles (mil), Millones (M), Miles de millones, Abreviado automático, $ en millones, kg, toneladas, litros, galones, km, °C, °, horas, días, personas.
 - **Ajustes de medida**: decimales (0–3), escala (sin escala / mil / M / mil M / automática), texto antes y después (por ejemplo `kg`, `L`, `°C`) y separador de miles.
 - **Dimensiones**: número sin decimales, código sin puntos, pesos, fechas (`31/12/2026`, `31 dic 2026`, `dic 2026`, `2026-12`, año) y texto en MAYÚSCULAS, minúsculas o Tipo Título.

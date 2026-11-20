@@ -1384,25 +1384,35 @@ html[data-theme="dark"] .ho-cert { color: #6ee7b7; }
 .nfp { display: flex; flex-direction: column; gap: 8px; }
 .nfp-prev { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; padding: 8px 10px; border-radius: 10px; background: var(--ds-surface); border: 1px dashed var(--ds-border-2); font-size: 12px; color: var(--ds-muted); }
 .nfp-prev i { font-style: normal; } .nfp-prev b { font-size: 16px; color: var(--ds-text); font-variant-numeric: tabular-nums; }
-.nfp-chips { display: flex; flex-wrap: wrap; gap: 4px; max-height: 148px; overflow-y: auto; }
-.nfp-chip { border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); border-radius: 99px; padding: 3px 9px; font: 600 11.5px inherit; cursor: pointer; }
-.nfp-chip:hover { border-color: var(--ds-a); }
-.nfp-chip.on { color: #fff; background: var(--ds-grad); border-color: transparent; }
+.nfp-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--ds-surface); border: 1px solid var(--ds-border-2); }
+.nfp-tabs button { flex: 1 1 0; min-width: 0; position: relative; border: none; background: transparent; color: var(--ds-muted); padding: 5px 4px; border-radius: 6px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nfp-tabs button:hover { color: var(--ds-text); }
+.nfp-tabs button.on { color: #fff; background: var(--ds-a); }
+.nfp-dot { position: absolute; top: 3px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--ds-a); }
+.nfp-tabs button.on .nfp-dot { display: none; }
+.nfp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.nfp-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; padding: 6px 9px; border-radius: 9px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); cursor: pointer; text-align: left; font: inherit; }
+.nfp-opt b { font-size: 12px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nfp-opt small { font-size: 11px; color: var(--ds-muted); font-variant-numeric: tabular-nums; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nfp-opt:hover { border-color: var(--ds-a); }
+.nfp-opt.on { border-color: var(--ds-a); background: color-mix(in srgb, var(--ds-a) 9%, var(--ds-surface)); box-shadow: inset 0 0 0 1px var(--ds-a); }
+.nfp-opt.on small { color: var(--ds-a); }
+.nfp-adv-t { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--ds-border); font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-muted); }
 .nfp-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
 .nfp-row label { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--ds-muted); flex: 1 1 90px; min-width: 0; }
-.nfp-row input, .nfp-row select { padding: 5px 7px; border-radius: 7px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); font: 12px inherit; min-width: 0; }
-.nfp-seg { display: inline-flex; border: 1px solid var(--ds-border-2); border-radius: 7px; overflow: hidden; }
-.nfp-seg button { border: none; background: var(--ds-surface); color: var(--ds-text); padding: 4px 9px; font: 700 11.5px inherit; cursor: pointer; }
+.nfp-row input, .nfp-row select { padding: 5px 7px; border-radius: 7px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); font-family: inherit; font-size: 12px; min-width: 0; height: 30px; box-sizing: border-box; }
+.nfp-seg { display: flex; height: 30px; box-sizing: border-box; border: 1px solid var(--ds-border-2); border-radius: 7px; overflow: hidden; }
+.nfp-seg button { flex: 1 1 0; border: none; background: var(--ds-surface); color: var(--ds-text); padding: 4px 9px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
 .nfp-seg button + button { border-left: 1px solid var(--ds-border-2); }
 .nfp-seg button.on { color: #fff; background: var(--ds-a); }
 .nfp-chk { flex-direction: row !important; align-items: center; gap: 5px !important; font-weight: 600 !important; }
-.ho-fmt-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); font: 12.5px inherit; cursor: pointer; text-align: left; }
+.ho-fmt-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); font-family: inherit; font-size: 12.5px; cursor: pointer; text-align: left; }
 .ho-fmt-btn em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--ds-a); }
 .ho-fmt-btn:hover { border-color: var(--ds-a); }
 .ho-fmt-box { margin-top: 6px; padding: 10px; border-radius: 10px; background: var(--ds-surface-2); border: 1px solid var(--ds-border); }
 .ed-lang { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 8px; border-radius: 6px; color: #fff; background: linear-gradient(135deg, #0ea5e9, #6366f1); margin-left: 8px; }
 .ed-lang.old { background: #94a3b8; }
-.ed-conv-btn { margin-left: 8px; border: 1px solid rgba(14, 165, 233, .5); background: rgba(14, 165, 233, .1); color: var(--ds-text); border-radius: 8px; padding: 3px 10px; font: 700 11.5px inherit; cursor: pointer; }
+.ed-conv-btn { margin-left: 8px; border: 1px solid rgba(14, 165, 233, .5); background: rgba(14, 165, 233, .1); color: var(--ds-text); border-radius: 8px; padding: 3px 10px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
 .ed-conv-btn:hover { background: rgba(14, 165, 233, .2); }
 .xs-warn { font-size: 12px; color: #b45309; padding: 7px 12px; border-radius: 9px; background: rgba(245, 158, 11, .12); border: 1px solid rgba(245, 158, 11, .35); }
 html[data-theme="dark"] .xs-warn { color: #fcd34d; }
