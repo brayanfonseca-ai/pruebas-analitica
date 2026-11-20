@@ -1,11 +1,11 @@
-// app-editor.js — Editor de carga de datos (in-app), estilo Qlik.
+// app-editor.js — Script de datos (in-app).
 //
 // Tres regiones: Secciones (lista derivada del script) · editor CodeMirror con
 // números de línea y mini-toolbar (Secciones/Buscar/Historial/Depurar) · panel
 // "Añadir datos" con Conexiones (DataFiles local + stubs de catálogo/espacios),
 // Seleccionar datos (subir), Insertar sentencia Store e Incluir script.
 //
-// "Cargar datos" EJECUTA el script en el motor Python (/script/run). Si el script
+// "Ejecutar script" EJECUTA el script en el motor Python (/script/run). Si el script
 // fue editado, el motor lo interpreta de verdad y reconstruye el modelo; si es el
 // auto-generado, reconstruye desde los archivos subidos. "Ver una vista previa de
 // los datos" lista las tablas resultantes. Nada se calcula en JS.
@@ -50,29 +50,28 @@ export async function render(mount, ctx) {
     <div class="ed">
       <div class="ed-toolbar">
         <div class="ed-tb-left">
-          <button class="ed-tb-btn" data-act="toggleSecciones" title="Mostrar/ocultar secciones">⊟ Secciones</button>
+          <button class="ed-tb-btn" data-act="toggleSecciones" title="Mostrar/ocultar pestañas">⊟ Pestañas</button>
           <div class="ed-tb-sep"></div>
           <button class="ed-tb-ico" data-act="find" title="Buscar en todo el entorno: script, tablas, campos, notas, hojas y conexiones (Ctrl+F)">🔍</button>
           <button class="ed-tb-ico" data-act="comment" title="Comentar/descomentar líneas (Ctrl+/): un campo comentado en un LOAD no se carga">//</button>
           <button class="ed-tb-ico" data-act="indent" title="Sangrar">⇥</button>
-          <span class="ed-tb-title">Editor de carga · <span id="edActiveSec">Main</span></span>
+          <span class="ed-tb-title">Script de datos · <span id="edActiveSec">Main</span></span>
         </div>
         <div class="ed-tb-right">
           <button class="ed-tb-btn" data-act="historial" title="Historial de ejecuciones">↻ Historial</button>
-          <button class="ed-tb-btn" data-act="depurar" title="Depurar (${SOON})" disabled>🐞 Depurar</button>
           <div class="ed-tb-sep"></div>
           <div class="ed-preview-split">
             <button class="ed-tb-btn ghost" data-act="preview" title="Ver una vista previa de los datos">⟦⟧ Ver una vista previa de los datos</button>
           </div>
           ${canEdit ? `<button class="ed-tb-btn" data-act="save" title="Guardar el script">Guardar script</button>` : ""}
-          <button class="ed-run" data-act="run" title="Ejecutar la carga">▶ Cargar datos</button>
+          <button class="ed-run" data-act="run" title="Ejecutar la carga">▶ Ejecutar script</button>
         </div>
       </div>
 
       <div class="ed-main">
         <aside class="ed-sections" id="edSections">
-          <div class="ed-sections-head"><span>Secciones</span>
-            ${canEdit ? `<button class="ed-addsec" id="edAddSec" title="Añadir sección">+</button>` : ""}
+          <div class="ed-sections-head"><span>Pestañas</span>
+            ${canEdit ? `<button class="ed-addsec" id="edAddSec" title="Añadir pestaña">+</button>` : ""}
           </div>
           <div class="ed-arch-note">Arquitectura de datos en 3 capas (extracción · transformación · modelo).</div>
           <div class="ed-section-list" id="edSectionList"></div>
@@ -87,17 +86,16 @@ export async function render(mount, ctx) {
               <button class="ed-bt-tab" data-bt="resultado">Resultado</button>
             </div>
             <div class="ed-bottom-body" id="edBottom">
-              <div class="ed-bottom-empty">Pulsa <strong>Cargar datos</strong> para ejecutar el script, o <strong>Ver una vista previa</strong>.</div>
+              <div class="ed-bottom-empty">Pulsa <strong>Ejecutar script</strong> para ejecutar el script, o <strong>Ver una vista previa</strong>.</div>
             </div>
           </div>
         </section>
 
         <aside class="ed-adddata">
-          <div class="ed-ad-head">Añadir datos</div>
-          <button class="ed-ad-btn soon" disabled title="${SOON}">+ Añadir desde el catálogo de datos <span class="ed-soon">${SOON}</span></button>
-          <button class="ed-ad-btn" data-act="includeScript" title="Insertar una plantilla de script">⎙ Incluir script</button>
+          <div class="ed-ad-head">Fuentes</div>
+          <button class="ed-ad-btn" data-act="includeScript" title="Insertar una plantilla de script">⎙ Insertar plantilla</button>
 
-          <div class="ed-ad-title">Conexiones de datos</div>
+          <div class="ed-ad-title">Conexiones</div>
           <button class="ed-ad-btn" data-act="createConn" title="Crear conexión de datos">+ Crear conexión</button>
           <div class="ed-space">
             <button class="ed-space-btn" id="edSpaceBtn" type="button">
@@ -249,7 +247,7 @@ export async function render(mount, ctx) {
         } else cm.replaceRange(tok + " ", { line: l, ch: lead });
       }
     });
-    status.textContent = allCommented ? "Líneas descomentadas: se volverán a cargar." : "Líneas comentadas: los campos comentados no se cargan. Guarda y pulsa Cargar datos.";
+    status.textContent = allCommented ? "Líneas descomentadas: se volverán a cargar." : "Líneas comentadas: los campos comentados no se cargan. Guarda y pulsa Ejecutar script.";
     status.style.color = "";
   }
 
@@ -591,7 +589,7 @@ export async function render(mount, ctx) {
      Ventana emergente estilo Power Query (js/data-selector.js): explorador,
      extracción Todo / Parcial / Muestra, vista previa transformada, Transformar
      (quitar/renombrar/tipos/nulos/calculadas/filtro), Ver script y Editar script.
-     "Cargar datos" trae la tabla al modelo y deja el código en el editor. */
+     "Ejecutar script" trae la tabla al modelo y deja el código en el editor. */
   function openDataSelector(conn, filter) {
     openDataSelectorModal(conn, {
       openModal, closeModal,
@@ -600,7 +598,7 @@ export async function render(mount, ctx) {
       icon: connIcon,
       insertScript: (script, name) => {
         insertAtCursor(`\n${tabMarker(name)}\n${script}`);
-        status.textContent = `Script de carga de ${name} insertado. Ejecuta Cargar datos para traer los datos.`;
+        status.textContent = `Script de carga de ${name} insertado. Ejecuta Ejecutar script para traer los datos.`;
         status.style.color = "";
       },
       load: (c, params) => doLoadConnection(c, params, filter),
@@ -652,9 +650,9 @@ export async function render(mount, ctx) {
   function openIncludeScript() {
     const tpl = sqlMode()
       ? `\n-- #pestaña Transform\n-- Ejemplo de transformación en SQL (quita los «--» y ajústalo):\n-- CREATE TABLE ventas AS\n-- SELECT\n--     cedula,\n--     UPPER(sucursal) AS sucursal,\n--     CASE WHEN probabilidad_retiro > 0.9 THEN 'Muy alto' ELSE 'Otro' END AS categoria_riesgo\n-- FROM (\n--     SELECT * FROM esquema.tabla\n-- ) AS origen\n-- WHERE cedula IS NOT NULL;\n`
-      : `\n///$tab Transform\n// Transforma una tabla existente (edítala y pulsa Cargar datos)\n// QVD_Ejemplo:\n// LOAD\n//   [cedula] AS [cedula],\n//   Upper([Sucursal]) AS [Sucursal],\n//   If([probabilidad_retiro] > 0.9, 'Muy Alto', 'Otro') AS [CategoriaRiesgo]\n// RESIDENT RAW_Ejemplo;\n`;
+      : `\n///$tab Transform\n// Transforma una tabla existente (edítala y pulsa Ejecutar script)\n// QVD_Ejemplo:\n// LOAD\n//   [cedula] AS [cedula],\n//   Upper([Sucursal]) AS [Sucursal],\n//   If([probabilidad_retiro] > 0.9, 'Muy Alto', 'Otro') AS [CategoriaRiesgo]\n// RESIDENT RAW_Ejemplo;\n`;
     insertAtCursor(tpl);
-    status.textContent = "Plantilla de script insertada. Ajústala y pulsa Cargar datos.";
+    status.textContent = "Plantilla de script insertada. Ajústala y pulsa Ejecutar script.";
     status.style.color = "";
   }
 
@@ -702,7 +700,7 @@ export async function render(mount, ctx) {
         setCode(script); markDirty(); renderSectionList();
         feedback = "Puse el script en el editor.";
       }
-      if (confirm("¿Cargar datos ahora?")) {
+      if (confirm("¿Ejecutar el script ahora?")) {
         try { await runNow(); feedback += " Lancé la carga de datos."; }
         catch { feedback += " No se pudo lanzar la carga."; }
       }

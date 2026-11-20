@@ -43,7 +43,7 @@ export async function render(mount, ctx) {
 
   mount.innerHTML = `
     <div class="q-subtoolbar">
-      <span class="q-sub-title">Gestor de datos</span>
+      <span class="q-sub-title">Tablas y campos</span>
       <div class="q-subtabs">
         <button class="q-subtab active" type="button" data-dmtab="tablas">Tablas</button>
         <button class="q-subtab" type="button" data-dmtab="asoc">Asociaciones<span class="dm-tab-badge" id="dmWarnBadge" hidden></span></button>

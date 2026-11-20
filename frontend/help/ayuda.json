@@ -13,11 +13,11 @@
         },
         {
           "titulo": "Tu primera aplicación en 5 pasos",
-          "cuerpo": "- **Crear → Aplicación** y ponle un nombre.\n- Dentro de la app abre **Preparar → Editor de carga de datos** y sube un Excel o CSV desde *Añadir datos* (o usa una conexión).\n- Pulsa **Cargar datos**: el motor perfila los campos y arma el modelo.\n- Revisa el modelo en **Visor del modelo de datos** (las tablas se asocian por nombres de campo iguales).\n- Ve a **Analizar → Hoja**, pulsa **Editar hoja** y arrastra gráficos, KPIs, tablas y filtros."
+          "cuerpo": "- **Crear → Aplicación** y ponle un nombre.\n- Dentro de la app abre **Datos → Script de datos** (menú lateral) y sube un Excel o CSV desde *Fuentes* (o usa una conexión).\n- Pulsa **Ejecutar script**: el motor perfila los campos y arma el modelo.\n- Revisa el modelo en **Mapa de relaciones** (las tablas se asocian por nombres de campo iguales).\n- Ve a **Explorar → Hojas**, pulsa **Editar hoja** y arrastra gráficos, KPIs, tablas y filtros."
         },
         {
           "titulo": "Navegación general",
-          "cuerpo": "- **Barra superior**: botón de aplicaciones (9 puntos), buscador, Crear, **Ayuda (?)**, **Notificaciones**, modo claro/oscuro y tu perfil.\n- **Menú lateral**: Inicio, Crear, Colecciones, Catálogo, Analizar y Experimentos de ML; **Temas** y **Configuración** quedan al pie. Solo ves las opciones para las que tienes permiso. Se pliega con el botón **☰**; plegado muestra solo los iconos. La elección se recuerda.\n- Dentro de una app, el **selector de vista** cambia entre Hoja, Informes, Experimentos de ML, Gestor de datos, Editor de carga, Visor del modelo y Modelo lógico (atajos `Alt + Shift + letra`).\n- **Ctrl + K** abre la paleta de comandos en cualquier página."
+          "cuerpo": "- **Barra superior**: el logo (vuelve a Inicio), buscador, Crear, **Ayuda (?)**, **Notificaciones**, modo claro/oscuro y tu perfil.\n- **Menú lateral**: Inicio, Crear, Colecciones, Aplicaciones, Analizar y Experimentos de ML; **Temas** y **Configuración** quedan al pie. Solo ves las opciones para las que tienes permiso. Se pliega con el botón **☰**; plegado muestra solo los iconos. La elección se recuerda.\n- Dentro de una app, el **menú lateral de la app** agrupa sus secciones: *Explorar* (Hojas, Explicar y actuar), *Comunicar* (Informes), *Inteligencia* (Modelos de ML), *Datos* (Script de datos, Tablas y campos, Mapa de relaciones, Capa de negocio) y *Operar* (Automatizar). Atajos `Alt + Shift + letra`; «‹ Aplicaciones» vuelve a la lista.\n- **Ctrl + K** abre la paleta de comandos en cualquier página."
         },
         {
           "titulo": "Cuentas, roles y permisos",
@@ -44,7 +44,7 @@
         },
         {
           "titulo": "Carga de datos y script",
-          "cuerpo": "El **Editor de carga** guarda un script por app (`GET/PUT /api/v1/apps/{id}/script`) y lo ejecuta con `POST /script/run`.\n\n- Archivos: `LOAD campo1, campo2 AS alias FROM [lib://DataFiles/archivo.csv];`\n- Conexiones: `LIB CONNECT TO 'nombre';` seguido de `SQL SELECT ...;`\n- Los cambios del Gestor de datos (renombrar, cambiar tipo, ocultar) se reflejan como `AS` y campos omitidos.\n- El **selector de datos** (estilo Power Query) permite elegir columnas, limpiar nulos, cambiar tipos, renombrar, filtrar y crear columnas calculadas, con modos de extracción **Todo**, **Parcial** o **Muestra**. Los pasos aplicados se ven y editan como script (*Ver script* / *Editar script*)."
+          "cuerpo": "El **Script de datos** guarda un script por app (`GET/PUT /api/v1/apps/{id}/script`) y lo ejecuta con `POST /script/run`.\n\n- Archivos: `LOAD campo1, campo2 AS alias FROM [lib://DataFiles/archivo.csv];`\n- Conexiones: `LIB CONNECT TO 'nombre';` seguido de `SQL SELECT ...;`\n- Los cambios del Tablas y campos (renombrar, cambiar tipo, ocultar) se reflejan como `AS` y campos omitidos.\n- El **selector de datos** (estilo Power Query) permite elegir columnas, limpiar nulos, cambiar tipos, renombrar, filtrar y crear columnas calculadas, con modos de extracción **Todo**, **Parcial** o **Muestra**. Los pasos aplicados se ven y editan como script (*Ver script* / *Editar script*)."
         },
         {
           "titulo": "Modelo asociativo",
@@ -52,11 +52,11 @@
         },
         {
           "titulo": "Hojas y objetos",
-          "cuerpo": "Una hoja es una rejilla de 24 columnas con objetos: KPI, barras, líneas, área, tarta/dona, dispersión, tabla, tabla dinámica, filtro, texto, imagen y los **gráficos de ML**.\n\n- **Editar hoja** muestra el riel de recursos (campos, elementos maestros, gráficos, objetos personalizados).\n- Cada objeto tiene **Datos** (dimensiones y medidas) y **Aspecto** (presentación, colores, título).\n- Los **elementos maestros** son dimensiones y medidas reutilizables definidas una sola vez por app."
+          "cuerpo": "Una hoja es una rejilla de 24 columnas con objetos: KPI, barras, líneas, área, tarta/dona, dispersión, tabla, tabla dinámica, filtro, texto, imagen y los **gráficos de ML**.\n\n- **Diseñar** muestra el riel de recursos (campos, medidas y dimensiones, gráficos, objetos personalizados).\n- Cada objeto tiene **Datos** (dimensiones y medidas) y **Aspecto** (presentación, colores, título).\n- Los **elementos maestros** son dimensiones y medidas reutilizables definidas una sola vez por app."
         },
         {
           "titulo": "Conexiones de datos",
-          "cuerpo": "Conectores reales verificados: **Amazon S3** y **Amazon Athena**; además JDBC (PostgreSQL, MySQL, SQL Server…) y HTTP.\n\n- Se crean desde *Añadir datos → Conexiones de datos* o desde **Crear → Conexión de datos**.\n- **Probar conexión** valida credenciales antes de guardar.\n- **Conexiones realizadas** reúne las conexiones de todas las apps, permite explorar y previsualizar la extracción y genera el script de carga.\n- Las credenciales se guardan en la base local: no subas `data/` a un repositorio."
+          "cuerpo": "Conectores reales verificados: **Amazon S3** y **Amazon Athena**; además JDBC (PostgreSQL, MySQL, SQL Server…) y HTTP.\n\n- Se crean desde *Script de datos → Fuentes → Conexiones* o desde **Crear → Conexión de datos**.\n- **Probar conexión** valida credenciales antes de guardar.\n- **Conexiones realizadas** reúne las conexiones de todas las apps, permite explorar y previsualizar la extracción y genera el script de carga.\n- Las credenciales se guardan en la base local: no subas `data/` a un repositorio."
         },
         {
           "titulo": "Informes PDF",
@@ -93,9 +93,9 @@
       "titulo": "Preguntas frecuentes",
       "tipo": "faq",
       "items": [
-        { "titulo": "Cargué un archivo pero no veo la tabla en la hoja", "cuerpo": "Después de subir el archivo pulsa **Cargar datos** en el Editor de carga: es lo que ejecuta el script y reconstruye el modelo. Luego recarga la hoja." },
-        { "titulo": "Me aparece una clave sintética, ¿qué hago?", "cuerpo": "Dos tablas comparten más de un campo con el mismo nombre. Renombra en el **Gestor de datos** los campos que no deben asociar (quedan como `AS` en el script) o crea una clave compuesta. Revisa el resultado en el **Visor del modelo**." },
-        { "titulo": "¿Por qué un campo numérico sale como texto?", "cuerpo": "El perfilador infiere el tipo con los valores reales; si hay celdas con texto o separadores raros lo clasifica como texto. Cámbialo en el **Gestor de datos** (tipo forzado) o en el selector de datos (paso *Cambiar tipo*)." },
+        { "titulo": "Cargué un archivo pero no veo la tabla en la hoja", "cuerpo": "Después de subir el archivo pulsa **Ejecutar script** en el Script de datos: es lo que ejecuta el script y reconstruye el modelo. Luego recarga la hoja." },
+        { "titulo": "Me aparece una clave sintética, ¿qué hago?", "cuerpo": "Dos tablas comparten más de un campo con el mismo nombre. Renombra en el **Tablas y campos** los campos que no deben asociar (quedan como `AS` en el script) o crea una clave compuesta. Revisa el resultado en el **Mapa de relaciones**." },
+        { "titulo": "¿Por qué un campo numérico sale como texto?", "cuerpo": "El perfilador infiere el tipo con los valores reales; si hay celdas con texto o separadores raros lo clasifica como texto. Cámbialo en el **Tablas y campos** (tipo forzado) o en el selector de datos (paso *Cambiar tipo*)." },
         { "titulo": "La conexión a Athena falla", "cuerpo": "Revisa región, base de datos y **workgroup**: el workgroup debe tener una *ubicación de salida* S3 configurada (el workgroup `primary` a veces no la tiene). Comprueba que tus credenciales IAM tengan permisos de Athena, Glue y S3." },
         { "titulo": "El asistente de IA no responde", "cuerpo": "Necesita credenciales válidas en `~/.aws` con acceso a Bedrock en `us-east-2`. Si tu sesión expiró, vuelve a autenticarte en AWS y repite la pregunta. Los informes tienen un respaldo determinista y no se bloquean." },
         { "titulo": "Hice cambios en el código y no se ven", "cuerpo": "Frontend: **Ctrl + F5**. Backend (Java): reinicia el servidor. MCP: `npm run build` en `mcp-server/` y reconecta el servidor `datasense` en el panel MCP de Kiro." },
@@ -123,10 +123,10 @@
         { "titulo": "F1 o ?", "cuerpo": "Abrir este centro de ayuda (fuera de un campo de texto)." },
         { "titulo": "Esc", "cuerpo": "Cerrar paneles, menús y ventanas." },
         { "titulo": "Alt + Shift + A", "cuerpo": "Dentro de una app: vista Hoja." },
-        { "titulo": "Alt + Shift + E", "cuerpo": "Dentro de una app: Editor de carga de datos." },
-        { "titulo": "Alt + Shift + D", "cuerpo": "Dentro de una app: Gestor de datos." },
-        { "titulo": "Alt + Shift + M", "cuerpo": "Dentro de una app: Visor del modelo de datos." },
-        { "titulo": "Alt + Shift + G", "cuerpo": "Dentro de una app: Modelo lógico." },
+        { "titulo": "Alt + Shift + E", "cuerpo": "Dentro de una app: Script de datos." },
+        { "titulo": "Alt + Shift + D", "cuerpo": "Dentro de una app: Tablas y campos." },
+        { "titulo": "Alt + Shift + M", "cuerpo": "Dentro de una app: Mapa de relaciones." },
+        { "titulo": "Alt + Shift + G", "cuerpo": "Dentro de una app: Capa de negocio." },
         { "titulo": "Alt + Shift + R", "cuerpo": "Dentro de una app: Informes." },
         { "titulo": "Alt + Shift + L", "cuerpo": "Dentro de una app: Experimentos de ML." }
       ]

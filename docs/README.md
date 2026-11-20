@@ -16,7 +16,8 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`api-referencia.md`](./api-referencia.md) | Catálogo de endpoints REST del backend. |
 | **Módulos** | |
 | [`modulos/00-login-hub.md`](./modulos/00-login-hub.md) | Login, Inicio, Catálogo, Crear. |
-| [`modulos/01-editor-carga.md`](./modulos/01-editor-carga.md) | Editor de carga de datos (script Qlik). |
+| [`modulos/20-identidad-visual.md`](./modulos/20-identidad-visual.md) | Identidad propia: menú lateral de la app y tabla de nombres nuevos (antes → ahora). |
+| [`modulos/01-editor-carga.md`](./modulos/01-editor-carga.md) | Script de datos (antes «Editor de carga de datos»). |
 | [`modulos/02-gestor-datos.md`](./modulos/02-gestor-datos.md) | Gestor de datos: preparación visual (renombrar/tipo/ocultar). |
 | [`modulos/03-modelo-datos.md`](./modulos/03-modelo-datos.md) | Visor del modelo de datos (tablas y asociaciones). |
 | [`modulos/04-hoja-analizar.md`](./modulos/04-hoja-analizar.md) | Hoja: análisis, selecciones asociativas, gráficos. |

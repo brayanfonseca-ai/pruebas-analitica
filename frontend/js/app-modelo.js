@@ -103,8 +103,7 @@ function edgePath(a, b) {
 export async function render(mount, ctx) {
   mount.innerHTML = `
     <div class="q-subtoolbar">
-      <span class="q-sub-title">Visor del modelo</span>
-      <div class="q-subtabs"><button class="q-subtab active" type="button">Modelo</button></div>
+      <span class="q-sub-title">Mapa de relaciones</span>
       <span class="q-sub-spacer"></span>
     </div>
     <div id="modelBox"><p style="color:var(--q-muted);">Cargando modelo…</p></div>`;
@@ -167,7 +166,9 @@ export async function render(mount, ctx) {
     const b = positions.get(e.to);
     if (!a || !b) return "";
     const { d, lx, ly } = edgePath(a, b);
-    const label = TYPE_LABEL[e.type] || esc(e.type);
+    // Se rotula con el campo compartido (más útil que el tipo genérico «association»).
+    const shared = (e.fields || []).join(", ");
+    const label = TYPE_LABEL[e.type] || (shared.length > 22 ? shared.slice(0, 21) + "…" : shared) || e.type;
     return `<path d="${d}"></path>
             <text class="edge-label" x="${lx}" y="${ly - 4}" text-anchor="middle">${esc(label)}</text>`;
   }).join("");

@@ -61,7 +61,7 @@ const RAIL = [
   { key: "marcadores", label: "Marcadores", icon: "star" },
   { key: "disparadores", label: "Disparadores de información", icon: "auto" },
   { key: "campos", label: "Campos", icon: "database" },
-  { key: "maestros", label: "Elementos maestros", icon: "box" },
+  { key: "maestros", label: "Medidas y dimensiones", icon: "box" },
   { key: "graficos", label: "Gráficos", icon: "analyze" },
   { key: "analisis", label: "Análisis", icon: "assist" },
   { key: "objetos", label: "Objetos personalizados", icon: "predict" },
@@ -185,7 +185,7 @@ export async function render(mount, ctx) {
           <div class="ho-tb-sep edit-only"></div>
           <button class="ho-tb-btn edit-only" data-act="source" disabled title="Tabla de origen: ${SOON}">${svg("database")}<span>Tabla de origen</span></button>
           <button class="ho-tb-btn edit-only" data-act="props" title="Mostrar/ocultar propiedades">${svg("catalog")}<span>Propiedades</span></button>
-          ${canEdit ? `<button class="ho-tb-edit" data-act="toggleEdit" id="hoEditBtn">✎ <span>Editar hoja</span></button>` : ""}
+          ${canEdit ? `<button class="ho-tb-edit" data-act="toggleEdit" id="hoEditBtn">✎ <span>Diseñar</span></button>` : ""}
         </div>
       </div>
       <div class="ho-selbar" id="hoSelbar" hidden></div>
@@ -396,7 +396,7 @@ export async function render(mount, ctx) {
     const eb = $("#hoEditBtn");
     if (eb) {
       eb.classList.toggle("on", st.edit);
-      eb.innerHTML = st.edit ? "✓ <span>Listo</span>" : "✎ <span>Editar hoja</span>";
+      eb.innerHTML = st.edit ? "✓ <span>Listo</span>" : "✎ <span>Diseñar</span>";
       eb.disabled = !st.sheet;
     }
     mount.querySelectorAll(".ho-tb-btn[data-act='hojas'], .ho-tb-btn[data-act='marcadores']").forEach((b) =>
@@ -733,7 +733,7 @@ export async function render(mount, ctx) {
     // Rótulo por DISPLAY del override (p.ej. "Ventas"->"Ingresos") manteniendo la
     // identidad física del campo. Si el usuario puso label propio, manda ese.
     const disp = displayOf(item.field);
-    if (item.agg) return `${AGG_LABEL[item.agg]}(${disp})`;
+    if (item.agg) return `${AGG_NAME[item.agg] || AGG_LABEL[item.agg]} de ${disp}`;
     return disp;
   }
 
@@ -1549,7 +1549,7 @@ export async function render(mount, ctx) {
           ${m.certified ? `<span class="ho-cert" title="Métrica certificada${m.certified_by ? " por " + esc(m.certified_by) : ""}${m.certified_note ? " · " + esc(m.certified_note) : ""}">✓ Certificada</span>` : ""}
           ${canEdit ? `<button class="ho-mini" data-master-edit="${m.id}" title="Editar">✎</button>` : ""}
         </div>`).join("") || `<div class="ho-as-none">Sin elementos.</div>`;
-      html = head("Elementos maestros") + search() + `
+      html = head("Medidas y dimensiones") + search() + `
         <details open class="ho-as-sec"><summary>Dimensiones ${canEdit ? `<button class="ho-mini" data-master-new="dimension" title="Crear dimensión">+</button>` : ""}</summary>${list(dims)}</details>
         <details open class="ho-as-sec"><summary>Medidas ${canEdit ? `<button class="ho-mini" data-master-new="measure" title="Crear medida">+</button>` : ""}</summary>${list(meas)}</details>
         <details class="ho-as-sec"><summary>Visualizaciones</summary><div class="ho-as-none">${SOON}</div></details>
@@ -1826,7 +1826,7 @@ export async function render(mount, ctx) {
         <details class="ho-item" data-kind="${kind}" data-i="${i}">
           <summary><span class="ho-item-grip" data-grip title="Arrastrar para reordenar">⋮⋮</span><span class="ho-item-role">${esc(role)}</span><span class="ho-item-name ${r ? "" : "err"}">${esc(itemLabel(item))}</span></summary>
           <div class="ho-item-body">
-            ${item.source === "master" ? `<p class="ho-p-hint">Elemento maestro${r ? "" : " · eliminado: quítelo o reemplácelo"}.</p>` : ""}
+            ${item.source === "master" ? `<p class="ho-p-hint">Guardada en Medidas y dimensiones${r ? "" : " · eliminada: quítela o reemplácela"}.</p>` : ""}
             ${item.source === "expr" ? `<p class="ho-p-hint">Expresión: <code>${esc(item.expression)}</code></p>` : ""}
             <div class="ho-p-field"><label class="ho-p-label">Etiqueta</label><input data-item-label value="${esc(item.label || "")}" placeholder="${esc(defaultLabel(item))}" /></div>
             ${isMeasure && item.source === "field" ? `

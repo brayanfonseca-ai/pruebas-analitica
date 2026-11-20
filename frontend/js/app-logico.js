@@ -53,7 +53,7 @@ export async function render(mount, ctx) {
     <div class="q-subtoolbar">
       <div class="lm-head">
         <div>
-          <h2 class="lm-title">Modelo lógico</h2>
+          <h2 class="lm-title">Capa de negocio</h2>
           <p class="lm-sub">Define el significado de cada campo para que el análisis y el asistente interpreten tus datos con precisión.</p>
         </div>
         <div class="lm-actions">

@@ -15,7 +15,7 @@ export const NAV = [
   { key: "inicio", label: "Inicio", icon: "home", href: "inicio.html" },
   { key: "crear", label: "Crear", icon: "plus", href: "crear.html", perm: "apps:create" },
   { key: "colecciones", label: "Colecciones", icon: "book", href: "hub.html?page=colecciones" },
-  { key: "catalogo", label: "Catálogo", icon: "catalog", href: "catalogo.html" },
+  { key: "catalogo", label: "Aplicaciones", icon: "catalog", href: "catalogo.html" },
   { divider: true },
   { key: "analizar", label: "Analizar", icon: "analyze", href: "hub.html?page=analizar" },
   { key: "prediccion", label: "Experimentos de ML", icon: "predict", href: "experimentos.html", perm: "ml:run" },

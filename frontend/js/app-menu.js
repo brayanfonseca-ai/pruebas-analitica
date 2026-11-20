@@ -54,10 +54,10 @@ function itemsFor(app) {
   }
   items.push({ ico: "open", label: "Abrir", run: go(`app.html?app=${id}`) });
   if (can("data:import")) {
-    items.push({ ico: "db", label: "Gestor de datos", run: go(`app.html?app=${id}#datos`) });
-    items.push({ ico: "code", label: "Editor de carga de datos", run: go(`app.html?app=${id}#editor`) });
+    items.push({ ico: "code", label: "Script de datos", run: go(`app.html?app=${id}#editor`) });
+    items.push({ ico: "db", label: "Tablas y campos", run: go(`app.html?app=${id}#datos`) });
   }
-  if (can("charts:edit")) items.push({ ico: "box", label: "Modelo lógico", run: go(`app.html?app=${id}#logico`) });
+  if (can("charts:edit")) items.push({ ico: "box", label: "Capa de negocio", run: go(`app.html?app=${id}#logico`) });
   items.push({ ico: "doc", label: "Informes", run: go(`app.html?app=${id}#informes`) });
   const more = [];
   if (can("charts:edit")) more.push({ ico: "notes", label: "Notas para agente", run: go(`notas.html?app=${id}`) });

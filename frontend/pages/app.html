@@ -21,25 +21,17 @@
   <script type="module" src="../js/topbar.js"></script>
 </head>
 <body>
-  <!-- ===================== BARRA SUPERIOR (estilo Qlik) ===================== -->
+  <!-- ===================== BARRA SUPERIOR ===================== -->
   <header class="q-topbar q-app-topbar">
-    <button class="q-apps" id="appsBtn" title="Ir al catálogo" aria-label="Ir al catálogo">
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-      <span></span><span></span><span></span>
-    </button>
     <div class="q-logo">
       <span class="q-logo-mark">◆</span>
       <span class="q-logo-text">DataSense</span>
-      <span class="q-logo-sep">Aplicación</span>
     </div>
-    <!-- Selector de vista: Inicio / Analizar / Narrar / Preparar / Lógica de negocio -->
-    <div class="q-view-select" id="viewSelect"></div>
 
-    <div class="q-app-crumb" title="Espacio / aplicación">
-      <span class="q-app-space">Personal</span>
-      <span class="q-app-slash">/</span>
+    <div class="q-app-crumb" title="Aplicación y etapa">
       <strong id="appName">Aplicación</strong>
+      <span class="q-app-space">Personal</span>
+      <span class="ds-crumb-view" id="crumbView"></span>
       <span class="q-crumb-menu" id="crumbMenu" hidden></span>
     </div>
 
@@ -58,7 +50,10 @@
   </header>
 
   <div class="q-body">
-    <!-- Contenedor de la vista activa (sin menú lateral: se navega con el selector) -->
+    <!-- Menú lateral de la app (secciones agrupadas; se pliega con la hamburguesa) -->
+    <aside class="q-side ds-app-side" id="side">
+      <nav class="q-nav" id="nav"></nav>
+    </aside>
     <main class="q-main" id="appView"></main>
   </div>
 

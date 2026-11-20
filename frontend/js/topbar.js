@@ -502,6 +502,18 @@ function closeNotif() {
    ========================================================================= */
 function init() {
   if (!document.querySelector(".q-topbar")) return;
+  // Identidad propia: sin el lanzador de 9 puntos ni el subtítulo junto al logo; el logo lleva a Inicio.
+  document.querySelectorAll(".q-topbar .q-apps, .q-topbar .q-logo-sep").forEach((el) => el.remove());
+  const logo = document.querySelector(".q-topbar .q-logo");
+  if (logo && !logo.dataset.home) {
+    logo.dataset.home = "1";
+    logo.setAttribute("role", "link");
+    logo.tabIndex = 0;
+    logo.title = "Ir a Inicio";
+    const goHome = () => { location.href = "inicio.html"; };
+    logo.addEventListener("click", goHome);
+    logo.addEventListener("keydown", (e) => { if (e.key === "Enter") goHome(); });
+  }
   mountBurger();
   const { help, bell } = ensureTopButtons();
   help?.addEventListener("click", (e) => { e.stopPropagation(); helpEl && !helpEl.hidden ? closeHelp() : openHelp(); });

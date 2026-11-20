@@ -2174,3 +2174,26 @@ html[data-theme="dark"] .au-pill.ok { color: #6ee7b7; } html[data-theme="dark"] 
 .fe-warn { font-size: 11.5px; color: #b45309; }
 @media (max-width: 1500px) { .fe-body { grid-template-columns: 210px 1fr 300px; } .fe-pal-it small { -webkit-line-clamp: 1; } }
 @media (max-width: 1280px) { .fe-body { grid-template-columns: 180px 1fr 280px; } .fe-pal-it small { display: none; } .fe-hint { display: none; } }
+
+/* ======================= Identidad DataSense: marco común ======================= */
+/* Logo = enlace a Inicio (topbar.js); sin lanzador de 9 puntos. */
+.q-topbar .q-logo { cursor: pointer; border-radius: 8px; padding: 4px 6px; margin-left: 2px; }
+.q-topbar .q-logo:hover { background: rgba(255, 255, 255, .06); }
+.q-topbar .q-logo:focus-visible { outline: 2px solid var(--ds-a); outline-offset: 2px; }
+
+/* Menú lateral de la app: grupos con título pequeño. */
+.ds-app-side .q-nav { gap: 2px; }
+.ds-nav-group { padding: 14px 12px 4px; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #7d8db0; white-space: nowrap; }
+.ds-nav-back { color: #9fb0d0 !important; font-size: .82rem; margin-bottom: 2px; }
+.ds-nav-back:hover { color: #fff !important; }
+@media (min-width: 761px) {
+  html[data-side="collapsed"] .ds-nav-group { font-size: 0; height: 1px; padding: 0; margin: 9px 8px; background: rgba(148, 163, 184, .22); }
+}
+
+/* Miga de la app: nombre · etapa › sección, alineada a la izquierda junto al logo. */
+.q-app-topbar .q-app-crumb { justify-content: flex-start; margin-left: 10px; gap: 8px; }
+.q-app-topbar .q-app-crumb strong { color: #fff; font-size: 14px; }
+.ds-crumb-view { color: #9fb0d0; font-size: 13px; white-space: nowrap; }
+.ds-crumb-view:not(:empty)::before { content: "›"; margin-right: 8px; color: #5f6f92; }
+/* Mapa de relaciones: el icono de clave conserva su tamaño (hub.css fuerza svg{width:100%}). */
+.q-model-key-ico { width: 12px !important; height: 12px !important; flex: none; color: var(--ds-a); margin-right: 5px; vertical-align: -1px; }

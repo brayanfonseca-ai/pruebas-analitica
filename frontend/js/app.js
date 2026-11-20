@@ -1,10 +1,8 @@
-// app.js — marco de la aplicación (in-app), estilo Qlik Sense.
+// app.js — marco de la aplicación (in-app).
 //
-// Lee ?app=<id>. La navegación se hace SOLO con el selector de vista de la barra
-// superior, agrupado como en Qlik (Inicio / Analizar / Narrar / Preparar / Lógica
-// de negocio), con atajos Alt+Shift+letra. Cada vista disponible es un módulo
-// cargado de forma perezosa; las que aún no existen aparecen como "Próximamente".
-// Todos los datos pasan por el backend (js/api.js).
+// Lee ?app=<id>. Se navega con el menú lateral de la app, agrupado en Explorar /
+// Comunicar / Inteligencia / Datos / Operar, con atajos Alt+Shift+letra. Cada vista
+// es un módulo cargado de forma perezosa. Todos los datos pasan por el backend (js/api.js).
 
 import { svg } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
@@ -20,32 +18,29 @@ if (!APP_ID) location.replace("catalogo.html");
 // «perm»: permiso que exige la vista. Quien no lo tiene ni la ve en el selector (el servidor también lo exige).
 const VIEW_GROUPS = [
   {
-    label: "Analizar",
+    label: "Explorar",
     views: [
-      { key: "hoja", label: "Hoja", icon: "pages", shortcut: "A", module: "./app-hoja.js" },
-      { key: "insights", label: "Qué cambió · simular · actuar", icon: "predict", shortcut: "Q", module: "./app-insights.js" },
+      { key: "hoja", label: "Hojas", icon: "pages", shortcut: "A", module: "./app-hoja.js" },
+      { key: "insights", label: "Explicar y actuar", icon: "analyze", shortcut: "Q", module: "./app-insights.js" },
     ],
   },
-  { label: "Narrar", views: [{ key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" }] },
+  { label: "Comunicar", views: [{ key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" }] },
   {
-    label: "Ciencia de datos",
-    views: [{ key: "lab", label: "Experimentos de ML", icon: "predict", shortcut: "L", module: "./app-lab.js", perm: "ml:run" }],
+    label: "Inteligencia",
+    views: [{ key: "lab", label: "Modelos de ML", icon: "predict", shortcut: "L", module: "./app-lab.js", perm: "ml:run" }],
   },
   {
-    label: "Preparar",
+    label: "Datos",
     views: [
-      { key: "datos", label: "Gestor de datos", icon: "database", shortcut: "D", module: "./app-datos.js", perm: "data:import" },
-      { key: "editor", label: "Editor de carga de datos", icon: "script", shortcut: "E", module: "./app-editor.js", perm: "data:import" },
-      { key: "modelo", label: "Visor del modelo de datos", icon: "model", shortcut: "M", module: "./app-modelo.js", perm: "data:import" },
+      { key: "editor", label: "Script de datos", icon: "script", shortcut: "E", module: "./app-editor.js", perm: "data:import" },
+      { key: "datos", label: "Tablas y campos", icon: "database", shortcut: "D", module: "./app-datos.js", perm: "data:import" },
+      { key: "modelo", label: "Mapa de relaciones", icon: "model", shortcut: "M", module: "./app-modelo.js", perm: "data:import" },
+      { key: "logico", label: "Capa de negocio", icon: "box", shortcut: "G", module: "./app-logico.js", perm: "charts:edit" },
     ],
-  },
-  {
-    label: "Lógica de negocio",
-    views: [{ key: "logico", label: "Modelo lógico", icon: "box", shortcut: "G", module: "./app-logico.js", perm: "charts:edit" }],
   },
   {
     label: "Operar",
-    views: [{ key: "automatizar", label: "Automatizar · alertas y salud", icon: "auto", shortcut: "T", module: "./app-automatizar.js" }],
+    views: [{ key: "automatizar", label: "Automatizar", icon: "auto", shortcut: "T", module: "./app-automatizar.js" }],
   },
 ];
 const allowed = (v) => !v.perm || authService.can(v.perm);
@@ -55,6 +50,7 @@ const DEFAULT_VIEW = "hoja";
 
 const ctx = { appId: APP_ID, can: (perm) => authService.can(perm), me: () => authService.current() };
 let currentCleanup = null;
+let viewSeq = 0;
 let sheetMenuCleanup = null;
 
 // Puente entre la vista Hoja (que conoce la hoja activa) y el botón "···" del
@@ -71,38 +67,23 @@ window.__dsRegisterSheetMenu = (menuCtx) => {
 
 /* ----------------------- Selector de vista ----------------------- */
 function renderViewSelect(activeKey) {
-  const host = document.getElementById("viewSelect");
+  const nav = document.getElementById("nav");
   const active = ALL_VIEWS.find((v) => v.key === activeKey) || ALL_VIEWS.find((v) => v.key === DEFAULT_VIEW);
-  host.innerHTML = `
-    <button class="q-view-select-btn" id="viewSelectBtn" type="button" aria-haspopup="true" aria-expanded="false">
-      <span class="q-view-select-label">${active.label}</span>
-      <span class="q-view-select-caret">▾</span>
-    </button>
-    <div class="q-view-select-pop q-vs-grouped" id="viewSelectPop" hidden>
-      ${VISIBLE_GROUPS.map((g) => `
-        <div class="q-vs-group">${g.label}</div>
-        ${g.views.map((v) => `
-          <button class="q-view-select-row ${v.key === active.key ? "active" : ""} ${v.module ? "" : "soon"}"
-                  type="button" data-key="${v.key}" ${v.module ? "" : "disabled"}
-                  title="${v.module ? v.label : `${v.label}: Próximamente`}">
-            <span class="q-view-select-ico">${svg(v.icon)}</span>
-            <span class="q-vs-label">${v.label}</span>
-            <span class="q-vs-key">${v.module ? `Alt + Shift + ${v.shortcut}` : "Próximamente"}</span>
-          </button>`).join("")}`).join("")}
-    </div>`;
-
-  const btn = host.querySelector("#viewSelectBtn");
-  const pop = host.querySelector("#viewSelectPop");
-  const close = () => { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); };
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const open = pop.hidden;
-    pop.hidden = !open;
-    btn.setAttribute("aria-expanded", String(open));
-  });
-  pop.querySelectorAll("[data-key]:not([disabled])").forEach((row) =>
-    row.addEventListener("click", () => { close(); location.hash = row.dataset.key; }));
-  document.addEventListener("click", (e) => { if (!host.contains(e.target)) close(); });
+  const crumb = document.getElementById("crumbView");
+  if (crumb) crumb.textContent = active.label;
+  nav.innerHTML = `
+    <a class="q-nav-item ds-nav-back" href="catalogo.html" data-tip="Volver a Aplicaciones">
+      <span class="q-nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></span>
+      <span class="q-nav-label">Aplicaciones</span>
+    </a>
+    ${VISIBLE_GROUPS.map((g) => `
+      <div class="ds-nav-group">${g.label}</div>
+      ${g.views.map((v) => `
+        <a class="q-nav-item ${v.key === active.key ? "active" : ""}" href="#${v.key}" data-key="${v.key}"
+           data-tip="${v.label} · Alt+Shift+${v.shortcut}" ${v.key === active.key ? 'aria-current="page"' : ""}>
+          <span class="q-nav-ico">${svg(v.icon)}</span>
+          <span class="q-nav-label">${v.label}</span>
+        </a>`).join("")}`).join("")}`;
 }
 
 // Atajos Alt+Shift+letra (solo vistas disponibles).
@@ -124,7 +105,7 @@ function renderProfile() {
     <div class="q-prof-name">${user.name || "Usuario"}</div>
     <div class="q-prof-mail">${user.email || ""}</div>
     <div class="q-prof-row">Rol: <strong>${user.role || "-"}</strong></div>
-    <button class="q-prof-item" id="profCatalog">Ir al catálogo</button>
+    <button class="q-prof-item" id="profCatalog">Ir a Aplicaciones</button>
     <button class="q-prof-item" id="profAccount">Mi cuenta</button>
     <button class="q-prof-item" id="profLogout">Cerrar sesión</button>`;
   avatar.addEventListener("click", (e) => {
@@ -219,12 +200,15 @@ async function showView(key) {
   window.__dsRegisterSheetMenu(null);
   mount.innerHTML = `<p style="color:var(--q-muted);padding:18px 26px;">Cargando ${view.label.toLowerCase()}…</p>`;
 
+  const token = ++viewSeq;
   try {
     const mod = await import(view.module);
+    if (token !== viewSeq) return; // el usuario ya cambió de sección
     mount.innerHTML = "";
     const cleanup = await mod.render(mount, ctx);
     if (typeof cleanup === "function") currentCleanup = cleanup;
   } catch (err) {
+    if (token !== viewSeq) return;
     mount.innerHTML = `<p style="color:#c0392b;padding:18px 26px;">No se pudo cargar la vista: ${err.message}</p>`;
     console.error(err);
   }
@@ -251,7 +235,6 @@ async function boot() {
       `<p style="color:#c0392b;padding:18px 26px;">No se pudo abrir la aplicación: ${err.message}</p>`;
     return;
   }
-  document.getElementById("appsBtn").addEventListener("click", () => { location.href = "catalogo.html"; });
   renderProfile();
   showView(currentKey());
 }
