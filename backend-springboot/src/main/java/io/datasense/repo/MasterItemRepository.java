@@ -24,7 +24,7 @@ public class MasterItemRepository {
 
     private static final String COLS =
             "id, app_id, kind, name, expression, description, resolved_json, created_at, updated_at, "
-                    + "certified, certified_by, certified_at, certified_note, version";
+                    + "certified, certified_by, certified_at, certified_note, version, format_json";
 
     private final RowMapper<Map<String, Object>> mapRow = (rs, i) -> {
         Map<String, Object> m = new java.util.LinkedHashMap<>();
@@ -42,8 +42,15 @@ public class MasterItemRepository {
         m.put("certified_at", rs.getString("certified_at"));
         m.put("certified_note", rs.getString("certified_note"));
         m.put("version", rs.getInt("version"));
+        String fj = rs.getString("format_json");
+        m.put("format", fj == null || fj.isBlank() ? null : parse(fj));
         return m;
     };
+
+    /** Formato de presentación (no crea versión: no cambia la definición). null = automático. */
+    public void setFormat(String id, Map<String, Object> format) {
+        jdbc.update("UPDATE master_items SET format_json = ? WHERE id = ?", format == null || format.isEmpty() ? null : write(format), id);
+    }
 
     public List<Map<String, Object>> list(String appId, String kind) {
         if (kind != null && !kind.isBlank()) {

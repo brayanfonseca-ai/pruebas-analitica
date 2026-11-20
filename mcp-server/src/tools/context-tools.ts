@@ -105,7 +105,7 @@ export const contextTools: ContextTool[] = [
     name: "get_script",
     title: "Leer script de carga",
     description:
-      "Lee el script de carga de una aplicacion. Devuelve {app_id, text, is_custom}. GET /api/v1/apps/{appId}/script.",
+      "Lee el script de carga de una aplicacion. Devuelve {app_id, text, is_custom, language: 'sql'|'qlik'}. Un script nuevo (auto-generado) viene en SQL; uno guardado antes puede estar en la sintaxis anterior (usa convert_script para pasarlo a SQL). GET /api/v1/apps/{appId}/script.",
     inputShape: appIdShape,
     handler: async (args) =>
       toToolText(

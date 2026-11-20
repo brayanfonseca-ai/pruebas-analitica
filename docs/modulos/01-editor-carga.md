@@ -1,6 +1,8 @@
 # Módulo: Editor de carga de datos
 
-Edición del **script de carga** estilo Qlik y subida de archivos. Equivale al "Editor de carga de datos" de Qlik Sense.
+Edición del **script de carga** y subida de archivos. Equivale al "Editor de carga de datos" de Qlik Sense.
+
+> **Lenguaje**: el script se escribe en **SQL** (`CREATE TABLE t AS SELECT … FROM ( consulta ) AS origen`, comentarios `--`). La sintaxis anterior (`LOAD … FROM`) sigue funcionando; la etiqueta junto al editor muestra el lenguaje y el botón **Convertir a SQL / a sintaxis anterior** traduce el script (`POST /script/convert`). Detalle en [19 · SQL, formato e IA](./19-sql-formato-ia.md).
 
 ## A nivel de usuario
 - Un editor de código (CodeMirror) con el script `LOAD ... FROM [lib://DataFiles/...]` de la app.

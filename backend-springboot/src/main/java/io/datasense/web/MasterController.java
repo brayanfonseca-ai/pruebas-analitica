@@ -97,11 +97,11 @@ public class MasterController {
     }
 
     @PostMapping("/expressions/parse")
-    public Map<String, Object> parse(@PathVariable String appId, @RequestBody Map<String, String> body) {
+    public Map<String, Object> parse(@PathVariable String appId, @RequestBody Map<String, Object> body) {
         requireApp(appId);
-        String kind = body.get("kind");
-        String expression = body.get("expression");
-        Map<String, Object> resolved = compile(appId, kind, expression, body.get("name"));
+        String kind = s(body, "kind");
+        String expression = s(body, "expression");
+        Map<String, Object> resolved = compile(appId, kind, expression, sn(body, "name"));
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("kind", kind);
         out.put("expression", expression);
@@ -148,29 +148,93 @@ public class MasterController {
 
     @PostMapping("/master-items")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Object> create(HttpServletRequest req, @PathVariable String appId, @RequestBody Map<String, String> body) {
+    public Map<String, Object> create(HttpServletRequest req, @PathVariable String appId, @RequestBody Map<String, Object> body) {
         requireApp(appId);
-        String kind = body.get("kind");
-        String expression = body.getOrDefault("expression", "").strip();
-        String name = body.getOrDefault("name", "").strip();
+        String kind = s(body, "kind");
+        String expression = s(body, "expression").strip();
+        String name = s(body, "name").strip();
         Map<String, Object> resolved = compile(appId, kind, expression, name);
         if (Boolean.TRUE.equals(resolved.get("calculated"))) uniqueCalculatedName(appId, kind, name, null);
-        return items.create(appId, kind, name, expression, body.get("description"), resolved, authorName(req));
+        Map<String, Object> it = items.create(appId, kind, name, expression, sn(body, "description"), resolved, authorName(req));
+        if (body.containsKey("format")) { items.setFormat((String) it.get("id"), format(body.get("format"))); it = items.get((String) it.get("id")).orElseThrow(); }
+        return it;
+    }
+
+    private static String s(Map<String, Object> b, String k) { Object o = b.get(k); return o == null ? "" : String.valueOf(o); }
+    private static String sn(Map<String, Object> b, String k) { Object o = b.get(k); return o == null ? null : String.valueOf(o); }
+
+    /** Valida el formato de presentación: solo claves conocidas y valores cortos. */
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> format(Object o) {
+        if (!(o instanceof Map<?, ?> m) || m.isEmpty()) return null;
+        java.util.Set<String> keys = java.util.Set.of("type", "decimals", "scale", "prefix", "suffix", "currency", "date", "case", "thousands");
+        Map<String, Object> out = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> e : m.entrySet()) {
+            String k = String.valueOf(e.getKey());
+            if (!keys.contains(k) || e.getValue() == null) continue;
+            Object v = e.getValue();
+            if (v instanceof String sv && sv.length() > 24) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El formato «" + k + "» es demasiado largo (máx. 24 caracteres).");
+            out.put(k, v);
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    /** Traduce una expresión entre SQL y la sintaxis anterior: body {kind?, expression, to: "sql"|"native"}. */
+    @PostMapping("/expressions/translate")
+    public Map<String, Object> translate(@PathVariable String appId, @RequestBody Map<String, Object> body) {
+        requireApp(appId);
+        String expression = s(body, "expression");
+        String to = s(body, "to").isBlank() ? "sql" : s(body, "to");
+        try {
+            var idx = fieldIndex(appId);
+            boolean nat = io.datasense.engine.ExprLang.isNative(expression);
+            String out = "native".equals(to)
+                    ? (nat ? expression.strip() : io.datasense.engine.ExprLang.sqlToNative(expression, idx))
+                    : (nat ? io.datasense.engine.ExprLang.nativeToSql(expression) : io.datasense.engine.ExprLang.nativeToSql(io.datasense.engine.ExprLang.sqlToNative(expression, idx)));
+            return Map.of("expression", out, "to", to, "from", io.datasense.engine.ExprLang.isNative(expression) ? "native" : "sql");
+        } catch (Expressions.ExpressionError e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private io.datasense.ask.ExpressionAssist assist;
+
+    /** Ayuda de IA: «dame la suma de X cuando Y» → expresión SQL validada. Body {kind, prompt (≤500), current?}. */
+    @PostMapping("/expressions/assist")
+    public Map<String, Object> assist(@PathVariable String appId, @RequestBody Map<String, Object> body) {
+        requireApp(appId);
+        String kind = s(body, "kind").isBlank() ? "measure" : s(body, "kind");
+        String prompt = s(body, "prompt").strip();
+        if (prompt.isEmpty()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escribe qué necesitas, por ejemplo: «suma de ventas de Cali».");
+        if (prompt.length() > 500) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La petición es demasiado larga: máximo 500 caracteres.");
+        return assist.suggest(appId, kind, prompt, sn(body, "current"), (k, text) -> {
+            Map<String, Object> r = compile(appId, k, text, "measure".equals(k) ? null : "Dimensión sugerida");
+            if ("measure".equals(k)) r.put("value", measureValue(appId, r));
+            return r;
+        });
     }
 
     @PutMapping("/master-items/{itemId}")
     public Map<String, Object> update(HttpServletRequest req, @PathVariable String appId, @PathVariable String itemId,
-                                      @RequestBody Map<String, String> body) {
+                                      @RequestBody Map<String, Object> body) {
         requireApp(appId);
         Map<String, Object> existing = item(appId, itemId);
         String kind = (String) existing.get("kind");
-        String expression = body.getOrDefault("expression", "").strip();
-        String name = body.getOrDefault("name", "").strip();
+        // Solo el formato (no toca la definición ni crea versión): {format}
+        if (!body.containsKey("expression") && body.containsKey("format")) {
+            items.setFormat(itemId, format(body.get("format")));
+            return items.get(itemId).orElseThrow();
+        }
+        String expression = s(body, "expression").strip();
+        String name = s(body, "name").strip();
         guardCertified(req, existing, "modificar");
         Map<String, Object> resolved = compile(appId, kind, expression, name);
         if (Boolean.TRUE.equals(resolved.get("calculated"))) uniqueCalculatedName(appId, kind, name, itemId);
-        return items.update(itemId, name, expression, body.get("description"), resolved, authorName(req), body.get("message"))
+        Map<String, Object> out = items.update(itemId, name, expression, sn(body, "description"), resolved, authorName(req), sn(body, "message"))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Elemento maestro no encontrado: " + itemId));
+        if (body.containsKey("format")) { items.setFormat(itemId, format(body.get("format"))); out = items.get(itemId).orElseThrow(); }
+        return out;
     }
 
     @DeleteMapping("/master-items/{itemId}")

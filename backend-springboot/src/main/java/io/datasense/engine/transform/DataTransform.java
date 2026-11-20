@@ -274,6 +274,11 @@ public final class DataTransform {
      */
     public static Parsed parseBlock(String script, List<String> knownSources) {
         if (script == null || script.isBlank()) throw new IllegalArgumentException("El script está vacío.");
+        // Bloque en SQL (CREATE TABLE … AS SELECT …): se traduce primero al formato interno.
+        if (io.datasense.engine.connect.ScriptSql.isSql(script)) {
+            try { script = io.datasense.engine.connect.ScriptSql.toNative(script); }
+            catch (io.datasense.engine.Expressions.ExpressionError e) { throw new IllegalArgumentException(e.getMessage()); }
+        }
         StringBuilder clean = new StringBuilder();
         for (String line : script.split("\\r?\\n")) {
             String t = line.trim();

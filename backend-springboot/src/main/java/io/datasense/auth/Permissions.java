@@ -121,7 +121,9 @@ public final class Permissions {
             String sub = s[3];
             String tail = path.substring(("/apps/" + s[2]).length());
             if (tail.equals("/stage")) return VIEW; // lo valida el controlador (reglas por etapa)
-            if (sub.equals("query") || tail.equals("/fields/values") || tail.equals("/expressions/parse")) return VIEW;
+            if (sub.equals("query") || tail.equals("/fields/values") || tail.equals("/expressions/parse") || tail.equals("/expressions/translate")) return VIEW;
+            // Ayuda de IA al escribir medidas/dimensiones: usa el modelo (como el asistente).
+            if (tail.equals("/expressions/assist")) return AI;
             // Comentarios: cualquiera que vea la hoja conversa sobre ella (el controlador limita borrar/resolver).
             if (sub.equals("comments")) return VIEW;
             // Pregúntale a tus datos: es una consulta más (como /query).

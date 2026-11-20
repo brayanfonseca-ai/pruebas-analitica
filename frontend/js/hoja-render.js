@@ -3,6 +3,7 @@
 // PRESENTACIÓN del resultado (orden, Top N) y pinta con Chart.js o HTML.
 
 import { PALETTE, themeColor } from "./chart-types.js";
+import { formatValue } from "./num-format.js";
 
 const NF = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
 export const fmt = (v) =>
@@ -21,6 +22,7 @@ const NF_MONEY = new Intl.NumberFormat("es-CO", { style: "currency", currency: "
 export function fmtAs(v, mode) {
   if (v === null || v === undefined || Number.isNaN(v)) return "-";
   if (typeof v !== "number") return String(v);
+  if (mode && typeof mode === "object") return formatValue(v, mode);   // módulo de formato (moneda, millones, kg…)
   switch (mode) {
     case "integer": return NF_INT.format(v);
     case "percent": return NF_PCT.format(v > 1.5 ? v / 100 : v);
@@ -28,6 +30,12 @@ export function fmtAs(v, mode) {
     case "number": return NF.format(v);
     default: return NF.format(v);
   }
+}
+
+/** Etiqueta de una dimensión con su formato (fechas, números sin decimales, MAYÚSCULAS…). */
+export function fmtDim(v, f) {
+  if (!f || f === "auto") return fmt(v);
+  return formatValue(v, f);
 }
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -225,8 +233,13 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
   }
 
   const showLegend = def.legend && look.legend !== false && (def.type === "pie" || def.type === "radar" || data.series.length > 1 || def.type === "combo");
+  // Formato de presentación: etiquetas de la dimensión y valores de la medida (ejes y tooltips).
+  const dimF = props.dims?.[0]?.fmt;
+  const viewLabels = dimF && dimF !== "auto" ? data.labels.map((l) => fmtDim(l, dimF)) : data.labels;
+  const mF = (i) => props.measures?.[i]?.fmt;
+  const valTick = (v) => (typeof v === "number" && mF(0) && mF(0) !== "auto" ? fmtAs(v, mF(0)) : v);
   if (def.type === "radar") {
-    return _finishChart(canvas, { type: "radar", data: { labels: data.labels, datasets },
+    return _finishChart(canvas, { type: "radar", data: { labels: viewLabels, datasets },
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: showLegend, labels: { boxWidth: 10, font: { size: 11 } } } },
         scales: { r: { ticks: { font: { size: 10 } } } } } });
@@ -235,14 +248,14 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
     ? {
         x: {
           stacked: look.barMode === "stacked",
-          ticks: { display: look.xLabels !== false, font: { size: 11 } },
+          ticks: { display: look.xLabels !== false, font: { size: 11 }, ...(horizontal ? { callback: valTick } : {}) },
           title: { display: !!look.xTitle, text: look.xTitle },
           grid: { display: false },
         },
         y: {
           stacked: look.barMode === "stacked",
           beginAtZero: true,
-          ticks: { display: look.yLabels !== false, font: { size: 11 } },
+          ticks: { display: look.yLabels !== false, font: { size: 11 }, ...(!horizontal ? { callback: valTick } : {}) },
           title: { display: !!look.yTitle, text: look.yTitle },
         },
       }
@@ -250,7 +263,7 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
 
   const chart = new window.Chart(canvas, {
     type,
-    data: { labels: def.type === "scatter" ? undefined : data.labels, datasets },
+    data: { labels: def.type === "scatter" ? undefined : viewLabels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -268,7 +281,8 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
                 label: (c) => {
                   const p = c.parsed;
                   const v = typeof p === "number" ? p : horizontal ? p.x : p.y;
-                  return `${c.dataset.label ? c.dataset.label + ": " : ""}${fmt(v)}`;
+                  const f = mF(def.type === "pie" ? 0 : c.datasetIndex);
+                  return `${c.dataset.label ? c.dataset.label + ": " : ""}${f && f !== "auto" ? fmtAs(v, f) : fmt(v)}`;
                 },
               },
         },
@@ -418,7 +432,7 @@ export function renderTable(host, props, result, totals, { onSelect, selectedVal
           ${showTotals ? `<tr class="ho-total"><td>Totales</td>${totals.map((t, mi) => `<td class="num">${esc(fmtAs(t, mFmt[mi]))}</td>`).join("")}</tr>` : ""}
           ${data.labels.map((l, i) => `
             <tr data-i="${i}" class="${selectedValues.includes(l) ? "sel" : ""}">
-              <td>${esc(fmt(l))}</td>
+              <td>${esc(fmtDim(l, props.dims?.[0]?.fmt))}</td>
               ${data.series.map((s, mi) => `<td class="num">${esc(fmtAs(s.values[i], mFmt[mi]))}</td>`).join("")}
             </tr>`).join("")}
         </tbody>

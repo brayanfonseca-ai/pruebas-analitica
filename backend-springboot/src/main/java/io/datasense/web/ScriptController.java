@@ -112,9 +112,30 @@ public class ScriptController {
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT text FROM scripts WHERE app_id = ?", appId);
         if (!rows.isEmpty()) {
-            return Map.of("app_id", appId, "text", rows.get(0).get("text"), "is_custom", true);
+            String text = String.valueOf(rows.get(0).get("text"));
+            return Map.of("app_id", appId, "text", text, "is_custom", true, "language", io.datasense.engine.connect.ScriptSql.isSql(text) ? "sql" : "qlik");
         }
-        return Map.of("app_id", appId, "text", generated(appId), "is_custom", false);
+        // Script nuevo: en SQL (el lenguaje por defecto).
+        String gen = io.datasense.engine.connect.ScriptSql.toSql(generated(appId));
+        return Map.of("app_id", appId, "text", gen, "is_custom", false, "language", "sql");
+    }
+
+    /**
+     * Convierte un script entre SQL y la sintaxis anterior sin guardarlo: body {text?, to: "sql"|"qlik"}. Sin text se
+     * convierte el script actual. Devuelve {text, language}.
+     */
+    @PostMapping("/script/convert")
+    public Map<String, Object> convert(@PathVariable String appId, @RequestBody(required = false) Map<String, String> body) {
+        requireApp(appId);
+        String to = body == null || body.get("to") == null ? "sql" : body.get("to");
+        String text = body == null ? null : body.get("text");
+        if (text == null) text = String.valueOf(get(appId).get("text"));
+        try {
+            String out = "qlik".equals(to) ? io.datasense.engine.connect.ScriptSql.toNative(text) : io.datasense.engine.connect.ScriptSql.toSql(text);
+            return Map.of("text", out, "language", "qlik".equals(to) ? "qlik" : "sql");
+        } catch (IllegalArgumentException | io.datasense.engine.Expressions.ExpressionError e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     /**
@@ -126,6 +147,13 @@ public class ScriptController {
                                    jakarta.servlet.http.HttpServletRequest request) {
         requireApp(appId);
         String text = body.getOrDefault("text", "");
+        // Un script SQL debe poder interpretarse antes de guardarlo (el error dice la tabla y la línea).
+        if (io.datasense.engine.connect.ScriptSql.isSql(text)) {
+            try { io.datasense.engine.connect.ScriptSql.toNative(text); }
+            catch (IllegalArgumentException | io.datasense.engine.Expressions.ExpressionError e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El script tiene un error: " + e.getMessage());
+            }
+        }
         io.datasense.auth.UserRecord user = io.datasense.auth.AccessService.current(request);
         List<Map<String, Object>> cur = jdbc.queryForList("SELECT text FROM scripts WHERE app_id = ?", appId);
         String previous = cur.isEmpty() ? null : String.valueOf(cur.get(0).get("text"));
@@ -266,6 +294,14 @@ public class ScriptController {
         Map<String, Map<String, Object>> sources = connections.tableSources(appId);
         List<Map<String, Object>> saved = jdbc.queryForList("SELECT text FROM scripts WHERE app_id = ?", appId);
         String script = saved.isEmpty() ? null : String.valueOf(saved.get(0).get("text"));
+        // Script en SQL: se traduce al formato interno de la extracción (misma lógica de siempre).
+        if (io.datasense.engine.connect.ScriptSql.isSql(script)) {
+            try { script = io.datasense.engine.connect.ScriptSql.toNative(script); log.add("Script en SQL interpretado."); }
+            catch (RuntimeException e) {
+                log.add("ADVERTENCIA: el script SQL tiene un error (" + e.getMessage() + "); se usan los parámetros de la última carga.");
+                script = null;
+            }
+        }
         int total = 0;
         for (Map<String, Object> row : tables.listTables(appId)) {
             String name = (String) row.get("name");

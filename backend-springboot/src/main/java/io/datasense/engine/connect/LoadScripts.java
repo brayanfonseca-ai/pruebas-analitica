@@ -104,6 +104,12 @@ public final class LoadScripts {
         return sqlFor(connector, config, params, DataTransform.pushdown(params.get("transform")));
     }
 
+    /** Bloque de carga en SQL (el lenguaje del editor): CREATE TABLE … AS SELECT … FROM (consulta de la conexión). */
+    public static String blockSql(String connName, String connector, Map<String, Object> config,
+                                  Map<String, Object> params, String tableName, List<String> fallbackColumns) {
+        return ScriptSql.toSql(block(connName, connector, config, params, tableName, fallbackColumns));
+    }
+
     /**
      * Bloque de carga completo.
      * @param fallbackColumns columnas de origen si el transform no las lista (p. ej. las del DataFrame)

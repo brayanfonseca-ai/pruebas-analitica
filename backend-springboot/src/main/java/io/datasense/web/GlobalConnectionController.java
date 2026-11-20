@@ -253,7 +253,7 @@ public class GlobalConnectionController {
             Map<String, Object> out = new LinkedHashMap<>();
             out.put("ok", true);
             out.put("params", params);
-            out.put("script", LoadScripts.block(String.valueOf(conn.get("name")), connector, config, params,
+            out.put("script", LoadScripts.blockSql(String.valueOf(conn.get("name")), connector, config, params,
                     ConnectionController.targetName(params, conn), known));
             out.put("sql", LoadScripts.sqlFor(connector, config, params));
             return out;
@@ -332,7 +332,7 @@ public class GlobalConnectionController {
         out.put("mode", LoadScripts.mode(params));
         out.put("limit", LoadScripts.limit(params));
         out.put("sql", LoadScripts.sqlFor(connector, config, params));
-        out.put("script", LoadScripts.block(String.valueOf(conn.get("name")), connector, config, params, tableName, sample.columns()));
+        out.put("script", LoadScripts.blockSql(String.valueOf(conn.get("name")), connector, config, params, tableName, sample.columns()));
         return out;
     }
 }

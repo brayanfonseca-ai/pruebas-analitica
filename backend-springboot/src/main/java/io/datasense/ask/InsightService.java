@@ -222,15 +222,28 @@ public class InsightService {
      * → {table, columns, rows, total, truncated}.
      */
     @SuppressWarnings("unchecked")
+    /** Condición por fila en SQL o en la sintaxis anterior → formato interno (null si no hay). */
+    static String nativeWhere(AskService.Model m, String where) {
+        if (where == null) return null;
+        String w = where.replaceFirst("^=\\s*", "");
+        if (io.datasense.engine.ExprLang.isNative(w)) return w;
+        Map<String, List<String>> idx = new LinkedHashMap<>();
+        m.frames.forEach((t, d) -> d.columns().forEach(c -> idx.computeIfAbsent(c, k -> new ArrayList<>()).add(t)));
+        try { return io.datasense.engine.ExprLang.sqlToNative(w, idx); }
+        catch (io.datasense.engine.Expressions.ExpressionError e) { throw new IllegalArgumentException("Condición no válida: " + e.getMessage()); }
+    }
+
     public Map<String, Object> rows(String appId, Map<String, Object> body) {
         AskService.Model m = ask.model(appId);
         if (m.frames.isEmpty()) throw new IllegalArgumentException("La aplicación no tiene datos cargados.");
         String table = blankNull(body.get("table"));
         Map<String, List<Object>> sel = sel(body.get("selections"));
+        // la condición puede venir en SQL ([probabilidad_retiro] > 0.6 o probabilidad_retiro > 0.6)
+        String whereNative = nativeWhere(m, blankNull(body.get("where")));
         if (table == null) {
             // la tabla que contiene más campos de los filtros / condición; si no, la principal
             int best = -1;
-            String where = str(body.get("where"));
+            String where = whereNative == null ? "" : whereNative;
             for (Map.Entry<String, DataFrame> e : m.frames.entrySet()) {
                 int sc = 0;
                 for (String f : sel.keySet()) if (e.getValue().indexOf(f) >= 0) sc += 2;
@@ -243,7 +256,7 @@ public class InsightService {
         if (df == null) throw new IllegalArgumentException("La tabla «" + table + "» no existe en la app.");
         for (String f : sel.keySet()) if (df.indexOf(f) < 0) throw new IllegalArgumentException("El campo de filtro «" + f + "» no está en la tabla " + table + ".");
         RowExpression where = null;
-        String w = blankNull(body.get("where"));
+        String w = whereNative;
         if (w != null) {
             try { where = RowExpression.compile(w.replaceFirst("^=\\s*", "")); }
             catch (RowExpression.ExprError e) { throw new IllegalArgumentException("Condición no válida: " + e.getMessage()); }
@@ -349,7 +362,7 @@ public class InsightService {
             double share = ch.get("share") == null ? 100 : Double.parseDouble(str(ch.get("share")));
             if (share <= 0 || share > 100) throw new IllegalArgumentException("El porcentaje de filas debe estar entre 1 y 100.");
             Map<String, List<Object>> s = sel(ch.get("selections"));
-            String where = blankNull(ch.get("where"));
+            String where = nativeWhere(m, blankNull(ch.get("where")));
             int touched = 0;
             String tableOf = null;
             for (Map.Entry<String, DataFrame> e : new ArrayList<>(scen.entrySet())) {

@@ -49,6 +49,7 @@ Crear o editar una **medida** o **dimensión** maestra, y el botón **fx** de un
 - **Centro**: editor grande con números de línea y **resaltado de sintaxis** (campos, textos, números, funciones, operadores), barra de operadores, **Probar** (`Ctrl+Enter`, valida en el motor y muestra tabla, campos usados y valores de ejemplo; en medidas, el resultado con todos los datos), **Ordenar** (`Ctrl+Shift+F`, parte If anidados en varias líneas), aviso inmediato de paréntesis, corchetes o comillas sin cerrar, y contador de caracteres y líneas.
 - **Derecha**: catálogo con **Campos** (buscables, por tabla, con tipo; en medidas, accesos rápidos Σ Sum y # Count), **Funciones** (firma y descripción; un clic inserta la plantilla) y **Ejemplos** construidos con los campos reales del modelo.
 - Las expresiones en varias líneas se guardan en una sola línea para el motor.
+- Las expresiones se escriben en **SQL** (`SUM(ventas)`, `COUNT(*) FILTER (WHERE …)`, `CASE WHEN …`); las de sintaxis anterior se convierten al abrir. Incluye una **ayuda de IA** (máx. 500 caracteres) y un **panel de formato** (moneda, millones, kg, °C, fechas…), también disponible junto a cada medida y dimensión en las propiedades del gráfico. Ver [19 · SQL, formato e IA](./19-sql-formato-ia.md).
 
 ## Medidas compuestas
 

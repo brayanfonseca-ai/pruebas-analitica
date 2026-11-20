@@ -33,6 +33,7 @@ const GROUPS = BASE_GROUPS.some((g) => g.key === "ml") ? BASE_GROUPS
 const getType = (type) => baseGetType(type) || ML_TYPE_DEFS.find((d) => d.type === type) || null;
 import { mountEstrellita } from "./estrellita.js";
 import { openExprStudio } from "./expr-studio.js";
+import { mountFormatPanel, describeFormat } from "./num-format.js";
 
 const MAX_ROWS = 200;
 const MIN_W = 2;
@@ -738,12 +739,33 @@ export async function render(mount, ctx) {
 
   function itemLabel(item) { return item.label || defaultLabel(item); }
 
+  /** Campo «Formato» del panel de propiedades (botón + panel desplegable del módulo de formato). */
+  function fmtField(item, kind) {
+    const own = item.fmt && item.fmt !== "auto";
+    const master = item.source === "master" ? st.masters.find((x) => x.id === item.masterId)?.format : null;
+    const label = own ? describeFormat(item.fmt, kind) : master ? `${describeFormat(master, kind)} (de la maestra)` : describeFormat(null, kind);
+    return `<div class="ho-p-field"><label class="ho-p-label">Formato</label>
+      <button type="button" class="ho-fmt-btn" data-item-fmtbtn><span data-item-fmtlbl>${esc(label)}</span><em>Cambiar</em></button>
+      <div class="ho-fmt-box" data-item-fmtbox hidden></div></div>`;
+  }
+
+  /** Props con el formato efectivo de cada medida/dimensión: el del gráfico o, si no tiene, el de la maestra. */
+  function withFormats(props) {
+    if (!props || (!props.measures?.length && !props.dims?.length)) return props;
+    const eff = (it) => {
+      if (!it || (it.fmt && it.fmt !== "auto") || it.source !== "master") return it;
+      const m = st.masters.find((x) => x.id === it.masterId);
+      return m?.format ? { ...it, fmt: m.format } : it;
+    };
+    return { ...props, measures: (props.measures || []).map(eff), dims: (props.dims || []).map(eff) };
+  }
+
   async function renderContent(o) {
     const el = els.get(o.id);
     if (!el) return;
     const inner = el.querySelector(".ho-obj-inner");
     const def = getType(o.type);
-    const p = o.props;
+    const p = withFormats(o.props);
     const token = (tokens.get(o.id) || 0) + 1;
     tokens.set(o.id, token);
     destroyContent(o.id);
@@ -1818,14 +1840,7 @@ export async function render(mount, ctx) {
                   <option value="diff" ${item.modifier === "diff" ? "selected" : ""}>Diferencia</option>
                   <option value="movavg" ${item.modifier === "movavg" ? "selected" : ""}>Media móvil</option>
                 </select></div>
-              <div class="ho-p-field"><label class="ho-p-label">Formato numérico</label>
-                <select data-item-fmt>
-                  <option value="auto" ${!item.fmt || item.fmt === "auto" ? "selected" : ""}>Automático</option>
-                  <option value="number" ${item.fmt === "number" ? "selected" : ""}>Número (1.234,5)</option>
-                  <option value="integer" ${item.fmt === "integer" ? "selected" : ""}>Entero (1.234)</option>
-                  <option value="percent" ${item.fmt === "percent" ? "selected" : ""}>Porcentaje (12,3%)</option>
-                  <option value="money" ${item.fmt === "money" ? "selected" : ""}>Moneda ($ 1.234,5)</option>
-                </select></div>
+              ${fmtField(item, "measure")}
               <div class="ho-p-field"><label class="ho-p-label">Mostrar medida si (expresión)</label>
                 <div class="ho-fx-input"><input data-item-showif value="${esc(item.showIf || "")}" placeholder="p. ej. Sum(Ventas) > 0" />
                   <button class="ho-fx" type="button" disabled title="Editor de expresiones: ${SOON}">f<sub>x</sub></button></div></div>
@@ -1835,6 +1850,7 @@ export async function render(mount, ctx) {
                   <option value="linear" ${!item.trendType || item.trendType === "linear" ? "selected" : ""}>Lineal</option>
                   <option value="avg" ${item.trendType === "avg" ? "selected" : ""}>Media</option>
                 </select></div>` : ""}` : ""}
+            ${!isMeasure ? fmtField(item, "dimension") : ""}
             <div class="ho-p-field"><label class="ho-p-label">Ordenar por este ${isMeasure ? "valor" : "campo"}</label>
               <select data-item-sort>
                 <option value="" ${!item.sort ? "selected" : ""}>No ordenar por aquí</option>
@@ -2116,8 +2132,19 @@ export async function render(mount, ctx) {
         updateObjProps(obj, () => { list[i].agg = e.target.value; });
         rerenderPane();
       });
-      d.querySelector("[data-item-fmt]")?.addEventListener("change", (e) => {
-        updateObjProps(obj, () => { list[i].fmt = e.target.value; });
+      // Módulo de formato: se despliega bajo el botón; cada cambio se aplica al gráfico en vivo.
+      d.querySelector("[data-item-fmtbtn]")?.addEventListener("click", (e) => {
+        const box = d.querySelector("[data-item-fmtbox]");
+        if (!box.hidden) { box.hidden = true; return; }
+        box.hidden = false;
+        mountFormatPanel(box, {
+          kind, value: list[i].fmt,
+          onChange: (f) => {
+            updateObjProps(obj, () => { list[i].fmt = f || "auto"; }, { rerender: false, history: false });
+            clearTimeout(d._fmtT); d._fmtT = setTimeout(() => renderContent(obj), 250);
+            e.target.closest(".ho-p-field").querySelector("[data-item-fmtlbl]").textContent = describeFormat(f, kind);
+          },
+        });
       });
       d.querySelector("[data-item-mod]")?.addEventListener("change", (e) => {
         updateObjProps(obj, () => { list[i].modifier = e.target.value; });
@@ -2335,10 +2362,11 @@ export async function render(mount, ctx) {
     }));
     pop.querySelector("[data-cat-fx]")?.addEventListener("click", () => {
       closePop();
-      openExpression(baseKind, "", async (expr, resolved) => {
+      openExpression(baseKind, "", async (expr, resolved, format) => {
         const it = {
           id: uid(), source: "expr", expression: expr, table: resolved.table, field: resolved.field, agg: resolved.agg,
           calc: resolved.expr || undefined, formula: resolved.formula || undefined, parts: resolved.parts || undefined,
+          ...(format ? { fmt: format } : {}),
         };
         if (isAlt) addAlt(obj, baseKind, it); else addItem(obj, baseKind, it);
       });
@@ -2545,7 +2573,7 @@ export async function render(mount, ctx) {
   function openExpression(kind, initial, onOk) {
     openExprStudio({
       host: studioHost, appId: ctx.appId, kind, mode: "expr", initial, fields: st.fields,
-      onApply: async (expr, resolved) => { closeModal(); await onOk(expr, resolved); },
+      onApply: async (expr, resolved, format) => { closeModal(); await onOk(expr, resolved, format); },
     });
   }
 
@@ -2586,9 +2614,9 @@ export async function render(mount, ctx) {
     const refresh = async () => { closeModal(); await loadMasters(); renderAssets(); rerenderAllContent(); renderProps(); };
     openExprStudio({
       host: studioHost, appId: ctx.appId, kind, mode: "master", item, fields: st.fields,
-      onSave: async ({ name, expression, description }) => {
-        if (item?.id) await api.updateMasterItem(ctx.appId, item.id, { name, expression, description });
-        else await api.createMasterItem(ctx.appId, { kind, name, expression, description });
+      onSave: async ({ name, expression, description, format }) => {
+        if (item?.id) await api.updateMasterItem(ctx.appId, item.id, { name, expression, description, format: format || null });
+        else await api.createMasterItem(ctx.appId, { kind, name, expression, description, format: format || null });
         await refresh();
       },
       onDelete: async () => { await api.deleteMasterItem(ctx.appId, item.id); await refresh(); },

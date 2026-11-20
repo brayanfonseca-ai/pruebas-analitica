@@ -158,6 +158,15 @@ export const parseExpression = (appId, kind, expression, name) =>
   request(`/apps/${encodeURIComponent(appId)}/expressions/parse`, {
     method: "POST", body: name ? { kind, expression, name } : { kind, expression },
   });
+// SQL ⇄ sintaxis anterior: {expression, to, from}.
+export const translateExpression = (appId, expression, to = "sql") =>
+  request(`/apps/${encodeURIComponent(appId)}/expressions/translate`, { method: "POST", body: { expression, to } });
+// Ayuda de IA (máx. 500 caracteres): {ok, expression, explanation, value?, sample?} | {ok:false, message}.
+export const assistExpression = (appId, kind, prompt, current) =>
+  request(`/apps/${encodeURIComponent(appId)}/expressions/assist`, { method: "POST", body: { kind, prompt, current: current || undefined } });
+// Script de carga SQL ⇄ sintaxis anterior (sin guardar): {text, language}.
+export const convertScript = (appId, text, to = "sql") =>
+  request(`/apps/${encodeURIComponent(appId)}/script/convert`, { method: "POST", body: { text, to } });
 
 /* ----------------------- Elementos maestros ----------------------- */
 export const listMasterItems = (appId) =>

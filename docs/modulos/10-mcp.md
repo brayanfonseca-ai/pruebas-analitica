@@ -10,7 +10,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 ## A nivel de desarrollo
 - Proyecto en `mcp-server/` (TypeScript, Node 26, `@modelcontextprotocol/sdk`, transporte **stdio**). Compila con `tsc` a `dist/`.
 - Consume la API REST del backend (`DATASENSE_BASE_URL`, default `http://localhost:8080`).
-- **138 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
+- **141 herramientas** (el backend exige sesión: el MCP inicia sesión con `DATASENSE_USER` / `DATASENSE_PASSWORD`, por defecto el admin de demostración): cubren todo lo que hace la plataforma (regla de paridad en `.kiro/steering/mcp-paridad.md`: cada funcionalidad nueva debe exponerse también como tool).
 
 | Grupo | Tools |
 |---|---|
@@ -25,6 +25,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Pregúntale / archivo a tablero | `ask_data` (`POST /apps/{id}/ask`: respuesta + cómo se calculó + consulta + objeto de hoja), `ask_suggestions`, `auto_dashboard` (`POST /apps/{id}/auto-dashboard`). Ver [15](./15-preguntale-y-autotablero.md) |
 | Automatizar | `get_schedule`, `set_schedule`, `delete_schedule` (ACCIÓN DESTRUCTIVA), `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert` (ACCIÓN DESTRUCTIVA), `get_data_health`. Ver [16](./16-automatizar.md) |
 | Qué cambió · simular · actuar | `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list` (con `send` envía datos a un webhook), `delete_action_list` (ACCIÓN DESTRUCTIVA), `get_watchdog`, `set_watchdog`, `run_watchdog`. Ver [17](./17-que-cambio-simular-actuar.md) |
+| SQL, formato y ayuda de IA | `translate_expression` (SQL ⇄ sintaxis anterior), `suggest_expression` (IA, ≤ 500 caracteres, expresión SQL validada), `convert_script` (script de carga SQL ⇄ sintaxis anterior, sin guardar); `save_master_item` acepta `format` y `create_sheet`/`update_sheet` aceptan `fmt` por medida. Ver [19](./19-sql-formato-ia.md) |
 | Automatizaciones por nodos | `list_flow_nodes` (catálogo de 23 nodos, parámetros y tipos de credencial), `list_flow_templates`, `list_flows`, `get_flow`, `save_flow` (crear/reemplazar el grafo `{nodes, edges}`), `delete_flow` (ACCIÓN DESTRUCTIVA), `set_flow_enabled`, `run_flow` (envía de verdad), `list_flow_runs`, `get_flow_run`, `rotate_flow_webhook`, `list_flow_credentials`, `save_flow_credential`, `delete_flow_credential` (ACCIÓN DESTRUCTIVA), `test_flow_credential`. Ver [18](./18-automatizaciones.md) |
 | Comentarios | `list_comments`, `add_comment` (con `point` y `selections` opcionales), `resolve_comment`, `delete_comment` (ACCIÓN DESTRUCTIVA). Ver [05](./05-editor-hoja.md) |
 | Medidas compuestas en consultas y hojas | `run_query` y `create_sheet`/`update_sheet` aceptan una medida `{expression: "Count([A]) / Count([B]) * 100"}`: el tool la valida con `/expressions/parse` y envía `formula` + `parts` |

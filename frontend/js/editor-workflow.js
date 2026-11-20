@@ -12,7 +12,59 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const fmtN = (n) => (n == null ? "—" : Number(n).toLocaleString("es-CO"));
 
 /* ----------------------- Análisis del script ----------------------- */
+/** Script en SQL: -- #pestaña · USE CONNECTION · CREATE TABLE t AS SELECT … FROM (consulta) | read_file('lib://…') WHERE …; */
+function parseScriptFlowSql(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  const blocks = [];
+  let conn = null, cur = null, section = "Principal", mode = null, sqlBuf = [];
+  const flush = () => { if (cur) { if (sqlBuf.length) { cur.sql = sqlBuf.join(" ").trim(); const f = cur.sql.match(/FROM\s+((?:"[^"]+"|\w+)(?:\.(?:"[^"]+"|\w+))*)/i); cur.from = f ? f[1].replace(/"/g, "") : cur.from; } blocks.push(cur); } cur = null; mode = null; sqlBuf = []; };
+  const unq = (s) => s.trim().replace(/^"(.*)"$/, "$1").replace(/""/g, '"');
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    let m;
+    if ((m = t.match(/^--\s*#pesta[ñn]a\s*(.*)$/i))) { flush(); section = m[1].trim() || "Principal"; continue; }
+    if ((m = t.match(/^USE\s+CONNECTION\s+'((?:[^']|'')*)'/i))) { flush(); conn = m[1].replace(/''/g, "'"); continue; }
+    if ((m = t.match(/^CREATE\s+(?:OR\s+REPLACE\s+)?TABLE\s+("(?:[^"]|"")+"|[\p{L}_][\p{L}\w.]*)\s+AS\b(.*)$/iu))) {
+      flush();
+      cur = { name: unq(m[1]), conn, section, line: i, fields: [], where: null, distinct: false, sql: null, file: null, from: null };
+      mode = "select";
+      const rest = m[2].trim();
+      if (/^SELECT\s+DISTINCT\b/i.test(rest)) cur.distinct = true;
+      const after = rest.replace(/^SELECT\b\s*(DISTINCT\b\s*)?/i, "");
+      if (after) addSqlFields(cur, after, false, i);
+      continue;
+    }
+    if (!cur) continue;
+    if (mode === "sql") {
+      if (/^\)\s*(AS\s+\w+)?/i.test(t)) { mode = "after"; const w = t.match(/WHERE\s+(.+?);?$/i); if (w) cur.where = w[1]; if (t.endsWith(";")) flush(); continue; }
+      sqlBuf.push(t); continue;
+    }
+    if (/^SELECT\b/i.test(t)) { if (/^SELECT\s+DISTINCT\b/i.test(t)) cur.distinct = true; const rest = t.replace(/^SELECT\b\s*(DISTINCT\b\s*)?/i, ""); if (rest) addSqlFields(cur, rest, false, i); continue; }
+    if ((m = t.match(/^FROM\s+read_\w+\(\s*'lib:\/\/([^/']+)\/([^']+)'/i))) { cur.file = m[2]; cur.conn = cur.conn || m[1]; cur.from = m[2]; mode = "after"; if (t.endsWith(";")) flush(); continue; }
+    if (/^FROM\s*\(/i.test(t)) { mode = "sql"; const inner = t.replace(/^FROM\s*\(\s*/i, ""); if (inner) sqlBuf.push(inner); continue; }
+    if (/^FROM\b/i.test(t)) { mode = "after"; if (t.endsWith(";")) flush(); continue; }
+    if ((m = t.match(/^WHERE\s+(.+?);?$/i))) { cur.where = m[1]; if (t.endsWith(";")) flush(); continue; }
+    if (t.startsWith("--")) { const rest = t.replace(/^--+\s*/, ""); if (mode === "select" && rest) addSqlFields(cur, rest, true, i); continue; }
+    if (mode === "select" && t) addSqlFields(cur, t, false, i);
+  }
+  flush();
+  return blocks;
+}
+
+function addSqlFields(b, chunk, commented, line) {
+  const clean = chunk.replace(/[;,]\s*$/, "");
+  for (const part of clean.split(/,(?![^(]*\))(?=(?:[^"]*"[^"]*")*[^"]*$)/)) {
+    const p = part.trim();
+    if (!p || p === "*" || /^FROM\b|^WHERE\b/i.test(p)) continue;
+    const as = p.match(/^(.*?)\s+AS\s+("?)([^"]+)\2$/i);
+    const src = (as ? as[1] : p).trim().replace(/^"(.*)"$/, "$1");
+    if (!src) continue;
+    b.fields.push({ source: src, name: as ? as[3].trim() : src, renamed: !!as, commented, line });
+  }
+}
+
 export function parseScriptFlow(text) {
+  if (/^\s*CREATE\s+(OR\s+REPLACE\s+)?TABLE\b/im.test(String(text || ""))) return parseScriptFlowSql(text);
   const lines = String(text || "").split(/\r?\n/);
   const blocks = [];
   let conn = null, cur = null, section = "Principal";

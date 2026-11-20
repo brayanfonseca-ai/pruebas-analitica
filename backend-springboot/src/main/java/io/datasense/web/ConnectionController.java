@@ -201,7 +201,7 @@ public class ConnectionController {
             out.put("replaced", replaced);
             out.put("rowsExtracted", tr.rowsIn());
             if (!tr.warnings().isEmpty()) out.put("warnings", tr.warnings());
-            out.put("script", LoadScripts.block(str(conn.get("name")), connector, config, stored, tableName, df.columns()));
+            out.put("script", LoadScripts.blockSql(str(conn.get("name")), connector, config, stored, tableName, df.columns()));
             return out;
         } catch (IllegalArgumentException e) {
             return Map.of("ok", false, "message", message(e));

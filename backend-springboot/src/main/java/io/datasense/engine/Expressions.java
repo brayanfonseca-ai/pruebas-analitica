@@ -63,6 +63,19 @@ public final class Expressions {
      */
     public static Map<String, Object> compile(String kind, String text, Map<String, List<String>> fieldIndex, String name) {
         if (text == null || text.isBlank()) throw new ExpressionError("La expresión está vacía.");
+        // SQL (lenguaje por defecto): se traduce al formato interno y se compila igual que siempre.
+        if (!ExprLang.isNative(text)) {
+            String sql = text.strip().replaceFirst("^=\\s*", "");
+            String nat = ExprLang.sqlToNative(sql, fieldIndex);
+            Map<String, Object> out = compileNative(kind, nat, fieldIndex, name == null && "dimension".equals(kind) ? sql : name);
+            out.put("language", "sql");
+            out.put("native", nat);
+            return out;
+        }
+        return compileNative(kind, text, fieldIndex, name);
+    }
+
+    private static Map<String, Object> compileNative(String kind, String text, Map<String, List<String>> fieldIndex, String name) {
         String field, agg = null;
         if ("measure".equals(kind)) {
             Matcher m = MEASURE.matcher(text);

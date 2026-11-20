@@ -12,7 +12,7 @@
 
 import { openWorkflow } from "./editor-workflow.js";
 import { openEnvSearch } from "./editor-search.js";
-import { getScript, putScript, listScriptVersions, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnectionGlobal, loadConnection, aiModelar } from "./api.js";
+import { getScript, putScript, listScriptVersions, runScript, uploadTable, listTables, listConnections, listAllConnections, deleteConnectionGlobal, loadConnection, aiModelar, convertScript } from "./api.js";
 import { openConnectionWizard, CONNECTORS } from "./connections.js";
 import { openDataSelector as openDataSelectorModal } from "./data-selector.js";
 import { mountEstrellita } from "./estrellita.js";
@@ -29,10 +29,13 @@ function logClass(line) {
   return "";
 }
 
-// Deriva las "Secciones" del texto del script a partir de los marcadores ///$tab.
+/** ¿El script está en SQL (CREATE TABLE … AS SELECT …)? Un script vacío se escribe en SQL. */
+export const isSqlScript = (text) => !String(text || "").trim() || /^\s*CREATE\s+(OR\s+REPLACE\s+)?TABLE\b/im.test(text) || /^\s*--\s*#pesta/im.test(text);
+
+// Deriva las "Secciones" del texto del script: «-- #pestaña X» (SQL) o ///$tab X (sintaxis anterior).
 function parseSections(text) {
   const out = [];
-  const re = /^\s*\/\/\/\$tab\s*(.*)$/gim;
+  const re = /^\s*(?:\/\/\/\$tab|--\s*#pesta[ñn]a)\s*(.*)$/gim;
   let m;
   while ((m = re.exec(text)) !== null) out.push({ name: (m[1] || "Main").trim(), index: m.index });
   if (!out.length) out.push({ name: "Main", index: 0 });
@@ -76,7 +79,7 @@ export async function render(mount, ctx) {
         </aside>
 
         <section class="ed-center">
-          <div class="ed-center-head"><span id="edGenBadge" class="ed-gen-badge">auto-generado</span></div>
+          <div class="ed-center-head"><span id="edGenBadge" class="ed-gen-badge">auto-generado</span><span id="edLang"></span></div>
           <div class="ed-code"><textarea id="edCode" spellcheck="false"></textarea></div>
           <div class="ed-bottom">
             <div class="ed-bottom-tabs">
@@ -144,9 +147,33 @@ export async function render(mount, ctx) {
   } else if (!canEdit) code.readOnly = true;
 
   const getCode = () => (cm ? cm.getValue() : code.value);
-  const setCode = (t) => { if (cm) cm.setValue(t); else code.value = t; };
+  const setCode = (t) => { if (cm) cm.setValue(t); else code.value = t; paintLang(); };
   let dirty = false;
   function markDirty() { if (!dirty) { dirty = true; genBadge.textContent = "editado (sin guardar)"; } }
+  const sqlMode = () => isSqlScript(getCode());
+  const tabMarker = (name) => (sqlMode() ? `-- #pestaña ${name}` : `///$tab ${name}`);
+
+  /** Lenguaje del script: SQL, o la sintaxis anterior con el botón para convertirlo. */
+  function paintLang() {
+    const host = $("#edLang");
+    if (!host) return;
+    if (sqlMode()) { host.innerHTML = `<span class="ed-lang" title="El script está en SQL">SQL</span>`; return; }
+    host.innerHTML = `<span class="ed-lang old" title="Sintaxis anterior (estilo Qlik)">Sintaxis anterior</span>${canEdit ? `<button type="button" class="ed-conv-btn" id="edConv" title="Convierte el script a SQL. Revisa y guarda: la carga da el mismo resultado.">Convertir a SQL</button>` : ""}`;
+    host.querySelector("#edConv")?.addEventListener("click", async (e) => {
+      const b = e.currentTarget; b.disabled = true; b.textContent = "Convirtiendo…";
+      try {
+        const r = await convertScript(ctx.appId, getCode(), "sql");
+        setCode(r.text || ""); markDirty(); renderSectionList();
+        status.textContent = "Script convertido a SQL. Revísalo y pulsa Guardar script: la carga da el mismo resultado.";
+        status.style.color = "";
+      } catch (err) {
+        b.disabled = false; b.textContent = "Convertir a SQL";
+        status.textContent = "No se pudo convertir: " + err.message; status.style.color = "#c0392b";
+      }
+    });
+  }
+  paintLang();
+  if (cm) cm.on("change", () => { clearTimeout(paintLang._t); paintLang._t = setTimeout(paintLang, 300); });
 
   /* ---------------- Secciones ---------------- */
   const sectionList = $("#edSectionList");
@@ -182,7 +209,7 @@ export async function render(mount, ctx) {
   $("#edAddSec")?.addEventListener("click", () => {
     const name = prompt("Nombre de la sección:");
     if (!name || !name.trim()) return;
-    const insert = `\n///$tab ${name.trim()}\n`;
+    const insert = `\n${tabMarker(name.trim())}\n`;
     if (cm) { cm.replaceRange(insert, { line: cm.lineCount(), ch: 0 }); } else setCode(getCode() + insert);
     markDirty(); renderSectionList();
   });
@@ -206,16 +233,20 @@ export async function render(mount, ctx) {
     for (const r of ranges) { from = Math.min(from, r.anchor.line, r.head.line); to = Math.max(to, r.anchor.line, r.head.line); }
     const idx = []; for (let l = from; l <= to; l++) if (cm.getLine(l).trim()) idx.push(l);
     if (!idx.length) return;
-    const allCommented = idx.every((l) => /^\s*\/\//.test(cm.getLine(l)) && !/^\s*\/\/\/\$tab/i.test(cm.getLine(l)));
+    // SQL comenta con «--»; la sintaxis anterior con «//». Las cabeceras de sección no se tocan.
+    const tok = sqlMode() ? "--" : "//";
+    const isHead = (t) => /^\s*(\/\/\/\$tab|--\s*#pesta)/i.test(t);
+    const reTok = tok === "--" ? /^--\s?/ : /^\/\/\s?/;
+    const allCommented = idx.every((l) => reTok.test(cm.getLine(l).trimStart()) && !isHead(cm.getLine(l)));
     cm.operation(() => {
       for (const l of idx) {
         const text = cm.getLine(l);
-        if (/^\s*\/\/\/\$tab/i.test(text)) continue; // las cabeceras de sección no se tocan
+        if (isHead(text)) continue;
         const lead = text.match(/^\s*/)[0].length;
         if (allCommented) {
-          const m = text.slice(lead).match(/^\/\/\s?/);
+          const m = text.slice(lead).match(reTok);
           cm.replaceRange("", { line: l, ch: lead }, { line: l, ch: lead + m[0].length });
-        } else cm.replaceRange("// ", { line: l, ch: lead });
+        } else cm.replaceRange(tok + " ", { line: l, ch: lead });
       }
     });
     status.textContent = allCommented ? "Líneas descomentadas: se volverán a cargar." : "Líneas comentadas: los campos comentados no se cargan. Guarda y pulsa Cargar datos.";
@@ -447,7 +478,9 @@ export async function render(mount, ctx) {
       if (!dirty) {
         try { const fresh = await getScript(ctx.appId); if (!fresh.is_custom) { setCode(fresh.text || ""); genBadge.textContent = "auto-generado"; renderSectionList(); } } catch {}
       } else {
-        insertAtCursor(`\n// Origen disponible para FROM:\n// LOAD * FROM [lib://DataFiles/${up.name}] (txt);\n`);
+        insertAtCursor(sqlMode()
+          ? `\n-- Origen disponible:\n-- CREATE TABLE ${up.name} AS SELECT * FROM read_file('lib://DataFiles/${up.name}');\n`
+          : `\n// Origen disponible para FROM:\n// LOAD * FROM [lib://DataFiles/${up.name}] (txt);\n`);
       }
     } catch (err) {
       (dstatus || status).textContent = "Error: " + err.message;
@@ -470,7 +503,9 @@ export async function render(mount, ctx) {
       const file = modal.querySelector("#stFile").value.trim() || t;
       const fmt = modal.querySelector("#stFmt").value;
       closeModal();
-      insertAtCursor(`\nSTORE ${t} INTO [lib://DataFiles/${path}/${file}.${fmt}] (${fmt});\n`);
+      insertAtCursor(sqlMode()
+        ? `\n-- Exportar (aún no se ejecuta al cargar):\n-- COPY ${t} TO 'lib://DataFiles/${path}/${file}.${fmt}' (FORMAT ${fmt});\n`
+        : `\nSTORE ${t} INTO [lib://DataFiles/${path}/${file}.${fmt}] (${fmt});\n`);
     });
   }
 
@@ -564,7 +599,7 @@ export async function render(mount, ctx) {
       label: (c) => CONN_LABEL[c] || c,
       icon: connIcon,
       insertScript: (script, name) => {
-        insertAtCursor(`\n///$tab ${name}\n${script}`);
+        insertAtCursor(`\n${tabMarker(name)}\n${script}`);
         status.textContent = `Script de carga de ${name} insertado. Ejecuta Cargar datos para traer los datos.`;
         status.style.color = "";
       },
@@ -594,8 +629,9 @@ export async function render(mount, ctx) {
         setCode(fresh.text || ""); genBadge.textContent = "auto-generado"; renderSectionList();
         prog.step("Script auto-generado actualizado con LIB CONNECT + SQL SELECT.", "ok");
       } else if (r.script) {
-        const marker = `[${t.name}]:`;
-        if (!getCode().includes(marker)) insertAtCursor(`\n///$tab ${t.name}\n${r.script}`);
+        const nm = String(t.name || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const already = getCode().includes(`[${t.name}]:`) || new RegExp(`CREATE\\s+(OR\\s+REPLACE\\s+)?TABLE\\s+"?${nm}"?\\s+AS`, "i").test(getCode());
+        if (!already) insertAtCursor(`\n${tabMarker(t.name)}\n${r.script}`);
         prog.step("Bloque de carga añadido al script (guárdalo para conservarlo).", "ok");
       }
       prog.done(`${r.message}. Ya puedes modelar: Modelo de datos / Modelo lógico.`);
@@ -614,7 +650,9 @@ export async function render(mount, ctx) {
 
   /* ---------------- Incluir script ---------------- */
   function openIncludeScript() {
-    const tpl = `\n///$tab Transform\n// Transforma una tabla existente (edítala y pulsa Cargar datos)\n// QVD_Ejemplo:\n// LOAD\n//   [cedula] AS [cedula],\n//   Upper([Sucursal]) AS [Sucursal],\n//   If([probabilidad_retiro] > 0.9, 'Muy Alto', 'Otro') AS [CategoriaRiesgo]\n// RESIDENT RAW_Ejemplo;\n`;
+    const tpl = sqlMode()
+      ? `\n-- #pestaña Transform\n-- Ejemplo de transformación en SQL (quita los «--» y ajústalo):\n-- CREATE TABLE ventas AS\n-- SELECT\n--     cedula,\n--     UPPER(sucursal) AS sucursal,\n--     CASE WHEN probabilidad_retiro > 0.9 THEN 'Muy alto' ELSE 'Otro' END AS categoria_riesgo\n-- FROM (\n--     SELECT * FROM esquema.tabla\n-- ) AS origen\n-- WHERE cedula IS NOT NULL;\n`
+      : `\n///$tab Transform\n// Transforma una tabla existente (edítala y pulsa Cargar datos)\n// QVD_Ejemplo:\n// LOAD\n//   [cedula] AS [cedula],\n//   Upper([Sucursal]) AS [Sucursal],\n//   If([probabilidad_retiro] > 0.9, 'Muy Alto', 'Otro') AS [CategoriaRiesgo]\n// RESIDENT RAW_Ejemplo;\n`;
     insertAtCursor(tpl);
     status.textContent = "Plantilla de script insertada. Ajústala y pulsa Cargar datos.";
     status.style.color = "";
@@ -631,7 +669,7 @@ export async function render(mount, ctx) {
     appId: ctx.appId,
     persona: "ingeniero de datos",
     title: "Ingeniero de datos",
-    greeting: "Soy tu ingeniero de datos. Cargo tus tablas y te propongo un modelo (estrella/copo/araña), llaves PK/FK y un script LOAD de DataSense. ¿Qué modelamos?",
+    greeting: "Soy tu ingeniero de datos. Cargo tus tablas y te propongo un modelo (estrella/copo/araña), llaves PK/FK y el script de carga en SQL. ¿Qué modelamos?",
     sendFn: aiModelar,
     buildContext: async () => {
       let tablas = [];

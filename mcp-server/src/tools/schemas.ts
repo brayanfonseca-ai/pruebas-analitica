@@ -112,8 +112,9 @@ const sheetObjectSchema = z
         z.object({
           field: z.string().optional().describe("Campo de la medida."),
           agg: aggEnum.optional(),
-          expression: z.string().optional().describe("Medida fx simple o COMPUESTA (p. ej. \"Count([FECHA RETIRO]) / Count([CEDULA]) * 100\"); se valida y se guarda como item fx."),
+          expression: z.string().optional().describe("Medida SQL simple o COMPUESTA (p. ej. \"ROUND(100.0 * COUNT(*) FILTER (WHERE \\\"ESTADO CONTRATO\\\" = 'Inactivo') / COUNT(CEDULA), 2)\"); se valida y se guarda como item fx."),
           label: z.string().optional().describe("Etiqueta de la medida."),
+          fmt: z.record(z.string(), z.any()).optional().describe("Formato de presentacion: {type: number|integer|percent|currency|unit, decimals, scale: K|M|B|auto, prefix, suffix, currency: COP|USD|EUR} (p. ej. {type:'currency',currency:'COP',scale:'M',decimals:1} → $ 6,0 M). Sin fmt usa el de la medida maestra o el automatico."),
           source: z.enum(["master", "expr"]).optional().describe("'master' + masterId para usar una medida maestra."),
           masterId: z.string().optional(),
         }).passthrough(),

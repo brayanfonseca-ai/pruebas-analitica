@@ -70,6 +70,14 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | GET/POST/PUT/DELETE | `/apps/{appId}/actions[/{id}]` · POST `/{id}/run` · GET `/{id}/export.csv` | Listas de acción (exportar / enviar a webhook). |
 | GET/PUT/DELETE | `/apps/{appId}/watchdog` · POST `/watchdog/run` | Agente de guardia. Ver [`modulos/17`](./modulos/17-que-cambio-simular-actuar.md). |
 
+## SQL, formato y ayuda de IA
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/apps/{appId}/expressions/translate` | `{expression, to: sql\|native}` → `{expression, to, from}` (`dashboard:view`). |
+| POST | `/apps/{appId}/expressions/assist` | `{kind, prompt ≤500, current?}` → expresión SQL validada por el motor (`ai:use`). |
+| POST/PUT | `/apps/{appId}/master-items[/{id}]` | Aceptan `format` (presentación); PUT solo con `{format}` no crea versión. |
+| POST | `/apps/{appId}/script/convert` | `{text?, to: sql\|qlik}` → `{text, language}` sin guardar. `GET /script` devuelve `language`; `PUT /script` valida el SQL. Ver [`modulos/19`](./modulos/19-sql-formato-ia.md). |
+
 ## Automatizaciones por nodos (`charts:edit`)
 | Método | Ruta | Descripción |
 |---|---|---|

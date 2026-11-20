@@ -188,7 +188,18 @@ final class SheetObjectNormalizer {
         item.put("source", "field");
         item.put("table", table);
         item.put("field", field);
+        keepPresentation(src, item);
         return item;
+    }
+
+    /** Conserva la presentación del ítem amigable: etiqueta y formato (moneda, millones, kg, fecha…). */
+    @SuppressWarnings("unchecked")
+    private static void keepPresentation(Object src, Map<String, Object> item) {
+        if (!(src instanceof Map<?, ?> m)) return;
+        Object label = ((Map<String, Object>) m).get("label"), fmt = ((Map<String, Object>) m).get("fmt");
+        if (fmt == null) fmt = ((Map<String, Object>) m).get("format");
+        if (label != null && !str(label).isBlank()) item.put("label", str(label));
+        if (fmt != null) item.put("fmt", fmt);
     }
 
     /** Construye un item de medida interno; {@code null} si el campo no existe. */
@@ -222,6 +233,7 @@ final class SheetObjectNormalizer {
         item.put("table", table);
         item.put("field", field);
         item.put("agg", agg);
+        keepPresentation(src, item);
         return item;
     }
 

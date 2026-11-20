@@ -45,6 +45,7 @@ async function resolveSheetMeasures(appId: string, objects: unknown[]): Promise<
       source: "expr", expression: mm.expression, table: r.table, field: r.field, agg: r.agg,
       ...(r.formula ? { formula: r.formula, parts: r.parts } : {}),
       ...(mm.label ? { label: mm.label } : {}),
+      ...(mm.fmt ? { fmt: mm.fmt } : mm.format ? { fmt: mm.format } : {}),
     };
   };
   const out: unknown[] = [];
@@ -88,7 +89,7 @@ export const actionTools: ContextTool[] = [
     name: "run_query",
     title: "Ejecutar query / agregacion",
     description:
-      "Ejecuta una query de agregacion sobre TODO el dataset (en el motor, sin traer filas). Sin 'dimension' -> KPI escalar en QueryResult.value; con 'dimension' -> labels + series. Cada medida es {table, field, agg} (sum|count|avg|min|max, default sum) o {expression} con una medida fx simple o COMPUESTA (aritmetica entre agregaciones, Sum(If(...)), Count(DISTINCT [x])): el tool la valida con POST /expressions/parse y envia formula+parts. POST /api/v1/apps/{appId}/query con QuerySpec.",
+      "Ejecuta una query de agregacion sobre TODO el dataset (en el motor, sin traer filas). Sin 'dimension' -> KPI escalar en QueryResult.value; con 'dimension' -> labels + series. Cada medida es {table, field, agg} (sum|count|avg|min|max, default sum) o {expression} con una medida SQL simple o COMPUESTA (SUM(x), COUNT(DISTINCT x), COUNT(*) FILTER (WHERE …), 100.0 * a / b; la sintaxis anterior tambien sirve): el tool la valida con POST /expressions/parse y envia formula+parts. POST /api/v1/apps/{appId}/query con QuerySpec.",
     inputShape: runQueryShape,
     handler: async (args) => {
       const measures = [];
@@ -116,7 +117,7 @@ export const actionTools: ContextTool[] = [
     name: "set_script",
     title: "Guardar script de carga",
     description:
-      "Guarda el script de carga de una aplicacion con control de versiones: si el texto cambio respecto a la version principal se crea una version nueva (v1, v2…) y la anterior queda en el historial (list_script_versions). 'message' describe el cambio (como un commit). En las tablas cargadas por conexion, una linea de campo comentada con // en su LOAD hace que esa columna NO se cargue al ejecutar run_script. Devuelve {app_id, text, is_custom, version, version_created, version_message}. PUT /api/v1/apps/{appId}/script con {text, message?}.",
+      "Guarda el script de carga de una aplicacion con control de versiones: si el texto cambio respecto a la version principal se crea una version nueva (v1, v2…) y la anterior queda en el historial (list_script_versions). 'message' describe el cambio (como un commit). El script va en SQL (CREATE TABLE t AS SELECT … FROM ( consulta ) AS origen WHERE …; ver convert_script) o en la sintaxis anterior; si es SQL se valida al guardar (400 con la tabla y la linea del error). En las tablas cargadas por conexion, una columna comentada con -- (o // en la sintaxis anterior) NO se carga al ejecutar run_script. Devuelve {app_id, text, is_custom, version, version_created, version_message}. PUT /api/v1/apps/{appId}/script con {text, message?}.",
     inputShape: { ...setScriptShape, message: z.string().optional().describe("Descripcion del cambio (como un mensaje de commit).") },
     handler: async (args) =>
       toToolText(

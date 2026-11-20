@@ -446,13 +446,14 @@ export const platformTools: ContextTool[] = [
   {
     name: "save_master_item",
     title: "Crear/editar elemento maestro",
-    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression, description?}. Medida: simple Sum([Ventas]), Count([cedula]) o COMPUESTA: aritmetica entre agregaciones (Count([FECHA RETIRO]) / Count([CEDULA]) * 100), agregacion sobre una expresion por fila (Sum(If([ESTADO CONTRATO]='Inactivo',1,0))), Count(DISTINCT [CEDULA]), Round(...), If(Count([x])>0, ...); todos los campos en una misma tabla; dentro de una compuesta Count cuenta valores no vacios y /0 da 0. En create_sheet usa la medida con {source:'master', masterId}. Dimension: un campo [Sucursal] o una DIMENSION CALCULADA (expresion por fila con campos de una misma tabla), ej. If([EDAD EN AÑOS] >= 40, 'Mayor de 40', 'Menor de 40'), Class([ANTIGÜEDAD EN MESES], 12), Year([FECHA RETIRO]), [EMPRESA] & ' - ' & [CARGO]; funciones If, Class, Match, Year, Month, Day, Round, Upper, Lower, Trim, Left, Right, Mid, Replace, Alt, Num, Text, Date. El 'name' de una calculada es el campo por el que se agrupa, selecciona y filtra (no puede coincidir con un campo existente). En create_sheet usa la dimension con {source:'master', masterId}. POST|PUT /api/v1/apps/{appId}/master-items.",
+    description: "Sin itemId crea; con itemId actualiza. {kind: dimension|measure, name, expression, description?, format?}. La expresion va en SQL (lenguaje por defecto; la sintaxis anterior con [corchetes] tambien se acepta). Campos sin comillas (cedula) o entre comillas dobles si tienen espacios/tildes (\"ESTADO CONTRATO\"); no distingue mayusculas ni tildes y elige la tabla que contiene todos los campos. Medida: SUM(ventas), COUNT(cedula), COUNT(*), COUNT(DISTINCT cedula), AVG/MIN/MAX, condiciones con FILTER: COUNT(*) FILTER (WHERE \"ESTADO CONTRATO\" = 'Inactivo'), SUM(valor) FILTER (WHERE sucursal IN ('CALI','NEIVA')), compuestas: ROUND(100.0 * COUNT(*) FILTER (WHERE …) / COUNT(cedula), 2); todos los campos en una misma tabla; /0 da 0. Dimension: un campo (sucursal) o CALCULADA por fila: CASE WHEN \"EDAD EN AÑOS\" >= 40 THEN 'Mayor de 40' ELSE 'Menor de 40' END, CLASS(antiguedad, 12), YEAR(fecha), empresa || ' - ' || cargo; funciones CASE, COALESCE, CAST(x AS INTEGER|DOUBLE|VARCHAR|DATE), ROUND, FLOOR, CEIL, ABS, UPPER, LOWER, TRIM, LENGTH, SUBSTRING, LEFT, RIGHT, REPLACE, YEAR, MONTH, DAY, EXTRACT, IN, BETWEEN, LIKE 'AB%', IS [NOT] NULL, ||. El 'name' de una calculada es el campo por el que se agrupa (no puede coincidir con un campo existente). 'format' (presentacion, no cambia la definicion ni crea version): {type: number|integer|percent|currency|unit|date|text, decimals 0-4, scale: K|M|B|auto, prefix, suffix (p. ej. ' kg', ' L', ' °C'), currency: COP|USD|EUR, date: 'dd/mm/aaaa'|'d mmm aaaa'|'mmm aaaa'|'aaaa-mm'|'aaaa', case: upper|lower|title, thousands:false}; null = automatico. Con itemId y solo 'format' cambia unicamente el formato. En create_sheet usa el elemento con {source:'master', masterId}. POST|PUT /api/v1/apps/{appId}/master-items.",
     inputShape: {
       ...appId, itemId: z.string().optional().describe("Id para actualizar."),
       kind: z.enum(["dimension", "measure"]).optional(), name: z.string().optional(), expression: z.string().optional(), description: z.string().optional(),
+      format: z.record(z.string(), z.any()).nullable().optional().describe("Formato de presentacion (moneda, millones, kg, %, fecha…); null = automatico."),
     },
     handler: async (a) => {
-      const body = pick(a, ["kind", "name", "expression", "description"]);
+      const body = pick(a, ["kind", "name", "expression", "description", "format"]);
       return toToolText(a.itemId ? await put(`${A(a.appId)}/master-items/${E(a.itemId)}`, body) : await post(`${A(a.appId)}/master-items`, body));
     },
   },
@@ -466,9 +467,33 @@ export const platformTools: ContextTool[] = [
   {
     name: "parse_expression",
     title: "Validar expresion fx",
-    description: "Valida una expresion contra los campos de la app. Medida: Sum([Ventas]) o compuesta (Count([A]) / Count([B]) * 100, Sum(If(...)), Count(DISTINCT [x])): devuelve {table, field, agg, value (total con todos los datos)} y, si es compuesta, {composite:true, formula, parts, fields}. Dimension: campo o dimension calculada (If/Class/Year/&…): devuelve {table, field, expr, calculated:true, distinct, sample (valores de ejemplo)} para probarla antes de guardarla. POST /api/v1/apps/{appId}/expressions/parse.",
+    description: "Valida una expresion SQL (o de la sintaxis anterior) contra los campos de la app. Medida: SUM(ventas) o compuesta (100.0 * COUNT(*) FILTER (WHERE x IS NULL) / COUNT(cedula), COUNT(DISTINCT cedula), SUM(CASE WHEN … END)): devuelve {table, field, agg, value (total con todos los datos), language:'sql', native (traduccion interna)} y, si es compuesta, {composite:true, formula, parts, fields}. Dimension: campo o calculada (CASE WHEN, CLASS, YEAR, ||…): devuelve {table, field, expr, calculated:true, distinct, sample}. Los errores dicen el campo que no existe y sugieren el parecido. POST /api/v1/apps/{appId}/expressions/parse.",
     inputShape: { ...appId, expression: id("Expresion."), kind: z.enum(["dimension", "measure"]).optional().describe("default measure"), name: z.string().optional().describe("Nombre de la dimension calculada.") },
     handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/parse`, { kind: String(a.kind ?? "measure"), expression: String(a.expression), ...(a.name ? { name: String(a.name) } : {}) })),
+  },
+  {
+    name: "translate_expression",
+    title: "Traducir expresion SQL ⇄ sintaxis anterior",
+    description: "Convierte una medida/dimension entre SQL y la sintaxis anterior estilo Qlik (Sum([x]), If(…), &). to='sql' (default) devuelve SQL legible con los nombres reales de los campos (p. ej. Sum(If([ESTADO CONTRATO]='Inactivo',1,0)) → COUNT(*) FILTER (WHERE \"ESTADO CONTRATO\" = 'Inactivo')); to='native' devuelve el formato interno que evalua el motor. El resultado numerico es el mismo. Devuelve {expression, to, from}. POST /api/v1/apps/{appId}/expressions/translate.",
+    inputShape: { ...appId, expression: id("Expresion a convertir."), to: z.enum(["sql", "native"]).optional().describe("default sql") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/translate`, { expression: String(a.expression), to: String(a.to ?? "sql") })),
+  },
+  {
+    name: "suggest_expression",
+    title: "Ayuda de IA para una medida o dimension",
+    description: "Describe en espanol lo que necesitas (maximo 500 caracteres, p. ej. «porcentaje de inactivos sobre el total de conductores») y la IA (Bedrock) escribe la expresion SQL con los campos reales de la app; se valida en el motor y, si falla, se corrige una vez. Solo ve el catalogo de campos (nombre, tabla, tipo y algunos valores de texto), no filas. Requiere ai:use. Devuelve {ok, expression, explanation, table, value? (medida: total con todos los datos), sample? (dimension), attempts} o {ok:false, message}. No guarda nada: usa save_master_item para guardarla. POST /api/v1/apps/{appId}/expressions/assist con {kind, prompt, current?}.",
+    inputShape: {
+      ...appId, prompt: z.string().min(1).max(500).describe("Que necesitas, en lenguaje natural (max. 500)."),
+      kind: z.enum(["measure", "dimension"]).optional().describe("default measure"), current: z.string().optional().describe("Expresion actual de la que partir."),
+    },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/expressions/assist`, { kind: String(a.kind ?? "measure"), prompt: String(a.prompt), ...(a.current ? { current: String(a.current) } : {}) })),
+  },
+  {
+    name: "convert_script",
+    title: "Convertir script de carga SQL ⇄ sintaxis anterior",
+    description: "Convierte un script de carga (sin guardarlo) a SQL (to='sql', default) o a la sintaxis anterior estilo Qlik (to='qlik'). Sin 'text' convierte el script actual de la app. El script SQL tiene por tabla: CREATE TABLE nombre AS SELECT [DISTINCT] col, CAST(col AS INTEGER) AS col2, CASE WHEN … END AS col3 FROM ( consulta de la conexion ) AS origen | read_file('lib://conexion/archivo') WHERE condicion; antes de las tablas de una conexion USE CONNECTION 'nombre'; secciones con -- #pestaña Nombre; una columna comentada con -- no se carga. Devuelve {text, language}. Para aplicarlo usa set_script y luego run_script. POST /api/v1/apps/{appId}/script/convert con {text?, to}.",
+    inputShape: { ...appId, text: z.string().optional().describe("Script a convertir (default: el actual)."), to: z.enum(["sql", "qlik"]).optional().describe("default sql") },
+    handler: async (a) => toToolText(await post(`${A(a.appId)}/script/convert`, { to: String(a.to ?? "sql"), ...(a.text ? { text: String(a.text) } : {}) })),
   },
   {
     name: "certify_master_item",
