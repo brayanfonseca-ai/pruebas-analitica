@@ -10,10 +10,12 @@
  *       baseUrl: "https://TU-SERVIDOR",   // opcional; por defecto, el origen de este script
  *       height: "600px",                  // opcional ("auto" ajusta la altura al contenido)
  *       theme: "dark",                    // opcional: "light" | "dark"
- *       onReady: () => {},                // opcional
+ *       onReady: (d) => {},               // opcional; d.sheetIds = hojas del embed
+ *       onSheetChange: (sheetId) => {},   // opcional; el usuario cambió de pestaña
  *       onError: (msg) => {},             // opcional
  *     });
  *     h.setTheme("light");  // cambiar el tema en caliente
+ *     h.setSheet("id");     // abrir otra hoja del embed (si tiene varias)
  *     h.destroy();          // quitar el iframe
  *   </script>
  */
@@ -49,6 +51,8 @@
       if (d.type === "ds-embed:ready") {
         if (opts.theme) send({ type: "ds-embed:theme", theme: opts.theme });
         if (typeof opts.onReady === "function") opts.onReady(d);
+      } else if (d.type === "ds-embed:sheetchange") {
+        if (typeof opts.onSheetChange === "function") opts.onSheetChange(d.sheetId);
       } else if (d.type === "ds-embed:error") {
         if (typeof opts.onError === "function") opts.onError(d.message);
       } else if (d.type === "ds-embed:resize" && opts.height === "auto" && d.height) {
@@ -63,6 +67,7 @@
     return {
       iframe: iframe,
       setTheme: function (t) { send({ type: "ds-embed:theme", theme: t }); },
+      setSheet: function (sheetId) { send({ type: "ds-embed:sheet", sheetId: sheetId }); },
       destroy: function () {
         window.removeEventListener("message", onMessage);
         if (iframe.parentNode) iframe.parentNode.removeChild(iframe);

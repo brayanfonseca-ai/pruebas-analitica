@@ -37,7 +37,7 @@ Un servidor **MCP en TypeScript** que expone DataSense como herramientas para ag
 | Permisos por rol | `set_role_permissions`, `reset_role_permissions`. Ver [12](./12-configuracion-seguridad.md) |
 | Versiones del script | `set_script` (con `message`), `list_script_versions`, `get_script_version`, `restore_script_version`. Ver [13](./13-notas-agente.md) |
 | Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes`. Ver [13](./13-notas-agente.md) |
-| Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed`. Ver [14](./14-embedding.md) |
+| Embedding | `list_embeds`, `create_embed` (una o varias hojas: `sheetIds`), `update_embed` (`sheetIds` reemplaza las hojas), `rotate_embed_token`, `delete_embed`. Ver [14](./14-embedding.md) |
 | Usuarios, permisos y etapas | `get_current_user`, `get_security_catalog`, `list_users`, `create_user`, `update_user`, `reset_user_password`, `delete_user`, `set_app_stage` (personal → desarrollo → produccion); `set_sheet_visibility` publica hojas. Ver [12](./12-configuracion-seguridad.md) |
 | Notificaciones | `list_notifications` (`GET /api/v1/notifications`; eventos de alertas/recargas del usuario y, para el administrador, la actividad de la plataforma), `mark_notifications_read` (una o todas), `clear_notifications` (vacía el panel, no borra datos) |
 | Centro de ayuda | `get_help` (manual técnico, FAQ y atajos de `/help/ayuda.json`, con búsqueda y filtro por sección) |

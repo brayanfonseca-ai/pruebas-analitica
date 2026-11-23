@@ -213,7 +213,7 @@ Notas y embeds: ver [`modulos/13-notas-agente.md`](./modulos/13-notas-agente.md)
 | GET, PUT | `/apps/{appId}/notes` | `charts:edit` | Diccionario de datos. |
 | GET | `/apps/{appId}/notes/context` | `charts:edit` | Texto que recibe el agente. |
 | POST | `/apps/{appId}/notes/suggest` | `charts:edit` | Borradores con IA (no guarda). |
-| GET, POST | `/embeds` | `embed:manage` | Listar / crear `{name, app_id, sheet_id, allowed_origins?, expires_in_days?, options?}`. |
-| PUT, DELETE | `/embeds/{id}` | `embed:manage` | Editar (`enabled`…) / eliminar. |
+| GET, POST | `/embeds` | `embed:manage` | Listar / crear `{name, app_id, sheet_ids: [..] (o sheet_id), allowed_origins?, expires_in_days?, options? {theme, hideTitle, hideSelections, hideTabs}}`. Devuelve `sheet_ids` y `sheets:[{id, title, published}]`. |
+| PUT, DELETE | `/embeds/{id}` | `embed:manage` | Editar (`enabled`, `sheet_ids` (reemplaza; el token no cambia)…) / eliminar. |
 | POST | `/embeds/{id}/rotate` | `embed:manage` | Token nuevo. |
 | GET | `/embed/{token}` (fuera de `/api/v1`) | público | Página incrustable. |

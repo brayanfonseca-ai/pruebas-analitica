@@ -153,7 +153,7 @@ export async function render(mount, ctx) {
      Esqueleto
      ====================================================================== */
   mount.innerHTML = `
-    <div class="ho" id="ho">
+    <div class="ho assets-closed" id="ho">
       <div class="ho-toolbar">
         <div class="ho-tb-group">
           <button class="ho-tb-btn edit-only" data-act="activos" title="Mostrar u ocultar el panel de elementos">${svg("analyze")}<span>Elementos</span></button>
@@ -251,6 +251,7 @@ export async function render(mount, ctx) {
     loadComments();
     if (typeof registerSheetMenu === "function") registerSheetMenu();
     if (!quiet) status("");
+    if (typeof ctx.onSheetChange === "function") ctx.onSheetChange(st.sheet?.id || null);
   }
 
   function scheduleSave() {
@@ -2905,6 +2906,11 @@ export async function render(mount, ctx) {
   // ?sheet=<id> (p. ej. al venir de "Asociar a" en Experimentos de ML) gana sobre la última abierta.
   const wanted = ctx.sheetId || new URLSearchParams(location.search).get("sheet");
   const lastId = localStorage.getItem(LS("last"));
+  // Embedding de varias hojas: el visor recibe la lista y una forma de cambiar de hoja sin perder los filtros.
+  if (typeof ctx.onSheets === "function") ctx.onSheets({
+    sheets: st.sheets.map((s) => ({ id: s.id, title: s.title })),
+    open: (id) => { const s = st.sheets.find((x) => x.id === id); if (s && s.id !== st.sheet?.id) openSheet(s); },
+  });
   openSheet(st.sheets.find((s) => s.id === wanted) || st.sheets.find((s) => s.id === lastId) || st.sheets[0] || null, { quiet: true });
 
   // Registrar el menú "···" del crumb (acciones de la hoja activa).

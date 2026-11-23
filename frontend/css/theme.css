@@ -2329,3 +2329,22 @@ html[data-theme="dark"] .ho-sel-clear:hover:not(:disabled) { background: rgba(23
 .xs-result.stale::before { content: "La expresión cambió: pulsa ▶ Probar para ver el resultado actual."; display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #b45309; opacity: 1; }
 .xs-name-fix { margin-top: 8px; font-size: 12.5px; color: var(--ds-text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .xs-name-fix .xs-op { font-weight: 700; color: var(--ds-a); border-color: var(--ds-a); }
+/* Fuera de «Diseñar» el panel de elementos nunca se ve (antes asomaba vacío mientras cargaba la hoja o si no había hoja). */
+.ho:not(.editing) .ho-assets, .ho:not(.editing) .ho-rail, .ho:not(.editing) .ho-props { display: none !important; }
+/* Embedding: selector de varias hojas. */
+.em-lbl { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+.em-lbl small { font-weight: 400; color: var(--ds-muted); }
+.em-sp { border: 1px solid var(--ds-border); border-radius: 12px; overflow: hidden; background: var(--ds-surface); }
+.em-sp-bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--ds-border); background: var(--ds-surface-2); font-weight: 400; }
+.em-sp-n { flex: 1; font-size: 12px; color: var(--ds-muted); }
+.em-sp-all { border: 1px solid var(--ds-border-2); background: var(--ds-surface); color: var(--ds-text); border-radius: 8px; padding: 3px 9px; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.em-sp-all:hover { border-color: var(--ds-a); color: var(--ds-a); }
+.em-sp-list { max-height: 210px; overflow-y: auto; padding: 4px; }
+.em-sp-it { display: flex !important; flex-direction: row !important; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+.em-sp-it:hover { background: var(--ds-accent-soft); }
+.em-sp-it input { width: 16px; height: 16px; accent-color: var(--ds-a); flex: none; }
+.em-sp-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.em-sp-it em { flex: none; font-style: normal; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: #b45309; background: rgba(245, 158, 11, .14); }
+.em-sp-it em.pub { color: #047857; background: rgba(16, 185, 129, .14); }
+html[data-theme="dark"] .em-sp-it em { color: #fcd34d; } html[data-theme="dark"] .em-sp-it em.pub { color: #6ee7b7; }
+.em-unpub { color: #b45309; font-weight: 600; }

@@ -114,7 +114,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Permisos por rol | `set_role_permissions`, `reset_role_permissions` |
 | Versiones del script | `set_script` (con `message`), `list_script_versions`, `get_script_version`, `restore_script_version` |
 | Notas para agente | `get_data_notes`, `update_data_notes`, `get_agent_context`, `suggest_data_notes` |
-| Embedding | `list_embeds`, `create_embed`, `update_embed`, `rotate_embed_token`, `delete_embed` |
+| Embedding | `list_embeds`, `create_embed` (una o varias hojas: `sheetIds`), `update_embed` (`sheetIds`), `rotate_embed_token`, `delete_embed` |
 | Conexiones realizadas | `list_all_connections`, `browse_connection`, `preview_connection`, `transform_preview`, `parse_load_script`, `load_connection` (mode + transform), `delete_connection` |
 | Datos | `upload_table`, `delete_table`, `get_field_overrides`, `set_field_overrides` |
 | Asociaciones | `recommend_associations`, `list_associations`, `save_association`, `delete_association` |

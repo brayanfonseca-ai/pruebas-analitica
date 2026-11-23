@@ -25,12 +25,13 @@ public class EmbedRepository {
     }
 
     private static final String COLS =
-            "id, name, app_id, sheet_id, token, enabled, allowed_origins, expires_at, options_json, created_by, created_at, last_used_at, views";
+            "id, name, app_id, sheet_id, token, enabled, allowed_origins, expires_at, options_json, created_by, created_at, last_used_at, views, sheet_ids";
 
     private static final RowMapper<EmbedRecord> MAPPER = (rs, i) -> new EmbedRecord(
             rs.getString("id"), rs.getString("name"), rs.getString("app_id"), rs.getString("sheet_id"), rs.getString("token"),
             rs.getInt("enabled") == 1, rs.getString("allowed_origins"), rs.getString("expires_at"), rs.getString("options_json"),
-            rs.getString("created_by"), rs.getString("created_at"), rs.getString("last_used_at"), rs.getInt("views"));
+            rs.getString("created_by"), rs.getString("created_at"), rs.getString("last_used_at"), rs.getInt("views"),
+            rs.getString("sheet_ids"));
 
     public List<EmbedRecord> list() {
         return jdbc.query("SELECT " + COLS + " FROM embeds ORDER BY created_at DESC", MAPPER);
@@ -50,25 +51,29 @@ public class EmbedRepository {
         return TOKEN_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
-    public EmbedRecord create(String name, String appId, String sheetId, String allowedOrigins, String expiresAt,
+    /** {@code sheetIds}: hojas en orden (al menos una); {@code sheet_id} guarda la primera por compatibilidad. */
+    public EmbedRecord create(String name, String appId, List<String> sheetIds, String allowedOrigins, String expiresAt,
                               String optionsJson, String createdBy) {
         String id = Ids.newId();
-        jdbc.update("INSERT INTO embeds (id, name, app_id, sheet_id, token, enabled, allowed_origins, expires_at, options_json, created_by, created_at) "
-                        + "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)",
-                id, name, appId, sheetId, newToken(), allowedOrigins, expiresAt, optionsJson, createdBy, Ids.now());
+        jdbc.update("INSERT INTO embeds (id, name, app_id, sheet_id, sheet_ids, token, enabled, allowed_origins, expires_at, options_json, created_by, created_at) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)",
+                id, name, appId, sheetIds.get(0), String.join(",", sheetIds), newToken(), allowedOrigins, expiresAt, optionsJson, createdBy, Ids.now());
         return get(id).orElseThrow();
     }
 
+    /** {@code sheetIds} null = no cambia las hojas. */
     public Optional<EmbedRecord> update(String id, String name, Boolean enabled, String allowedOrigins, String expiresAt,
-                                        boolean expiresProvided, String optionsJson) {
+                                        boolean expiresProvided, String optionsJson, List<String> sheetIds) {
         EmbedRecord cur = get(id).orElse(null);
         if (cur == null) return Optional.empty();
-        jdbc.update("UPDATE embeds SET name = ?, enabled = ?, allowed_origins = ?, expires_at = ?, options_json = ? WHERE id = ?",
+        List<String> sh = sheetIds != null && !sheetIds.isEmpty() ? sheetIds : cur.sheets();
+        jdbc.update("UPDATE embeds SET name = ?, enabled = ?, allowed_origins = ?, expires_at = ?, options_json = ?, sheet_id = ?, sheet_ids = ? WHERE id = ?",
                 name != null ? name : cur.name(),
                 (enabled != null ? enabled : cur.enabled()) ? 1 : 0,
                 allowedOrigins != null ? allowedOrigins : cur.allowedOrigins(),
                 expiresProvided ? expiresAt : cur.expiresAt(),
-                optionsJson != null ? optionsJson : cur.optionsJson(), id);
+                optionsJson != null ? optionsJson : cur.optionsJson(),
+                sh.get(0), String.join(",", sh), id);
         return get(id);
     }
 

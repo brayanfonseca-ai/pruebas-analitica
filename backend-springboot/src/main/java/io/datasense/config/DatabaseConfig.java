@@ -326,6 +326,8 @@ public class DatabaseConfig {
             addColumn("master_items", "version", "INTEGER NOT NULL DEFAULT 1");
             // Formato de presentación (moneda, millones, kg, %, fecha…): JSON {type, decimals, scale, prefix, suffix, …}
             addColumn("master_items", "format_json", "TEXT");
+            // Embedding de varias hojas: ids separados por coma, en el orden de las pestañas (sheet_id = la primera).
+            addColumn("embeds", "sheet_ids", "TEXT");
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS master_item_versions (
                     item_id TEXT NOT NULL,

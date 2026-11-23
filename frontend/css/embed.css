@@ -2,6 +2,17 @@
 html, body.ds-embed { height: 100%; margin: 0; }
 body.ds-embed { overflow: hidden; background: var(--q-bg, #0b1022); }
 .ds-embed-view { height: 100vh; display: flex; flex-direction: column; min-height: 0; }
+.ds-embed-has-tabs .ds-embed-view { height: calc(100vh - 42px); }
+
+/* Pestañas de hojas (embed con varias hojas). */
+.ds-embed-tabs { height: 42px; box-sizing: border-box; display: flex; align-items: flex-end; gap: 2px; padding: 0 10px; overflow-x: auto; scrollbar-width: thin;
+  background: var(--ds-surface, #fff); border-bottom: 1px solid var(--ds-border, #e2e8f0); font: 600 13px/1 "Segoe UI", system-ui, sans-serif; }
+.ds-embed-tabs button { flex: none; height: 34px; padding: 0 16px; border: 1px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0;
+  background: none; color: var(--ds-muted, #64748b); font: inherit; cursor: pointer; white-space: nowrap; }
+.ds-embed-tabs button:hover { color: var(--ds-text, #0f172a); background: var(--ds-accent-soft, rgba(99, 102, 241, .08)); }
+.ds-embed-tabs button.on { color: var(--ds-text, #0f172a); background: var(--ds-surface-2, #f8fafc); border-color: var(--ds-border, #e2e8f0);
+  box-shadow: inset 0 2px 0 var(--ds-a, #6366f1); margin-bottom: -1px; }
+.ds-embed-tabs button:focus-visible { outline: 2px solid var(--ds-a, #6366f1); outline-offset: -2px; }
 .ds-embed-view > .ho { flex: 1; min-height: 0; height: 100%; }
 .ds-embed-loading { color: var(--q-muted, #94a3b8); padding: 22px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; }
 

@@ -22,8 +22,8 @@ import java.util.*;
  * Gestión de embeds (requiere {@code embed:manage}).
  * <ul>
  *   <li>{@code GET    /api/v1/embeds}</li>
- *   <li>{@code POST   /api/v1/embeds} {name, app_id, sheet_id, allowed_origins?: [..], expires_in_days?, options?: {theme, hideTitle, hideSelections}}</li>
- *   <li>{@code PUT    /api/v1/embeds/{id}} {name?, enabled?, allowed_origins?, expires_in_days? (0 = sin vencimiento), options?}</li>
+ *   <li>{@code POST   /api/v1/embeds} {name, app_id, sheet_ids: [..] (o sheet_id), allowed_origins?: [..], expires_in_days?, options?: {theme, hideTitle, hideSelections, hideTabs}}</li>
+ *   <li>{@code PUT    /api/v1/embeds/{id}} {name?, enabled?, sheet_ids?, allowed_origins?, expires_in_days? (0 = sin vencimiento), options?}</li>
  *   <li>{@code POST   /api/v1/embeds/{id}/rotate} — token nuevo; el anterior deja de servir</li>
  *   <li>{@code DELETE /api/v1/embeds/{id}}</li>
  * </ul>
@@ -55,8 +55,20 @@ public class EmbedController {
         m.put("app_id", e.appId());
         m.put("app_name", apps.getApp(e.appId()).map(AppOut::name).orElse("(app eliminada)"));
         m.put("app_stage", apps.getApp(e.appId()).map(AppOut::stage).orElse(null));
+        List<String> published = service.publishedSheets(e);
+        List<Map<String, Object>> sh = new ArrayList<>();
+        for (String sid : e.sheets()) {
+            Optional<Map<String, Object>> s = sheets.get(sid);
+            Map<String, Object> o = new LinkedHashMap<>();
+            o.put("id", sid);
+            o.put("title", s.map((x) -> (Object) x.get("title")).orElse("(hoja eliminada)"));
+            o.put("published", published.contains(sid));
+            sh.add(o);
+        }
         m.put("sheet_id", e.sheetId());
-        m.put("sheet_title", sheets.get(e.sheetId()).map((s) -> (Object) s.get("title")).orElse("(hoja eliminada)"));
+        m.put("sheet_ids", e.sheets());
+        m.put("sheets", sh);
+        m.put("sheet_title", sh.stream().map((o) -> String.valueOf(o.get("title"))).reduce((a, b) -> a + " · " + b).orElse("(sin hojas)"));
         m.put("token", e.token());
         m.put("enabled", e.enabled());
         m.put("status", service.status(e));
@@ -89,18 +101,40 @@ public class EmbedController {
         UserRecord me = AccessService.current(req);
         String name = str(body.get("name")).trim();
         String appId = str(body.get("app_id"));
-        String sheetId = str(body.get("sheet_id"));
         if (name.isBlank()) throw bad("Ponle un nombre al embed (por ejemplo, «Portal de clientes»).");
         AppOut app = apps.getApp(appId).filter((a) -> access.canSee(me, a))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "App no encontrada: " + appId));
-        Map<String, Object> sheet = sheets.get(sheetId).filter((s) -> appId.equals(s.get("app_id")))
-                .orElseThrow(() -> bad("La hoja no pertenece a esa aplicación."));
+        List<String> sheetIds = sheetIds(body, appId);
+        if (sheetIds == null) throw bad("Elige al menos una hoja (sheet_ids).");
         List<String> origins = origins(body.get("allowed_origins"));
         String expires = null;
         if (body.get("expires_in_days") != null) expires = expiry(body.get("expires_in_days"));
         Map<String, Object> opts = sanitizeOptions(body.get("options") instanceof Map<?, ?> m ? (Map<String, Object>) m : Map.of());
-        EmbedRecord rec = repo.create(name, app.id(), String.valueOf(sheet.get("id")), String.join(",", origins), expires, write(opts), me.id());
+        EmbedRecord rec = repo.create(name, app.id(), sheetIds, String.join(",", origins), expires, write(opts), me.id());
         return view(rec);
+    }
+
+    /** Máximo de hojas por embed. */
+    static final int MAX_SHEETS = 20;
+
+    /**
+     * Hojas pedidas: {@code sheet_ids: [..]} (varias, en orden de pestañas) o {@code sheet_id} (una, como antes).
+     * Todas deben ser de la app. Devuelve null si no se pidió ninguna.
+     */
+    private List<String> sheetIds(Map<String, Object> body, String appId) {
+        List<String> in = new ArrayList<>();
+        if (body.get("sheet_ids") instanceof List<?> l) for (Object o : l) in.add(str(o).trim());
+        else if (body.get("sheet_ids") != null) in.addAll(Arrays.asList(str(body.get("sheet_ids")).split("[,\\s]+")));
+        if (in.isEmpty() && !str(body.get("sheet_id")).isBlank()) in.add(str(body.get("sheet_id")).trim());
+        List<String> out = new ArrayList<>();
+        for (String s : in) if (!s.isEmpty() && !out.contains(s)) out.add(s);
+        if (out.isEmpty()) return null;
+        if (out.size() > MAX_SHEETS) throw bad("Un embed admite hasta " + MAX_SHEETS + " hojas.");
+        for (String s : out) {
+            if (sheets.get(s).filter((x) -> appId.equals(String.valueOf(x.get("app_id")))).isEmpty())
+                throw bad("La hoja " + s + " no pertenece a esa aplicación.");
+        }
+        return out;
     }
 
     @SuppressWarnings("unchecked")
@@ -119,7 +153,12 @@ public class EmbedController {
             merged.putAll(sanitizeOptions((Map<String, Object>) m));
             opts = write(merged);
         }
-        return view(repo.update(id, name, enabled, origins, expires, expProvided, opts).orElseThrow());
+        List<String> sheetIds = null;
+        if (body.containsKey("sheet_ids") || body.containsKey("sheet_id")) {
+            sheetIds = sheetIds(body, cur.appId());
+            if (sheetIds == null) throw bad("Un embed necesita al menos una hoja.");
+        }
+        return view(repo.update(id, name, enabled, origins, expires, expProvided, opts, sheetIds).orElseThrow());
     }
 
     @PostMapping("/{id}/rotate")
@@ -175,7 +214,7 @@ public class EmbedController {
             String t = str(in.get("theme"));
             out.put("theme", List.of("light", "dark", "auto").contains(t) ? t : "auto");
         }
-        for (String k : List.of("hideTitle", "hideSelections")) if (in.containsKey(k)) out.put(k, Boolean.TRUE.equals(in.get(k)));
+        for (String k : List.of("hideTitle", "hideSelections", "hideTabs")) if (in.containsKey(k)) out.put(k, Boolean.TRUE.equals(in.get(k)));
         return out;
     }
 }

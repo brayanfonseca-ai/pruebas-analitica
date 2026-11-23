@@ -316,22 +316,25 @@ export const platformTools: ContextTool[] = [
   {
     name: "list_embeds",
     title: "Embeds de tableros",
-    description: "Lista los embeds con id, token (dse_…), app, hoja, estado (active|revoked|expired|unpublished), orígenes permitidos, vencimiento, vistas y URL (/embed/{token}). Requiere embed:manage. GET /api/v1/embeds.",
+    description: "Lista los embeds con id, token (dse_…), app, hojas (sheet_ids y sheets:[{id, title, published}]; sheet_id = la primera), estado (active|revoked|expired|unpublished), orígenes permitidos, vencimiento, vistas y URL (/embed/{token}). Requiere embed:manage. GET /api/v1/embeds.",
     inputShape: {},
     handler: async () => toToolText(await get("/api/v1/embeds")),
   },
   {
     name: "create_embed",
     title: "Crear un embed",
-    description: "Crea un embed (ID + token de solo lectura) de UNA hoja para incrustarla en otra pagina web con <iframe src='{base}/embed/{token}'> o el SDK /js/embed-sdk.js. Solo muestra datos si la app esta en produccion (set_app_stage) y la hoja publicada (set_sheet_visibility). {name, appId, sheetId, allowedOrigins? (vacio = cualquier sitio), expiresInDays? (0/omitir = nunca), options? {theme: light|dark, hideTitle, hideSelections}}. POST /api/v1/embeds.",
+    description: "Crea un embed (ID + token de solo lectura) de UNA o VARIAS hojas de una app para incrustarlas en otra pagina web con <iframe src='{base}/embed/{token}'> o el SDK /js/embed-sdk.js. Con varias hojas el tablero muestra pestañas (en el orden de sheetIds) y conserva los filtros al cambiar. Solo muestra datos si la app esta en produccion (set_app_stage); de sus hojas se ven las publicadas (set_sheet_visibility). {name, appId, sheetIds: [..] (o sheetId), allowedOrigins? (vacio = cualquier sitio), expiresInDays? (0/omitir = nunca), options? {theme: light|dark, hideTitle, hideSelections, hideTabs}}. Max 20 hojas. POST /api/v1/embeds.",
     inputShape: {
-      name: id("Nombre del embed."), appId: id("Id de la app."), sheetId: id("Id de la hoja."),
+      name: id("Nombre del embed."), appId: id("Id de la app."),
+      sheetIds: z.array(z.string()).min(1).max(20).optional().describe("Hojas del embed, en el orden de las pestañas."),
+      sheetId: z.string().optional().describe("Una sola hoja (equivale a sheetIds: [sheetId])."),
       allowedOrigins: z.array(z.string()).optional().describe("Sitios que pueden incrustarlo, ej. https://portal.miempresa.com."),
       expiresInDays: z.number().int().min(0).optional().describe("Dias hasta que vence el token (0 = nunca)."),
-      options: free("{theme?, hideTitle?, hideSelections?}").optional(),
+      options: free("{theme?, hideTitle?, hideSelections?, hideTabs?}").optional(),
     },
     handler: async (a) => toToolText(await post("/api/v1/embeds", {
-      name: a.name, app_id: a.appId, sheet_id: a.sheetId,
+      name: a.name, app_id: a.appId,
+      ...(a.sheetIds ? { sheet_ids: a.sheetIds } : { sheet_id: a.sheetId }),
       ...(a.allowedOrigins ? { allowed_origins: a.allowedOrigins } : {}),
       ...(a.expiresInDays !== undefined ? { expires_in_days: a.expiresInDays } : {}),
       ...(a.options ? { options: a.options } : {}),
@@ -340,14 +343,16 @@ export const platformTools: ContextTool[] = [
   {
     name: "update_embed",
     title: "Editar, activar o desactivar un embed",
-    description: "{name?, enabled? (false = revoca sin borrar), allowedOrigins?, expiresInDays? (0 = quitar vencimiento), options?}. PUT /api/v1/embeds/{embedId}.",
+    description: "{name?, enabled? (false = revoca sin borrar), sheetIds? (reemplaza las hojas; orden = pestañas), allowedOrigins?, expiresInDays? (0 = quitar vencimiento), options? {theme, hideTitle, hideSelections, hideTabs}}. El token no cambia. PUT /api/v1/embeds/{embedId}.",
     inputShape: {
       embedId: id("Id del embed."), name: z.string().optional().describe("Nombre."), enabled: z.boolean().optional().describe("Activo o revocado."),
+      sheetIds: z.array(z.string()).min(1).max(20).optional().describe("Hojas del embed (reemplaza), en orden de pestañas."),
       allowedOrigins: z.array(z.string()).optional().describe("Sitios permitidos (reemplaza)."), expiresInDays: z.number().int().min(0).optional().describe("Dias hasta vencer; 0 = nunca."),
       options: free("{theme?, hideTitle?, hideSelections?}").optional(),
     },
     handler: async (a) => toToolText(await put(`/api/v1/embeds/${E(a.embedId)}`, {
       ...pick(a, ["name", "enabled", "options"]),
+      ...(a.sheetIds ? { sheet_ids: a.sheetIds } : {}),
       ...(a.allowedOrigins ? { allowed_origins: a.allowedOrigins } : {}),
       ...(a.expiresInDays !== undefined ? { expires_in_days: a.expiresInDays } : {}),
     })),

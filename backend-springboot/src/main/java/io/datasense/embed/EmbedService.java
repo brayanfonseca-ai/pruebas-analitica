@@ -43,17 +43,28 @@ public class EmbedService {
         if (!e.enabled()) return "revoked";
         if (e.expired()) return "expired";
         Optional<AppOut> app = apps.getApp(e.appId());
-        Optional<Map<String, Object>> sheet = sheets.get(e.sheetId());
-        if (app.isEmpty() || sheet.isEmpty() || !"produccion".equals(app.get().stage())
-                || !"publica".equals(sheet.get().get("visibility"))) return "unpublished";
+        if (app.isEmpty() || !"produccion".equals(app.get().stage()) || publishedSheets(e).isEmpty()) return "unpublished";
         return "active";
+    }
+
+    /**
+     * Hojas del embed que se pueden mostrar ahora: existen, son de su app y están publicadas. En el orden del embed.
+     * Las que dejaron de estar publicadas simplemente no aparecen; si no queda ninguna, el embed está «unpublished».
+     */
+    public List<String> publishedSheets(EmbedRecord e) {
+        List<String> out = new java.util.ArrayList<>();
+        for (String id : e.sheets()) {
+            Optional<Map<String, Object>> s = sheets.get(id);
+            if (s.isPresent() && e.appId().equals(String.valueOf(s.get().get("app_id"))) && "publica".equals(s.get().get("visibility"))) out.add(id);
+        }
+        return out;
     }
 
     public static String statusMessage(String status) {
         return switch (status) {
             case "revoked" -> "Este embed fue desactivado.";
             case "expired" -> "El token de este embed venció.";
-            case "unpublished" -> "El tablero no está publicado: la aplicación debe estar en Producción y la hoja publicada.";
+            case "unpublished" -> "El tablero no está publicado: la aplicación debe estar en Producción y al menos una de sus hojas publicada.";
             default -> "";
         };
     }

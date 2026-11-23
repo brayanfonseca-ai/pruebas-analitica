@@ -62,7 +62,10 @@ public class EmbedPageController {
         Map<String, Object> cfg = new LinkedHashMap<>();
         cfg.put("token", e.token());
         cfg.put("appId", e.appId());
-        cfg.put("sheetId", e.sheetId());
+        // Varias hojas: se muestran como pestañas; solo las que siguen publicadas.
+        List<String> shown = service.publishedSheets(e);
+        cfg.put("sheetId", shown.isEmpty() ? e.sheetId() : shown.get(0));
+        cfg.put("sheetIds", shown);
         cfg.put("name", e.name());
         try { cfg.put("options", mapper.readValue(e.optionsJson() == null ? "{}" : e.optionsJson(), Map.class)); } catch (Exception ex) { cfg.put("options", Map.of()); }
         String json;
