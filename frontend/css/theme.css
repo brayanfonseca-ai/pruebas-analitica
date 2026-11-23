@@ -2315,3 +2315,11 @@ html[data-theme="dark"] .ho-sel-clear:hover:not(:disabled) { background: rgba(23
 .q-zoom-rail { border-radius: 12px !important; border-color: var(--ds-border) !important; box-shadow: 0 10px 24px -18px rgba(15, 23, 42, .6); }
 .q-zoom-btn { border-radius: 8px !important; }
 .q-zoom-btn:hover { background: var(--ds-accent-soft) !important; color: var(--ds-a) !important; }
+
+/* Estudio de expresiones: la columna central se desplaza cuando no cabe (ventanas bajas o con la barra de IA);
+   el editor conserva un alto mínimo útil y el catálogo no muestra scroll horizontal. */
+.xs-center { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.xs-center > * { flex-shrink: 0; }
+.xs-center > .xs-editor { flex: 1 0 auto; min-height: 240px; }
+.xs-right { overflow-x: hidden; }
+.xs-right * { min-width: 0; }
