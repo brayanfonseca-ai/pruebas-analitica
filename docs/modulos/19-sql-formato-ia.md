@@ -37,6 +37,18 @@ La sintaxis anterior, estilo Qlik (`Sum([x])`, `If(…)`, `LOAD … ;`), se sigu
   - **Deshacer** devuelve lo que había antes.
   - La IA solo ve el catálogo de campos (nombre, tabla, tipo y hasta 10 valores de los campos de texto con pocos valores), nunca filas completas. Requiere `ai:use`.
 
+## Cómo se arma una expresión en el estudio
+- **Clic en un campo:**
+  - Si el editor está vacío o solo tiene un campo, lo sustituye.
+  - Si tiene una agregación simple como `SUM(Gasto)` y el cursor está al final, cambia el campo de dentro (`SUM(Ingreso)`).
+  - Si hay texto seleccionado (por ejemplo `campo` de una plantilla), lo reemplaza.
+  - En otro caso, se inserta en el cursor separado con espacios. Nunca queda pegado (`GastoEdad`).
+- **Σ / #** junto a un campo: ponen `SUM(campo)` / `COUNT(campo)` con las mismas reglas. Con un operador antes, se compone: `COUNT(Cliente) / SUM(Gasto)`.
+- **Ejemplos** sustituyen la expresión entera.
+- **Nombre sugerido** (maestros nuevos): se escribe solo según la expresión y la sigue mientras la cambias. Por ejemplo, «Total de Gasto», «% de Gasto», «Grupos de Edad» o «Gasto redondeado». Se ve en cursiva y se fija en cuanto escribes el tuyo. Editar un maestro existente nunca cambia su nombre.
+- Una **dimensión calculada no puede llamarse como un campo**. Si pasa, el error ofrece un nombre válido con un clic.
+- Si cambias la expresión después de **Probar**, el resultado anterior se atenúa con el aviso «La expresión cambió».
+
 ## Formato de presentación
 Disponible en el Estudio de expresiones (panel izquierdo, junto al editor) y en el panel de propiedades de cada gráfico (botón **Formato** de cada medida y dimensión).
 

@@ -255,10 +255,107 @@ export function openExprStudio(o) {
     const w = balance(v);
     $("#xsWarn").hidden = !w; $("#xsWarn").textContent = w ? "⚠ " + w : "";
     syncScroll();
+    autoName(v);
+    // El resultado anterior ya no corresponde a lo que hay en el editor.
+    const res = $("#xsRes");
+    if (res && lastTested !== null && exprOf() !== lastTested && !res.classList.contains("stale")) res.classList.add("stale");
+    else if (res && exprOf() === lastTested) res.classList.remove("stale");
+  }
+
+  /* ---------- Nombre sugerido (maestros): sigue a la expresión hasta que el usuario escribe el suyo ---------- */
+  let lastTested = null;
+  const nameEl = $("#xsName");
+  let nameAuto = isMaster && !item?.name;
+  nameEl?.addEventListener("input", () => { nameAuto = !nameEl.value.trim(); if (nameAuto) autoName(ta.value); nameEl.classList.remove("auto"); });
+  function fieldsIn(v) {
+    const found = [];
+    const re = /"((?:[^"]|"")+)"|([\p{L}_][\p{L}\p{N}_]*)/gu;
+    let m;
+    const src = v.replace(/'(?:[^']|'')*'/g, " ");
+    while ((m = re.exec(src))) {
+      const f = m[1] != null ? m[1].replace(/""/g, '"') : m[2];
+      if (FIELD_SET.has(f) && !found.includes(f)) found.push(f);
+    }
+    return found.map((f) => fields.find((x) => x.field === f)?.display || f);
+  }
+  function suggestName(v) {
+    const s = v.replace(/--[^\n]*/g, "").replace(/\s+/g, " ").trim();
+    if (!s) return "";
+    const fs = fieldsIn(s);
+    const a = fs[0] || "", b = fs[1] || "";
+    const U = s.toUpperCase();
+    let n;
+    if (isMeasure) {
+      const m = s.match(SIMPLE_AGG);
+      const filt = /\bFILTER\b|\bCASE\b/.test(U) ? " (con condición)" : "";
+      if (m) n = m[2] ? `${a} distintos` : ({ SUM: `Total de ${a}`, AVG: `Promedio de ${a}`, COUNT: `Cantidad de ${a}`, MIN: `Mínimo de ${a}`, MAX: `Máximo de ${a}` })[m[1].toUpperCase()];
+      else if (/^COUNT\s*\(\s*\*\s*\)$/i.test(s)) n = "Cantidad de registros";
+      else if (/^ROUND\s*\(\s*100(\.0)?\s*\*|\*\s*100(\.0)?\b/i.test(s)) n = `% de ${a || "registros"}`;
+      else if (/COUNT\s*\(\s*DISTINCT/i.test(s)) n = `${a} distintos${filt}`;
+      else if (/^COUNT\s*\(\s*\*\s*\)\s*FILTER/i.test(s)) n = a ? `Cantidad con ${a} (con condición)` : "Cantidad con condición";
+      else if (/^(SUM|AVG|COUNT|MIN|MAX)\b/i.test(s) && !/[-+*/]\s*(SUM|AVG|COUNT|MIN|MAX)\b/i.test(s)) {
+        const k = s.match(/^(SUM|AVG|COUNT|MIN|MAX)/i)[1].toUpperCase();
+        n = `${({ SUM: "Total de", AVG: "Promedio de", COUNT: "Cantidad de", MIN: "Mínimo de", MAX: "Máximo de" })[k]} ${a}${filt}`;
+      } else n = a ? (b ? `${a} vs ${b}` : `Cálculo de ${a}`) : "";
+    } else {
+      if (isOnlyField(s)) return fields.find((x) => x.field === unq(s))?.display || unq(s);
+      if (/^CASE\b/.test(U) || /^IF\s*\(/.test(U)) n = `Grupos de ${a}`;
+      else if (/^ROUND\s*\(/.test(U)) n = `${a} redondeado`;
+      else if (/^(YEAR)\s*\(/.test(U)) n = `Año de ${a}`;
+      else if (/^(MONTH)\s*\(/.test(U)) n = `Mes de ${a}`;
+      else if (/^(UPPER|LOWER|TRIM)\s*\(/.test(U)) n = `${a} (texto)`;
+      else if (/^COALESCE\s*\(/.test(U)) n = `${a} (sin vacíos)`;
+      else if (/^CLASS\s*\(/.test(U)) n = `Rangos de ${a}`;
+      else if (/^CAST\s*\(/.test(U)) n = `${a} (convertido)`;
+      else if (/\|\||^CONCAT\s*\(/.test(U)) n = b ? `${a} y ${b}` : `${a} (texto)`;
+      else n = a ? `${a} calculado` : "";
+      // Una dimensión calculada no puede llamarse como un campo existente.
+      if (n && FIELD_SET.has(n)) n += " (calc.)";
+    }
+    return (n || "").replace(/\s+/g, " ").trim().slice(0, 80);
+  }
+  function autoName(v) {
+    if (!nameEl || !nameAuto) return;
+    nameEl.value = suggestName(v);
+    nameEl.classList.toggle("auto", !!nameEl.value);
+    nameEl.title = nameEl.value ? "Nombre sugerido a partir de la expresión. Escribe el tuyo para fijarlo." : "";
   }
   function syncScroll() { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; gut.scrollTop = ta.scrollTop; }
+  // Posición del cursor: si aún no se tocó el editor, se inserta al final (no al principio).
+  let touched = false;
+  ["click", "keyup", "select"].forEach((ev) => ta.addEventListener(ev, () => { touched = true; }));
+  const caret = () => touched ? [ta.selectionStart ?? ta.value.length, ta.selectionEnd ?? ta.value.length] : [ta.value.length, ta.value.length];
+  const FIELD_SET = new Set(fields.map((f) => f.field));
+  const SIMPLE_AGG = /^\s*(SUM|AVG|COUNT|MIN|MAX)\s*\(\s*(DISTINCT\s+)?("(?:[^"]|"")+"|[\p{L}_][\p{L}\p{N}_]*)\s*\)\s*$/iu;
+  const unq = (s) => /^".*"$/.test(s) ? s.slice(1, -1).replace(/""/g, '"') : s;
+  const isOnlyField = (v) => { const s = v.trim(); return !!s && FIELD_SET.has(unq(s)); };
+  /**
+   * Inserta un campo (o una agregación rápida) sin «pegarlo» a lo anterior:
+   *  · editor vacío, o solo con un campo → lo sustituye;
+   *  · una agregación simple como SUM(x) con el cursor al final → cambia el campo de dentro (con Σ/# cambia toda la agregación);
+   *  · texto seleccionado (p. ej. «campo» de una plantilla) → lo sustituye;
+   *  · en otro caso se inserta en el cursor separado con espacios.
+   */
+  function insertField(tok, { agg = false } = {}) {
+    const v = ta.value;
+    const [s, e] = caret();
+    const m = v.match(SIMPLE_AGG);
+    if (!v.trim() || isOnlyField(v)) { setText(tok); return; }
+    if (m && s === e && s >= v.trimEnd().length) {
+      setText(agg ? tok : `${m[1].toUpperCase()}(${m[2] ? "DISTINCT " : ""}${tok})`); return;
+    }
+    if (s !== e) { ta.value = v.slice(0, s) + tok + v.slice(e); placeCaret(s + tok.length); return; }
+    const before = v.slice(0, s), after = v.slice(s);
+    const pre = /[\p{L}\p{N}_")'\]]$/u.test(before) ? " " : "";
+    const post = /^[\p{L}\p{N}_"(\[]/u.test(after) ? " " : "";
+    ta.value = before + pre + tok + post + after;
+    placeCaret(s + pre.length + tok.length);
+  }
+  function setText(t) { ta.value = t; placeCaret(t.length); }
+  function placeCaret(p) { ta.focus(); ta.selectionStart = ta.selectionEnd = p; touched = true; paint(); }
+
   function insert(txt) {
-    const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? s;
+    const [s, e] = caret();
     // Plantillas con «campo»: si hay texto seleccionado, se usa como argumento.
     const sel = ta.value.slice(s, e);
     const t = sel && /\bcampo\b/.test(txt) ? txt.replace(/\bcampo\b/, sel) : txt;
@@ -266,6 +363,7 @@ export function openExprStudio(o) {
     const ph = t.search(/\bcampo\b/);
     ta.focus();
     if (ph >= 0) { ta.selectionStart = s + ph; ta.selectionEnd = s + ph + 5; } else ta.selectionStart = ta.selectionEnd = s + t.length;
+    touched = true;
     paint();
   }
 
@@ -306,14 +404,10 @@ export function openExprStudio(o) {
   $("#xsList").addEventListener("click", (e) => {
     const quick = e.target.closest("[data-agg]");
     const fieldBtn = e.target.closest("[data-field]");
-    if (quick && fieldBtn) { insert(`${quick.dataset.agg}(${ident(fieldBtn.dataset.field)})`); return; }
-    if (fieldBtn) {
-      insert(ident(fieldBtn.dataset.field));
-      if (isMaster && !isMeasure && !$("#xsName").value) $("#xsName").value = fieldBtn.dataset.field;
-      return;
-    }
+    if (quick && fieldBtn) { insertField(`${quick.dataset.agg}(${ident(fieldBtn.dataset.field)})`, { agg: true }); return; }
+    if (fieldBtn) { insertField(ident(fieldBtn.dataset.field)); return; }
     const fn = e.target.closest("[data-tpl]"); if (fn) { insert(fn.dataset.tpl); return; }
-    const ex = e.target.closest("[data-ex]"); if (ex) { ta.value = ex.dataset.ex; ta.focus(); paint(); }
+    const ex = e.target.closest("[data-ex]"); if (ex) { setText(ex.dataset.ex); }
   });
   el.querySelectorAll("[data-ins]").forEach((b) => b.addEventListener("click", () => {
     insert(b.dataset.ins);
@@ -369,6 +463,7 @@ export function openExprStudio(o) {
     const expr = exprOf();
     if (!expr) { r.innerHTML = `<div class="xs-res-err">Escribe una expresión.</div>`; return null; }
     r.innerHTML = `<div class="xs-res-empty"><span class="xs-spin"></span>Probando en el motor…</div>`;
+    lastTested = expr; r.classList.remove("stale");
     try {
       const name = isMaster ? ($("#xsName").value.trim() || "Dimensión calculada") : undefined;
       const res = await api.parseExpression(o.appId, o.kind, expr, name);
@@ -376,7 +471,7 @@ export function openExprStudio(o) {
       if (isMeasure) {
         if (res.value != null) {
           fmtPanel.setSample(res.value);
-          extra = `<div class="xs-kpi"><span>Resultado con todos los datos</span><b>${Number(res.value).toLocaleString("es-CO", { maximumFractionDigits: 2 })}</b>${format ? `<em>con formato: <b>${esc(formatValue(res.value, format))}</b></em>` : ""}</div>`;
+          extra = `<div class="xs-kpi"><span>Resultado con todos los datos</span><b>${Number(res.value).toLocaleString("es-CO", Math.abs(Number(res.value)) < 1 && Number(res.value) !== 0 ? { maximumSignificantDigits: 3 } : { maximumFractionDigits: 2 })}</b>${format ? `<em>con formato: <b>${esc(formatValue(res.value, format))}</b></em>` : ""}</div>`;
         }
         if (res.composite && res.parts?.length) {
           extra += `<div class="xs-vals"><span>${res.parts.length === 1 ? "1 agregación" : `${res.parts.length} agregaciones combinadas`}</span></div>`;
@@ -392,8 +487,17 @@ export function openExprStudio(o) {
       return res;
     } catch (e) {
       r.innerHTML = `<div class="xs-res-err">✕ ${esc(e.message)}</div>`;
+      offerName(r, e.message);
       return null;
     }
+  }
+  /** Si el nombre choca con un campo, propone uno válido con un clic. */
+  function offerName(host, message) {
+    if (!nameEl || !/ya es un campo/.test(message || "")) return;
+    let sug = suggestName(ta.value);
+    if (!sug || FIELD_SET.has(sug)) sug = `${nameEl.value.trim() || "Dimensión"} (calc.)`;
+    host.insertAdjacentHTML("beforeend", `<div class="xs-name-fix">Usar el nombre <button type="button" class="xs-op" id="xsNameFix">${esc(sug)}</button></div>`);
+    host.querySelector("#xsNameFix").addEventListener("click", () => { nameEl.value = sug; nameAuto = false; nameEl.classList.remove("auto"); $("#xsMsg").textContent = ""; $("#xsMsg").classList.remove("err"); test(); });
   }
 
   $("#xsOk").addEventListener("click", async () => {
@@ -405,7 +509,10 @@ export function openExprStudio(o) {
       if (!name) { msg.textContent = "Escribe un nombre."; msg.classList.add("err"); $("#xsName").focus(); return; }
       msg.classList.remove("err"); msg.textContent = "Validando en el motor…";
       try { await o.onSave({ name, expression, description: $("#xsDesc").value.trim() || null, format }); }
-      catch (e) { msg.textContent = e.message; msg.classList.add("err"); }
+      catch (e) {
+        msg.textContent = e.message; msg.classList.add("err");
+        if (/ya es un campo/.test(e.message)) { const r = $("#xsRes"); r.innerHTML = `<div class="xs-res-err">✕ ${esc(e.message)}</div>`; offerName(r, e.message); }
+      }
     } else {
       const res = await test();
       if (res) await o.onApply(expression, res, format);

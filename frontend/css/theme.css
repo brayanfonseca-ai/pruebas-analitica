@@ -2323,3 +2323,9 @@ html[data-theme="dark"] .ho-sel-clear:hover:not(:disabled) { background: rgba(23
 .xs-center > .xs-editor { flex: 1 0 auto; min-height: 240px; }
 .xs-right { overflow-x: hidden; }
 .xs-right * { min-width: 0; }
+/* Estudio: nombre sugerido (sigue a la expresión), resultado desactualizado y arreglo de nombre en un clic. */
+#xsName.auto { font-style: italic; color: var(--ds-a); }
+.xs-result.stale { position: relative; opacity: .55; }
+.xs-result.stale::before { content: "La expresión cambió: pulsa ▶ Probar para ver el resultado actual."; display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #b45309; opacity: 1; }
+.xs-name-fix { margin-top: 8px; font-size: 12.5px; color: var(--ds-text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.xs-name-fix .xs-op { font-weight: 700; color: var(--ds-a); border-color: var(--ds-a); }
