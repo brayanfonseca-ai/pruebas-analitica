@@ -50,8 +50,6 @@ export async function render(mount, ctx) {
     <div class="ed">
       <div class="ed-toolbar">
         <div class="ed-tb-left">
-          <button class="ed-tb-btn" data-act="toggleSecciones" title="Mostrar/ocultar pestañas">⊟ Pestañas</button>
-          <div class="ed-tb-sep"></div>
           <button class="ed-tb-ico" data-act="find" title="Buscar en todo el entorno: script, tablas, campos, notas, hojas y conexiones (Ctrl+F)">🔍</button>
           <button class="ed-tb-ico" data-act="comment" title="Comentar/descomentar líneas (Ctrl+/): un campo comentado en un LOAD no se carga">//</button>
           <button class="ed-tb-ico" data-act="indent" title="Sangrar">⇥</button>
@@ -64,21 +62,20 @@ export async function render(mount, ctx) {
             <button class="ed-tb-btn ghost" data-act="preview" title="Ver una vista previa de los datos">⟦⟧ Ver una vista previa de los datos</button>
           </div>
           ${canEdit ? `<button class="ed-tb-btn" data-act="save" title="Guardar el script">Guardar script</button>` : ""}
+          <button class="ed-tb-btn ed-src-toggle" data-act="toggleFuentes" id="edSrcToggle" aria-expanded="false" title="Mostrar u ocultar fuentes y conexiones">⛁ Fuentes</button>
           <button class="ed-run" data-act="run" title="Ejecutar la carga">▶ Ejecutar script</button>
         </div>
       </div>
 
       <div class="ed-main">
-        <aside class="ed-sections" id="edSections">
-          <div class="ed-sections-head"><span>Pestañas</span>
-            ${canEdit ? `<button class="ed-addsec" id="edAddSec" title="Añadir pestaña">+</button>` : ""}
-          </div>
-          <div class="ed-arch-note">Arquitectura de datos en 3 capas (extracción · transformación · modelo).</div>
-          <div class="ed-section-list" id="edSectionList"></div>
-        </aside>
-
         <section class="ed-center">
-          <div class="ed-center-head"><span id="edGenBadge" class="ed-gen-badge">auto-generado</span><span id="edLang"></span></div>
+          <div class="ed-center-head">
+            <div class="ed-sections" id="edSections" title="Pestañas del script: extracción · transformación · modelo">
+              <div class="ed-section-list" id="edSectionList" role="tablist"></div>
+              ${canEdit ? `<button class="ed-addsec" id="edAddSec" title="Añadir pestaña">+</button>` : ""}
+            </div>
+            <span class="ed-ch-right"><span id="edGenBadge" class="ed-gen-badge">auto-generado</span><span id="edLang"></span></span>
+          </div>
           <div class="ed-code"><textarea id="edCode" spellcheck="false"></textarea></div>
           <div class="ed-bottom">
             <div class="ed-bottom-tabs">
@@ -91,8 +88,8 @@ export async function render(mount, ctx) {
           </div>
         </section>
 
-        <aside class="ed-adddata">
-          <div class="ed-ad-head">Fuentes</div>
+        <aside class="ed-adddata" id="edAddData">
+          <div class="ed-ad-head"><span>Fuentes</span><button type="button" class="ed-ad-close" data-act="toggleFuentes" title="Cerrar" aria-label="Cerrar fuentes">✕</button></div>
           <button class="ed-ad-btn" data-act="includeScript" title="Insertar una plantilla de script">⎙ Insertar plantilla</button>
 
           <div class="ed-ad-title">Conexiones</div>
@@ -107,9 +104,9 @@ export async function render(mount, ctx) {
           <input class="ed-ad-search" id="edConnSearch" placeholder="Buscar conexión" />
           <div id="edConnList"></div>
           ${canImport ? `<input type="file" id="edFileInput" accept=".xlsx,.xls,.csv" hidden />` : ""}
-          <p class="ed-ad-status" id="edStatus"></p>
         </aside>
       </div>
+      <div class="ed-statusbar"><p class="ed-ad-status" id="edStatus"></p></div>
 
       <div class="ed-modal-backdrop" id="edModal" hidden></div>
       <div class="ed-modal-backdrop" id="edLoadModal" hidden></div>
@@ -204,8 +201,23 @@ export async function render(mount, ctx) {
   renderSectionList();
   updateActiveSection();
 
+  // Cajón «Fuentes» (conexiones y plantillas): se abre a la derecha y se recuerda. Abierto si la app aún no tiene datos.
+  function setFuentes(open) {
+    mount.querySelector(".ed").classList.toggle("src-open", open);
+    $("#edSrcToggle")?.setAttribute("aria-expanded", String(open));
+    $("#edSrcToggle")?.classList.toggle("on", open);
+    try { localStorage.setItem("ds.ed.fuentes", open ? "1" : "0"); } catch {}
+    setTimeout(() => cm?.refresh(), 260);
+  }
+  mount.querySelectorAll('[data-act="toggleFuentes"]').forEach((b) => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setFuentes(!mount.querySelector(".ed").classList.contains("src-open"));
+  }));
+  let srcPref = null; try { srcPref = localStorage.getItem("ds.ed.fuentes"); } catch {}
+  setFuentes(srcPref === null ? !String(getCode() || "").trim() : srcPref === "1");
+
   $("#edAddSec")?.addEventListener("click", () => {
-    const name = prompt("Nombre de la sección:");
+    const name = prompt("Nombre de la pestaña:");
     if (!name || !name.trim()) return;
     const insert = `\n${tabMarker(name.trim())}\n`;
     if (cm) { cm.replaceRange(insert, { line: cm.lineCount(), ch: 0 }); } else setCode(getCode() + insert);
@@ -254,7 +266,6 @@ export async function render(mount, ctx) {
   $(".ed-tb-left").addEventListener("click", (e) => {
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (!act) return;
-    if (act === "toggleSecciones") return $("#edSections").classList.toggle("collapsed");
     if (act === "find") {
       const sel = cm ? cm.getSelection().trim() : "";
       return openEnvSearch({ appId: ctx.appId, getCode, onJump: jumpToLine, initial: sel.length < 60 ? sel : "" });

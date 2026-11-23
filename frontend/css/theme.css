@@ -2197,3 +2197,121 @@ html[data-theme="dark"] .au-pill.ok { color: #6ee7b7; } html[data-theme="dark"] 
 .ds-crumb-view:not(:empty)::before { content: "›"; margin-right: 8px; color: #5f6f92; }
 /* Mapa de relaciones: el icono de clave conserva su tamaño (hub.css fuerza svg{width:100%}). */
 .q-model-key-ico { width: 12px !important; height: 12px !important; flex: none; color: var(--ds-a); margin-right: 5px; vertical-align: -1px; }
+
+/* ======================= Identidad fase 2 · Script de datos ======================= */
+/* Editor a todo el ancho; pestañas horizontales encima; Fuentes como cajón lateral. */
+.ed-main { grid-template-columns: minmax(0, 1fr) 0 !important; transition: grid-template-columns .25s cubic-bezier(.2, .8, .2, 1); }
+.ed.src-open .ed-main { grid-template-columns: minmax(0, 1fr) 330px !important; }
+.ed-adddata { overflow: hidden auto; visibility: hidden; padding: 14px 16px; box-shadow: -18px 0 40px -30px rgba(15, 23, 42, .5); }
+.ed.src-open .ed-adddata { visibility: visible; }
+.ed-ad-head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+.ed-ad-close { border: 0; background: none; color: var(--ds-muted); cursor: pointer; font-size: 14px; padding: 2px 6px; border-radius: 6px; }
+.ed-ad-close:hover { background: var(--ds-accent-soft); color: var(--ds-text); }
+.ed-src-toggle.on { color: var(--ds-a) !important; background: var(--ds-accent-soft) !important; }
+
+.ed-center-head { justify-content: space-between !important; align-items: flex-end !important; gap: 12px; padding: 0 12px !important; min-height: 40px; }
+.ed-ch-right { display: flex; align-items: center; gap: 8px; padding: 6px 0; flex: none; }
+.ed-sections { display: flex !important; align-items: flex-end; gap: 4px; min-width: 0; border: 0 !important; background: none !important; overflow: visible !important; }
+.ed-sections .ed-section-list { display: flex; gap: 2px; padding: 0; overflow-x: auto; scrollbar-width: thin; }
+.ed-sections .ed-section { flex: none; gap: 7px; padding: 8px 14px 9px; border: 1px solid transparent; border-bottom: 0; border-left: 1px solid transparent !important; border-radius: 9px 9px 0 0; color: var(--ds-muted); font-weight: 600; white-space: nowrap; }
+.ed-sections .ed-section:hover { background: var(--ds-accent-soft); color: var(--ds-text); }
+.ed-sections .ed-section.active { color: var(--ds-text); background: var(--ds-surface-2, #fcfcfd); border-color: var(--ds-border) !important; box-shadow: inset 0 2px 0 var(--ds-a); margin-bottom: -1px; }
+.ed-sections .ed-section-dot { width: 7px; height: 7px; }
+.ed-sections .ed-addsec { flex: none; margin: 0 0 6px 4px; width: 26px; height: 26px; border-radius: 8px; }
+.ed-statusbar { flex: none; padding: 0 14px; border-top: 1px solid var(--ds-border); background: var(--ds-surface); min-height: 26px; display: flex; align-items: center; }
+.ed-statusbar .ed-ad-status { margin: 0; font-size: 12px; color: var(--ds-muted); }
+.ed-statusbar .ed-ad-status:empty::before { content: "Listo."; opacity: .7; }
+.ed-run { border-radius: 10px !important; background: var(--ds-grad) !important; box-shadow: 0 6px 16px -8px rgba(var(--ds-a-rgb), .9); }
+.ed-ad-btn { border-radius: 10px !important; border-color: var(--ds-border-2) !important; color: var(--ds-text) !important; }
+.ed-ad-btn:hover:not(:disabled) { border-color: var(--ds-a) !important; background: var(--ds-accent-soft) !important; }
+
+/* ======================= Identidad fase 2 · Barra de filtros y colores de selección ======================= */
+.ho-selbar { gap: 10px !important; min-height: 44px !important; padding: 6px 14px !important; background: var(--ds-surface) !important; border-bottom: 1px solid var(--ds-border) !important; }
+.ho-sel-title { display: inline-flex; align-items: center; gap: 6px; flex: none; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ds-muted); }
+.ho-sel-title svg { width: 14px; height: 14px; fill: var(--ds-a); fill-opacity: .2; stroke: var(--ds-a); stroke-width: 1.8; stroke-linejoin: round; }
+.ho-sel-chips { flex: 1; min-width: 0; margin-left: 0 !important; gap: 6px !important; }
+.ho-sel-chip { gap: 6px !important; padding: 3px 4px 3px 12px !important; border: 1px solid rgba(var(--ds-a-rgb), .35) !important; border-left-width: 1px !important; border-radius: 999px !important; background: var(--ds-accent-soft) !important; }
+.ho-sel-field { font-size: 11.5px; color: var(--ds-a); font-weight: 800; }
+.ho-sel-field::after { content: ":"; }
+.ho-sel-vals { color: var(--ds-text) !important; font-weight: 600; }
+.ho-sel-chip button { width: 20px; height: 20px; padding: 0 !important; border-radius: 50%; font-size: 10px; }
+.ho-sel-chip button:hover { background: var(--ds-a); color: #fff !important; }
+.ho-sel-none { font-style: italic; }
+.ho-sel-hist { display: flex; align-items: center; gap: 2px; flex: none; padding: 2px; border: 1px solid var(--ds-border); border-radius: 10px; }
+.ho-sel-hist .ho-sel-ico { width: 28px; height: 26px; border-radius: 7px; }
+.ho-sel-clear { height: 26px; padding: 0 10px; border: 0; border-radius: 7px; background: none; color: var(--ds-text); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ho-sel-clear:hover:not(:disabled) { background: #fee2e2; color: #b91c1c; }
+.ho-sel-clear:disabled { color: var(--ds-muted); opacity: .5; cursor: default; }
+
+/* Panel de filtrado: seleccionado = color de marca con ✓; posible = normal; alternativo = tinte suave; excluido = atenuado. */
+.ho-fp-val { border-bottom: 0 !important; margin: 1px 0; border-radius: 7px; padding: 6px 10px !important; transition: background .12s; }
+.ho-fp-val.st-selected { background: var(--ds-grad) !important; color: #fff !important; font-weight: 700; }
+.ho-fp-val.st-selected::before { content: "✓ "; }
+.ho-fp-val.st-possible { background: transparent !important; }
+.ho-fp-val.st-possible:hover { background: var(--ds-accent-soft) !important; }
+.ho-fp-val.st-alternative { background: rgba(var(--ds-a-rgb), .07) !important; color: var(--ds-text) !important; }
+.ho-fp-val.st-excluded { background: transparent !important; color: var(--ds-muted) !important; opacity: .55; text-decoration: line-through; text-decoration-color: rgba(100, 116, 139, .5); }
+html[data-theme="dark"] .ho-sel-clear:hover:not(:disabled) { background: rgba(239, 68, 68, .2); color: #fca5a5; }
+
+/* ======================= Identidad fase 2 · Modo Diseñar ======================= */
+/* Riel solo con iconos (el nombre sale al pasar el cursor) y paneles como tarjetas. */
+.ho-rail { width: 54px !important; padding: 10px 7px !important; gap: 6px !important; background: var(--ds-surface) !important; border-right: 1px solid var(--ds-border) !important; }
+.ho-rail-item { padding: 9px 0 !important; border-radius: 11px !important; color: var(--ds-muted) !important; }
+.ho-rail-item:hover { background: var(--ds-accent-soft) !important; color: var(--ds-text) !important; }
+.ho-rail-item.active { background: var(--ds-grad) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 8px 18px -10px rgba(var(--ds-a-rgb), .95); }
+.ho-rail-label { display: none; }
+.ho-rail-ico svg { width: 19px !important; height: 19px !important; stroke-width: 1.7 !important; }
+.ho-assets { width: 260px !important; margin: 10px 0 10px 10px; border: 1px solid var(--ds-border) !important; border-radius: 14px; background: var(--ds-surface) !important; box-shadow: 0 16px 34px -26px rgba(15, 23, 42, .55); }
+.ho-as-head { font-size: 14px !important; font-weight: 800 !important; }
+.ho-as-search input, .ho-as-select { border-radius: 9px !important; height: 32px !important; }
+.ho-as-sec > summary { font-size: 11px !important; font-weight: 800 !important; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-muted); }
+.ho-chart-item, .ho-field, .ho-master { border-radius: 8px !important; padding: 6px 8px !important; }
+.ho-chart-item:hover, .ho-field:hover, .ho-master:hover { background: var(--ds-accent-soft) !important; }
+.ho-chart-ico { color: var(--ds-a); }
+
+.ho-props { width: 300px !important; margin: 10px 10px 10px 0; border: 1px solid var(--ds-border) !important; border-radius: 14px; background: var(--ds-surface) !important; box-shadow: 0 16px 34px -26px rgba(15, 23, 42, .55); }
+.ho-p-head { font-size: 14px; font-weight: 800 !important; border-bottom-color: var(--ds-border) !important; padding: 12px 14px !important; }
+.ho-p-head svg { color: var(--ds-a); }
+.ho-p-sec-title { border-left: 0 !important; background: none !important; padding: 12px 14px 2px !important; font-size: 11px !important; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ds-muted); }
+.ho-acc > .ho-acc-head { border-left: 0 !important; background: none !important; font-weight: 700; border-top: 1px solid var(--ds-border); }
+.ho-acc.open > .ho-acc-head { color: var(--ds-a); }
+.ho-sub { border-color: var(--ds-border) !important; border-radius: 10px !important; }
+.ho-props input:not([type="checkbox"]):not([type="color"]), .ho-props select, .ho-props textarea,
+.ho-modal input:not([type="checkbox"]):not([type="color"]), .ho-modal select, .ho-modal textarea { border-radius: 9px !important; }
+.ho-seg button { border-radius: 9px !important; }
+.ho-seg button.on, .ho-navmenu button.active { border-color: var(--ds-a) !important; box-shadow: 0 0 0 1px var(--ds-a) !important; color: var(--ds-a) !important; background: var(--ds-accent-soft) !important; }
+.ho-switch-row input:checked + .ho-switch, .q-crumb-toggle.on { background: var(--ds-a) !important; }
+.ho-btn.primary, .ho-btnobj button { background: var(--ds-grad) !important; border-color: transparent !important; border-radius: 9px; }
+.ho-handle, .ho-obj-size { background: var(--ds-a) !important; }
+.ho-handle { border-radius: 50%; width: 10px !important; height: 10px !important; }
+.ho-obj.selected { border-color: var(--ds-a) !important; }
+.ho-ghost { border-color: var(--ds-a) !important; background: rgba(var(--ds-a-rgb), .07) !important; border-radius: 12px !important; }
+.ho-tb-edit { border-radius: 10px !important; }
+.ho-tb-edit.on { background: var(--ds-grad) !important; }
+.ho-tb-btn, .ho-tb-ico { border-radius: 8px !important; }
+.ho-tb-btn.on { background: var(--ds-accent-soft) !important; border-color: transparent !important; color: var(--ds-a) !important; }
+
+/* ======================= Identidad fase 2 · Mapa de relaciones ======================= */
+.q-model-viewport { background-color: var(--ds-surface-2, #f8fafc) !important; background-image: radial-gradient(rgba(var(--ds-a-rgb), .16) 1px, transparent 1px) !important; background-size: 18px 18px !important; border-radius: 16px !important; border-color: var(--ds-border) !important; }
+.q-model-svg path { stroke: rgba(var(--ds-a-rgb), .55) !important; stroke-width: 1.8 !important; }
+.q-model-svg .edge-label { fill: var(--ds-a) !important; font-size: 10.5px !important; font-weight: 700; paint-order: stroke; stroke: var(--ds-surface-2, #f8fafc); stroke-width: 4px; stroke-linejoin: round; }
+.dsm-card { display: flex; flex-direction: column; border: 1px solid var(--ds-border) !important; border-radius: 14px !important; background: var(--ds-surface) !important; box-shadow: 0 14px 30px -22px rgba(15, 23, 42, .55) !important; overflow: hidden; transition: box-shadow .15s, transform .15s; }
+.dsm-card::before { content: ""; height: 3px; flex: none; background: var(--ds-grad); }
+.dsm-card.ml::before { background: linear-gradient(90deg, #a855f7, #ec4899); }
+.dsm-card.lonely::before { background: #cbd5e1; }
+.dsm-card:hover { box-shadow: 0 0 0 1px rgba(var(--ds-a-rgb), .5), 0 18px 36px -20px rgba(var(--ds-a-rgb), .6) !important; z-index: 2; }
+.dsm-head { display: grid !important; grid-template-columns: 26px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; padding: 9px 10px 8px !important; background: none !important; border-bottom: 1px solid var(--ds-border) !important; border-radius: 0 !important; }
+.dsm-ico { grid-row: 1 / 3; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--ds-accent-soft); color: var(--ds-a); font-size: 13px; }
+.dsm-card.ml .dsm-ico { background: rgba(168, 85, 247, .14); color: #a855f7; }
+.dsm-name { font-size: 12.5px; font-weight: 800; color: var(--ds-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dsm-meta { font-size: 10.5px; color: var(--ds-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dsm-card .q-model-box-fields { flex: 1; min-height: 0; max-height: none !important; padding: 4px 4px 6px !important; }
+.dsm-card .q-model-box-fields li { height: 24px; box-sizing: border-box; padding: 0 8px !important; border-radius: 7px; font-size: 11.5px; color: var(--ds-text); }
+.dsm-card .q-model-box-fields li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.dsm-card .q-model-box-fields li:hover { background: var(--ds-accent-soft); }
+.dsm-card .q-model-box-fields li.is-key { font-weight: 700; }
+.dsm-card .q-model-box-fields li em { margin-left: auto; flex: none; font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ds-a); background: var(--ds-accent-soft); padding: 1px 6px; border-radius: 999px; }
+.dsm-dot { width: 5px; height: 5px; border-radius: 50%; background: #cbd5e1; flex: none; margin: 0 4px 0 3px; }
+.q-zoom-rail { border-radius: 12px !important; border-color: var(--ds-border) !important; box-shadow: 0 10px 24px -18px rgba(15, 23, 42, .6); }
+.q-zoom-btn { border-radius: 8px !important; }
+.q-zoom-btn:hover { background: var(--ds-accent-soft) !important; color: var(--ds-a) !important; }

@@ -16,16 +16,16 @@ const TYPE_LABEL = {
 };
 
 // Dimensiones de layout.
-const BOX_W = 184;
+const BOX_W = 220;
 const COL_GAP = 120;   // separación horizontal entre columnas
 const ROW_GAP = 40;    // separación vertical entre cajas de una columna
 const PAD = 30;        // margen del lienzo
-const HEAD_H = 34;     // alto aproximado de la cabecera de la caja
-const FIELD_H = 25;    // alto aproximado por fila de campo
+const HEAD_H = 56;     // alto de la cabecera de la tarjeta (nombre + resumen)
+const FIELD_H = 24;    // alto por fila de campo (la lista se desplaza si hay más de 8)
 
 function boxHeight(n) {
   const fields = (n.fields || []).length;
-  return HEAD_H + Math.min(fields, 8) * FIELD_H + 8;
+  return HEAD_H + Math.max(1, Math.min(fields, 8)) * FIELD_H + 12;
 }
 
 // Auto-layout determinista: columnas por "profundidad de asociación" vía BFS desde
@@ -150,13 +150,21 @@ export async function render(mount, ctx) {
   const boxesHtml = nodes.map((n) => {
     const p = positions.get(n.table);
     const keys = keyFields.get(n.table) || new Set();
-    const fieldsHtml = (n.fields || []).map((f) => {
+    // Las claves (campos que relacionan tablas) van primero.
+    const flds = [...(n.fields || [])].sort((a, b) => (keys.has(b) ? 1 : 0) - (keys.has(a) ? 1 : 0));
+    const fieldsHtml = flds.map((f) => {
       const isKey = keys.has(f);
-      return `<li class="${isKey ? "is-key" : ""}">${isKey ? keyIco : ""}<span>${esc(f)}</span></li>`;
+      return `<li class="${isKey ? "is-key" : ""}" title="${esc(f)}${isKey ? " · relaciona tablas" : ""}">${isKey ? keyIco : '<i class="dsm-dot"></i>'}<span>${esc(f)}</span>${isKey ? '<em>clave</em>' : ""}</li>`;
     }).join("");
+    const isMl = /^ML_/i.test(n.table);
+    const rows = Number(n.rows);
     return `
-      <div class="q-model-box" style="left:${p.x}px; top:${p.y}px; width:${p.w}px;">
-        <div class="q-model-box-head">${esc(n.table)} <span class="small">${n.rows ?? "?"} filas</span></div>
+      <div class="q-model-box dsm-card ${isMl ? "ml" : ""} ${keys.size ? "" : "lonely"}" style="left:${p.x}px; top:${p.y}px; width:${p.w}px; height:${p.h}px;">
+        <div class="q-model-box-head dsm-head">
+          <span class="dsm-ico">${isMl ? "✦" : "▦"}</span>
+          <span class="dsm-name" title="${esc(n.table)}">${esc(n.table)}</span>
+          <span class="dsm-meta">${Number.isFinite(rows) ? rows.toLocaleString("es-CO") : "?"} filas · ${flds.length} campos${keys.size ? ` · ${keys.size} ${keys.size === 1 ? "clave" : "claves"}` : " · sin relación"}</span>
+        </div>
         <ul class="q-model-box-fields">${fieldsHtml || `<li class="small">(sin campos)</li>`}</ul>
       </div>`;
   }).join("");

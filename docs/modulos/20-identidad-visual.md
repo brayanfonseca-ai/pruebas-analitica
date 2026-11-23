@@ -38,5 +38,24 @@ Las rutas y atajos no cambian (`#hoja`, `#editor`, `#datos`, `#modelo`, `#logico
 ## Archivos
 `pages/app.html`, `js/app.js`, `js/topbar.js`, `js/hub-nav.js`, `pages/inicio.html`, `pages/catalogo.html`, `js/app-editor.js`, `js/app-datos.js`, `js/app-modelo.js`, `js/app-logico.js`, `js/app-menu.js`, `js/app-hoja.js`, `help/ayuda.json`, `css/theme.css` (sección «Identidad DataSense»).
 
-## Siguientes fases
-Rediseñar por dentro las pantallas que conservan la distribución de Qlik: el Script de datos (tres columnas), el modo Diseñar de las hojas (riel de activos y panel de propiedades), la barra de selecciones y el Mapa de relaciones.
+## Fase 2: pantallas por dentro
+### Script de datos
+- El editor ocupa todo el ancho. Las **pestañas** del script son pestañas horizontales encima del editor (con **+** para añadir una).
+- **Fuentes** (plantillas y conexiones) es un cajón a la derecha que se abre con el botón **⛁ Fuentes** y se cierra con ✕. Se recuerda (`ds.ed.fuentes`); la primera vez se abre solo si la app no tiene script.
+- Los mensajes (comentar líneas, insertar bloques, cargas) salen en una **barra de estado** al pie, visible aunque Fuentes esté cerrado.
+
+### Hojas · modo Diseñar
+- Al pulsar **Diseñar**, el menú lateral de la app se pliega solo y vuelve como estaba al pulsar **Listo** o al salir de la hoja (no cambia la preferencia guardada).
+- El riel muestra solo iconos (nombre al pasar el cursor) y solo lo que funciona: **Gráficos, Campos, Medidas y dimensiones, Modelos de ML, Hojas**. El panel de elementos y el de propiedades son tarjetas.
+- Se quitaron las maquetas sin función: Marcadores, Disparadores de información, Análisis, Variables, Tabla de origen, Expresión de título, Condición para mostrar, Opciones de estilo, Estados alternos, Acciones, Imágenes, Visualizaciones maestras, el botón ✨ y los botones *fx* deshabilitados. Los tipos de gráfico no disponibles ya no se listan.
+
+### Barra de filtros y colores de selección
+- La barra de selecciones es ahora **Filtros**: chips «Campo: valor» con ✕, y a la derecha deshacer, rehacer y **Limpiar**. Sin filtros muestra una pista.
+- Panel de filtrado: **seleccionado** = degradado de la marca con ✓ (antes verde), **posible** = normal, **alternativo** = tinte suave, **excluido** = atenuado y tachado (antes gris). Los gráficos siguen atenuando lo no seleccionado.
+
+### Mapa de relaciones
+- Cada tabla es una tarjeta con franja de color (azul: datos; violeta: tablas de ML; gris: sin relación), icono, nombre y resumen «filas · campos · claves».
+- Las **claves** (campos que relacionan tablas) van primero con la etiqueta CLAVE. La tarjeta tiene alto fijo y desplaza sus campos, así ya no se montan unas sobre otras.
+- Fondo punteado, líneas y rótulos con el color de la marca.
+
+Archivos de la fase 2: `js/app-editor.js`, `js/app-hoja.js`, `js/app-modelo.js`, `css/theme.css` (secciones «Identidad fase 2»).

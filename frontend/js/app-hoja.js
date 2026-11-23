@@ -56,24 +56,13 @@ const AGG_LABEL = { sum: "Sum", avg: "Avg", count: "Count", min: "Min", max: "Ma
 const AGG_NAME = { sum: "Suma", avg: "Promedio", count: "Recuento", min: "Mínimo", max: "Máximo" };
 const SOON = "Próximamente";
 
+// Solo lo que funciona de verdad (Marcadores, Disparadores, Análisis y Variables eran maquetas sin función).
 const RAIL = [
-  { key: "hojas", label: "Hojas", icon: "pages" },
-  { key: "marcadores", label: "Marcadores", icon: "star" },
-  { key: "disparadores", label: "Disparadores de información", icon: "auto" },
+  { key: "graficos", label: "Gráficos", icon: "analyze" },
   { key: "campos", label: "Campos", icon: "database" },
   { key: "maestros", label: "Medidas y dimensiones", icon: "box" },
-  { key: "graficos", label: "Gráficos", icon: "analyze" },
-  { key: "analisis", label: "Análisis", icon: "assist" },
-  { key: "objetos", label: "Objetos personalizados", icon: "predict" },
-  { key: "variables", label: "Variables", icon: "script" },
-];
-
-const ANALYSES = [
-  "Agrupación en clústeres (k-means)", "Año hasta la fecha", "Anomalía (pico)", "Anomalía (tendencia)",
-  "Comparación", "Control de procesos (media móvil)", "Control de procesos (media)", "Correlación",
-  "Descomposición de series de tiempo", "Desglose", "Desglose (geoespacial)", "General",
-  "Importancia relativa", "Información mutua", "Medida calculada (KPI)", "Ranking",
-  "Ranking (agrupado)", "Tendencia a lo largo del tiempo", "Tendencia con previsión",
+  { key: "objetos", label: "Modelos de ML", icon: "predict" },
+  { key: "hojas", label: "Hojas", icon: "pages" },
 ];
 
 const uid = () => "o" + Math.random().toString(36).slice(2, 10);
@@ -167,9 +156,8 @@ export async function render(mount, ctx) {
     <div class="ho" id="ho">
       <div class="ho-toolbar">
         <div class="ho-tb-group">
-          <button class="ho-tb-btn edit-only" data-act="activos" title="Mostrar/ocultar el panel de activos">${svg("pages")}<span>Activos</span></button>
+          <button class="ho-tb-btn edit-only" data-act="activos" title="Mostrar u ocultar el panel de elementos">${svg("analyze")}<span>Elementos</span></button>
           <button class="ho-tb-btn edit-only" data-act="hojas" title="Hojas">${svg("pages")}<span>Hojas</span></button>
-          <button class="ho-tb-btn edit-only" data-act="marcadores" title="Marcadores">${svg("star")}<span>Marcadores</span></button>
         </div>
         <div class="ho-tb-sep edit-only"></div>
         <div class="ho-tb-group edit-only">
@@ -183,7 +171,6 @@ export async function render(mount, ctx) {
           <button class="ho-tb-ico edit-only" data-act="undo" title="Deshacer (Ctrl+Z)">↶</button>
           <button class="ho-tb-ico edit-only" data-act="redo" title="Rehacer (Ctrl+Y)">↷</button>
           <div class="ho-tb-sep edit-only"></div>
-          <button class="ho-tb-btn edit-only" data-act="source" disabled title="Tabla de origen: ${SOON}">${svg("database")}<span>Tabla de origen</span></button>
           <button class="ho-tb-btn edit-only" data-act="props" title="Mostrar/ocultar propiedades">${svg("catalog")}<span>Propiedades</span></button>
           ${canEdit ? `<button class="ho-tb-edit" data-act="toggleEdit" id="hoEditBtn">✎ <span>Diseñar</span></button>` : ""}
         </div>
@@ -381,11 +368,28 @@ export async function render(mount, ctx) {
      Modo edición / chrome
      ====================================================================== */
   function setEdit(v) {
+    const was = st.edit;
     st.edit = !!v && canEdit;
     if (!st.edit) st.selectedId = null;
+    if (was !== st.edit) designSpace(st.edit);
     renderChrome();
     relayout();
     rerenderAllContent();
+  }
+
+  // En «Diseñar» el menú lateral de la app se pliega solo (sin guardar la preferencia) para dejar
+  // sitio a la rejilla; al terminar vuelve como estaba.
+  let sideBefore = null;
+  function designSpace(on) {
+    const html = document.documentElement;
+    if (on) {
+      sideBefore = html.getAttribute("data-side") || "open";
+      html.setAttribute("data-side", "collapsed");
+    } else if (sideBefore !== null) {
+      html.setAttribute("data-side", sideBefore);
+      sideBefore = null;
+    }
+    setTimeout(() => dispatchEvent(new Event("resize")), 320);
   }
 
   function renderChrome() {
@@ -399,7 +403,7 @@ export async function render(mount, ctx) {
       eb.innerHTML = st.edit ? "✓ <span>Listo</span>" : "✎ <span>Diseñar</span>";
       eb.disabled = !st.sheet;
     }
-    mount.querySelectorAll(".ho-tb-btn[data-act='hojas'], .ho-tb-btn[data-act='marcadores']").forEach((b) =>
+    mount.querySelectorAll(".ho-tb-btn[data-act='hojas']").forEach((b) =>
       b.classList.toggle("on", st.edit && st.assetsOpen && st.rail === b.dataset.act));
     renderRail();
     renderAssets();
@@ -472,7 +476,6 @@ export async function render(mount, ctx) {
     $("#hoRail").querySelectorAll("[data-rail]").forEach((b) =>
       b.addEventListener("click", () => {
         const key = b.dataset.rail;
-        if (key === "variables") { openVariables(); return; }
         if (st.rail === key && st.assetsOpen) st.assetsOpen = false;
         else { st.rail = key; st.assetsOpen = true; }
         renderChrome();
@@ -1515,15 +1518,6 @@ export async function render(mount, ctx) {
             </div>`).join("")}
           ${canEdit ? `<button class="ho-sheet-new" id="hoNewSheet"><span>+</span>Crear nueva hoja</button>` : ""}
         </div>`;
-    } else if (key === "marcadores") {
-      html = head("Marcadores") + search() + `
-        <div class="ho-as-group">Público (0)</div>
-        <div class="ho-as-empty"><strong>No tiene marcadores públicos</strong><span>Los marcadores guardarán selecciones y el estado de la hoja.</span></div>
-        <div class="ho-as-group">Privado (0)</div>
-        <button class="ho-as-soon" disabled title="${SOON}">+ Crear nuevo marcador · ${SOON}</button>`;
-    } else if (key === "disparadores") {
-      html = head("Disparadores de información") + search() + `
-        <div class="ho-as-empty"><strong>Aún no hay grupos disponibles.</strong><span>Los grupos disparadores de información estarán disponibles cuando los añada el creador de una aplicación. ${SOON}.</span></div>`;
     } else if (key === "campos") {
       const tables = [...new Set(st.fields.flatMap((f) => f.tables))].sort();
       const shown = st.tableFilter ? st.fields.filter((f) => f.tables.includes(st.tableFilter)) : st.fields;
@@ -1538,7 +1532,7 @@ export async function render(mount, ctx) {
             <div class="ho-field" draggable="true" data-field="${esc(f.field)}" data-filter="${esc((f.display || f.field).toLowerCase())} ${esc(f.field.toLowerCase())}" title="${esc(f.display || f.field)} · ${esc(f.tables.join(", "))}">
               <span class="ho-ftype t-${f.type}">${f.type === "number" ? "#" : f.type === "date" ? "📅" : "Abc"}</span>
               <span class="ho-field-name">${esc(f.display || f.field)}</span>
-            </div>`).join("") : `<div class="ho-as-empty"><strong>No hay campos.</strong><span>Cargue datos en el Gestor de datos.</span></div>`}
+            </div>`).join("") : `<div class="ho-as-empty"><strong>No hay campos.</strong><span>Carga datos desde Script de datos.</span></div>`}
         </div>`;
     } else if (key === "maestros") {
       const dims = st.masters.filter((m) => m.kind === "dimension");
@@ -1551,11 +1545,9 @@ export async function render(mount, ctx) {
         </div>`).join("") || `<div class="ho-as-none">Sin elementos.</div>`;
       html = head("Medidas y dimensiones") + search() + `
         <details open class="ho-as-sec"><summary>Dimensiones ${canEdit ? `<button class="ho-mini" data-master-new="dimension" title="Crear dimensión">+</button>` : ""}</summary>${list(dims)}</details>
-        <details open class="ho-as-sec"><summary>Medidas ${canEdit ? `<button class="ho-mini" data-master-new="measure" title="Crear medida">+</button>` : ""}</summary>${list(meas)}</details>
-        <details class="ho-as-sec"><summary>Visualizaciones</summary><div class="ho-as-none">${SOON}</div></details>
-        <details open class="ho-as-sec"><summary>Estados alternos</summary><div class="ho-as-none">&lt;estado predeterminado&gt;</div></details>`;
+        <details open class="ho-as-sec"><summary>Medidas ${canEdit ? `<button class="ho-mini" data-master-new="measure" title="Crear medida">+</button>` : ""}</summary>${list(meas)}</details>`;
     } else if (key === "graficos") {
-      const item = (t, extra = "") => `
+      const item = (t, extra = "") => !t.available ? "" : `
             <div class="ho-chart-item ${t.available ? "" : "soon"}" ${t.available ? `draggable="true" data-add-type="${t.type}"` : ""} data-type="${t.type}" data-filter="${esc((t.label + " " + extra + " " + (t.desc || "")).toLowerCase())}"
                  title="${t.available ? (t.desc ? esc(t.desc) + " · " : "") + "Clic para añadir o arrastre a la hoja" : SOON}">
               <span class="ho-chart-ico">${typeIcon(t.icon)}</span>
@@ -1575,13 +1567,10 @@ export async function render(mount, ctx) {
           ${CHART_TYPES.filter((t) => t.group === g.key).map((t) => item(t)).join("")}
         </details>`;
       }).join("");
-    } else if (key === "analisis") {
-      html = head("Análisis") + search() + `<div class="ho-as-note">Los análisis asistidos llegarán con la capa de IA. ${SOON}.</div>` +
-        ANALYSES.map((n) => `<div class="ho-chart-item soon" data-filter="${esc(n.toLowerCase())}"><span class="ho-chart-ico">${typeIcon("line")}</span><span>${esc(n)}</span></div>`).join("");
     } else if (key === "objetos") {
       // Stack de gráficos de Machine Learning: dibujan una ejecución guardada de Experimentos de ML.
       const sm = st.sheet?.props?.ml;
-      html = head("Objetos personalizados") + search() + `
+      html = head("Modelos de ML") + search() + `
         <div class="ho-as-note mlv-as-note">Gráficos de <strong>Machine Learning</strong>. Arrástrelos a la hoja o haga clic para añadirlos; dibujan una ejecución de Experimentos de ML${sm ? ` (por defecto: <strong>${esc(sm.algoritmo || "")}</strong> de «${esc(sm.experimento || "")}»)` : ""}.</div>` +
         ML_FAMILIES.map((fam) => {
           const items = CHART_TYPES.filter((t) => t.group === "ml" && t.mlFamily === fam.key);
@@ -1704,11 +1693,8 @@ export async function render(mount, ctx) {
       <div class="ho-p-sec-title">Propiedades de hoja</div>
       <div class="ho-p-body">
         <div class="ho-p-field"><label class="ho-p-label" for="sTitle">Título</label><input id="sTitle" value="${esc(s.title)}" /></div>
-        ${fxInput("sTitleExpr", "Expresión de título", "", { disabled: true, ph: SOON })}
-        ${fxInput("sCond", "Condición para mostrar", "", { disabled: true, ph: SOON })}
         <div class="ho-p-field"><label class="ho-p-label" for="sDesc">Descripción</label><textarea id="sDesc" rows="3">${esc(s.description || "")}</textarea></div>
         <div class="ho-p-thumb">${layoutThumb(s.objects)}</div>
-        <button class="ho-p-link" disabled title="${SOON}">🎨 Opciones de estilo <span>›</span></button>
 
         <div class="ho-p-field"><label class="ho-p-label" for="sGrid">Espaciado de líneas de cuadrícula</label>
           <select id="sGrid">
@@ -1739,9 +1725,7 @@ export async function render(mount, ctx) {
             <option value="cuadricula" ${p.small === "cuadricula" ? "selected" : ""}>Vista de cuadrícula</option>
           </select></div>
         ${toggle("sExtend", "Ampliar hoja", !!p.extend)}
-      </div>
-      <details class="ho-p-collapsed"><summary>Estados alternos</summary><div class="ho-p-soon">${SOON}</div></details>
-      <details class="ho-p-collapsed"><summary>Acciones</summary><div class="ho-p-soon">${SOON}</div></details>`;
+      </div>`;
 
     const title = pane.querySelector("#sTitle");
     title.addEventListener("change", () => {
@@ -1842,8 +1826,7 @@ export async function render(mount, ctx) {
                 </select></div>
               ${fmtField(item, "measure")}
               <div class="ho-p-field"><label class="ho-p-label">Mostrar medida si (expresión)</label>
-                <div class="ho-fx-input"><input data-item-showif value="${esc(item.showIf || "")}" placeholder="p. ej. Sum(Ventas) > 0" />
-                  <button class="ho-fx" type="button" disabled title="Editor de expresiones: ${SOON}">f<sub>x</sub></button></div></div>
+                <div class="ho-fx-input"><input data-item-showif value="${esc(item.showIf || "")}" placeholder="p. ej. Sum(Ventas) > 0" /></div></div>
               <label class="ho-check"><input type="checkbox" data-item-trend ${item.trend ? "checked" : ""}/> Mostrar línea de tendencia</label>
               ${item.trend ? `<div class="ho-p-field"><label class="ho-p-label">Tipo de tendencia</label>
                 <select data-item-trendtype>
@@ -1938,8 +1921,7 @@ export async function render(mount, ctx) {
           <label class="ho-check"><input type="checkbox" id="pIncludeZero" ${p.addons?.includeZero ? "checked" : ""}/> Incluir valores cero</label>
           <p class="ho-p-hint">Con esta opción se muestran también las dimensiones cuyo valor de medida es 0 o nulo.</p>
           <div class="ho-p-field"><label class="ho-p-label" for="pCalcCond">Condición de cálculo (expresión)</label>
-            <div class="ho-fx-input"><input id="pCalcCond" value="${esc(p.addons?.calcCond || "")}" placeholder="p. ej. Count(Pedido) > 10" />
-              <button class="ho-fx" type="button" disabled title="Editor de expresiones: ${SOON}">f<sub>x</sub></button></div></div>
+            <div class="ho-fx-input"><input id="pCalcCond" value="${esc(p.addons?.calcCond || "")}" placeholder="p. ej. Count(Pedido) > 10" /></div></div>
           <div class="ho-p-field"><label class="ho-p-label" for="pCalcMsg">Mensaje mostrado</label>
             <input id="pCalcMsg" value="${esc(p.addons?.calcMsg || "")}" placeholder="Condición de cálculo no cumplida" /></div>
           <p class="ho-p-hint">Si la condición no se cumple, el objeto muestra el mensaje en vez de los datos.</p>`) +
@@ -1968,8 +1950,7 @@ export async function render(mount, ctx) {
               <input data-shape-to="${i}" type="number" value="${esc(s.to ?? "")}" placeholder="Hasta" />
               <button class="ho-mini" data-shape-del="${i}" title="Quitar">✕</button></div>`).join("")}
           <button class="ho-add-btn" data-shape-add>Añadir forma</button>
-          <p class="ho-p-hint">Resalta un rango de valores con una banda o rectángulo de color.</p>`) +
-        sub("imagenes", "Imágenes", `<p class="ho-p-soon">${SOON}</p>`);
+          <p class="ho-p-hint">Resalta un rango de valores con una banda o rectángulo de color.</p>`);
 
     // ---------- Aspecto ----------
     const look = p.look;
@@ -2019,7 +2000,6 @@ export async function render(mount, ctx) {
         ${def.noData ? "" : toggle("pHoverMenu", "Menú activable", p.hoverMenu !== false, "Muestra el menú de acciones del objeto al pasar el cursor.")}
         ${def.noData ? "" : toggle("pDisclaimerOn", "Mostrar exención de responsabilidad", !!p.disclaimerOn)}
         ${!def.noData && p.disclaimerOn ? `<div class="ho-p-field"><label class="ho-p-label" for="pDisclaimer">Texto de exención</label><textarea id="pDisclaimer" rows="2">${esc(p.disclaimer || "")}</textarea></div>` : ""}`) +
-      sub("estados", "Estados alternos", `<p class="ho-p-soon">${SOON}</p>`) +
       (pres.length ? sub("presentacion", "Presentación", pres.join("")) : "") +
       (def.noData ? "" : sub("colores", "Colores y leyenda", `
         <div class="ho-p-field"><label class="ho-p-label" for="pColor">Color</label>
@@ -2041,8 +2021,7 @@ export async function render(mount, ctx) {
         <label class="ho-check"><input type="checkbox" data-look-chk="tooltip" ${look.tooltip !== false ? "checked" : ""}/> Mostrar información al pasar el cursor</label>`));
 
     pane.innerHTML = `
-      <div class="ho-p-head">${typeIcon(def.icon)}<span>${esc(def.label)}</span>
-        <button class="ho-p-spark" disabled title="Sugerencias de gráfico: ${SOON}">✨</button></div>
+      <div class="ho-p-head">${typeIcon(def.icon)}<span>${esc(def.label)}</span></div>
       ${sec("datos", "Datos", datos)}
       ${sec("ordenar", "Ordenar", ordenar)}
       ${sec("modulos", "Módulos adicionales", modulos)}
@@ -2636,17 +2615,6 @@ export async function render(mount, ctx) {
     });
   }
 
-  function openVariables() {
-    openModalHtml(`
-      <div class="ho-modal-head"><h3>Variables</h3><button class="ho-x" data-close>✕</button></div>
-      <div class="ho-modal-body">
-        <div class="ho-var-bar"><button class="ho-btn primary" disabled title="${SOON}">Crear nueva</button><button class="ho-btn" disabled>Eliminar</button></div>
-        <table class="ho-var-table"><thead><tr><th>Nombre</th><th>Definición</th><th>Valor</th><th>Etiquetas</th><th>Incluir en los marcadores</th></tr></thead>
-          <tbody><tr><td colspan="5" class="ho-var-empty">No hay variables. Las variables se definirán en el script de carga (<code>SET</code>/<code>LET</code>) cuando el motor ejecute el script. ${SOON}.</td></tr></tbody></table>
-      </div>
-      <div class="ho-modal-foot"><button class="ho-btn" data-close>Hecho</button></div>`, "wide");
-  }
-
   function expandObject(id) {
     const o = objById(id);
     if (!o) return;
@@ -2762,13 +2730,16 @@ export async function render(mount, ctx) {
     const entries = Object.entries(st.selections).filter(([, v]) => v && v.length);
     bar.hidden = !st.sheet || (!entries.length && !st.selBack.length);
     bar.innerHTML = `
-      <button class="ho-sel-ico" data-sel="back" ${st.selBack.length ? "" : "disabled"} title="Atrás en las selecciones">↶</button>
-      <button class="ho-sel-ico" data-sel="fwd" ${st.selFwd.length ? "" : "disabled"} title="Adelante en las selecciones">↷</button>
-      <button class="ho-sel-ico" data-sel="clear" ${entries.length ? "" : "disabled"} title="Borrar todas las selecciones">⊘</button>
+      <span class="ho-sel-title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg>Filtros</span>
       <div class="ho-sel-chips">
         ${entries.length ? entries.map(([f, v]) => `
-          <span class="ho-sel-chip"><span class="ho-sel-field">${esc(f)}</span><span class="ho-sel-vals">${esc(v.length > 2 ? `${v.length} de valores` : v.map(fmt).join(", "))}</span>
-            <button data-sel-clear="${esc(f)}" title="Borrar selección">✕</button></span>`).join("") : `<span class="ho-sel-none">Sin selecciones</span>`}
+          <span class="ho-sel-chip" title="${esc(f)}: ${esc(v.map(fmt).join(", "))}"><span class="ho-sel-field">${esc(f)}</span><span class="ho-sel-vals">${esc(v.length > 2 ? `${v.length} valores` : v.map(fmt).join(", "))}</span>
+            <button data-sel-clear="${esc(f)}" title="Quitar este filtro" aria-label="Quitar filtro ${esc(f)}">✕</button></span>`).join("") : `<span class="ho-sel-none">Sin filtros: haz clic en un gráfico o en un filtro para explorar.</span>`}
+      </div>
+      <div class="ho-sel-hist">
+        <button class="ho-sel-ico" data-sel="back" ${st.selBack.length ? "" : "disabled"} title="Deshacer filtro">↶</button>
+        <button class="ho-sel-ico" data-sel="fwd" ${st.selFwd.length ? "" : "disabled"} title="Rehacer filtro">↷</button>
+        <button class="ho-sel-clear" data-sel="clear" ${entries.length ? "" : "disabled"} title="Quitar todos los filtros">Limpiar</button>
       </div>`;
     bar.querySelector("[data-sel='back']").addEventListener("click", () => {
       if (!st.selBack.length) return;
@@ -2798,7 +2769,7 @@ export async function render(mount, ctx) {
     if (act === "toggleEdit") { if (st.edit && saveTimer) saveNow(); setEdit(!st.edit); return; }
     if (act === "activos") { st.assetsOpen = !st.assetsOpen; renderChrome(); relayout(); return; }
     if (act === "props") { st.propsOpen = !st.propsOpen; renderChrome(); relayout(); return; }
-    if (act === "hojas" || act === "marcadores") {
+    if (act === "hojas") {
       if (!st.edit) return;
       if (st.rail === act && st.assetsOpen) st.assetsOpen = false;
       else { st.rail = act; st.assetsOpen = true; }
@@ -2898,7 +2869,7 @@ export async function render(mount, ctx) {
     if (!s) return;
     const p = s.props;
     openModalHtml(`
-      <div class="ho-modal-head"><h3>Configurar hoja <span class="ho-soon-tag">Preview</span></h3><button class="ho-x" data-close>✕</button></div>
+      <div class="ho-modal-head"><h3>Configurar hoja</h3><button class="ho-x" data-close>✕</button></div>
       <div class="ho-modal-body">
         <label class="ho-check"><input type="checkbox" id="cfgTouch" ${st.touch ? "checked" : ""}/> Modo pantalla táctil</label>
         <div class="ho-p-field"><label class="ho-p-label">Formato de pequeña pantalla</label>
@@ -2957,6 +2928,7 @@ export async function render(mount, ctx) {
   root.classList.toggle("touch", !!st.touch);
 
   return () => {
+    if (st.edit) designSpace(false);
     if (saveTimer) saveNow();
     cancelAnimationFrame(rafId);
     ro.disconnect();
