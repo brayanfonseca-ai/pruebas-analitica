@@ -209,6 +209,8 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
       borderWidth: i === 0 ? 0 : 2,
       tension: 0.25,
       order: i === 0 ? 2 : 1,
+      // Las líneas van en un eje secundario (derecha): un % junto a millones quedaría aplastado contra el cero.
+      yAxisID: i === 0 ? "y" : "y2",
     }));
   } else {
     const isLine = def.type === "line";
@@ -258,6 +260,14 @@ export function renderChart(host, def, props, rawResult, { onSelect, selectedVal
           ticks: { display: look.yLabels !== false, font: { size: 11 }, ...(!horizontal ? { callback: valTick } : {}) },
           title: { display: !!look.yTitle, text: look.yTitle },
         },
+        ...(def.type === "combo" && data.series.length > 1 ? {
+          y2: {
+            position: "right",
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            ticks: { display: look.yLabels !== false, font: { size: 11 }, callback: (v) => (typeof v === "number" && mF(1) && mF(1) !== "auto" ? fmtAs(v, mF(1)) : v) },
+          },
+        } : {}),
       }
     : undefined;
 
@@ -370,9 +380,21 @@ function valueLabelsPlugin(on, measures) {
         ctx.font = "10px Segoe UI, sans-serif";
         ctx.fillStyle = "#333";
         ctx.textAlign = "center";
+        // Torta: x/y del sector es el centro del círculo; tooltipPosition() da el punto medio de cada sector.
+        const isArc = meta.type === "pie" || meta.type === "doughnut";
+        const total = isArc ? ds.data.reduce((a, b) => a + (Number(b) || 0), 0) || 1 : 0;
+        if (isArc) { ctx.font = "600 11px Segoe UI, sans-serif"; ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; }
         meta.data.forEach((el, i) => {
           const v = ds.data[i];
           if (v == null) return;
+          if (isArc) {
+            const share = (Number(v) || 0) / total;
+            if (share < 0.04) return;   // sectores muy pequeños: sin etiqueta (se lee en el tooltip)
+            const p = el.tooltipPosition();
+            ctx.fillText(fmtAs(v, mode), p.x, p.y - 7);
+            ctx.fillText(`${(share * 100).toLocaleString("es-CO", { maximumFractionDigits: 1 })} %`, p.x, p.y + 7);
+            return;
+          }
           ctx.fillText(fmtAs(v, mode), el.x, el.y - 4);
         });
         ctx.restore();
@@ -406,9 +428,12 @@ export function renderKpi(host, props, result) {
     const up = delta >= 0;
     cmp = `<div class="ho-kpi-cmp ${up ? "up" : "down"}">${up ? "▲" : "▼"} ${fmt(Math.abs(delta))}%</div>`;
   }
+  // Si el título visible del objeto ya dice lo mismo, no se repite la etiqueta («Ventas netas / Ventas netas»).
+  const norm = (s) => String(s || "").trim().toLowerCase();
+  const repeated = props.showTitles !== false && norm(props.title) && norm(props.title) === norm(label);
   host.innerHTML = `
     <div class="ho-kpi" style="text-align:${esc(look.kpiAlign || "center")};">
-      <div class="ho-kpi-label">${esc(label)}</div>
+      ${repeated ? "" : `<div class="ho-kpi-label">${esc(label)}</div>`}
       <div class="ho-kpi-value" style="color:${esc(themeColor(look.color))};">${esc(fmtAs(result.value, mode))}</div>
       ${cmp}
     </div>`;
@@ -496,6 +521,37 @@ import { PALETTE as _PAL } from "./chart-types.js";
 
 function _c(i) { return _PAL[i % _PAL.length]; }
 
+/**
+ * Squarified treemap: reparte áreas (ya escaladas a w·h, ordenadas de mayor a menor) en el rectángulo
+ * (x, y, w, h) buscando bloques lo más cuadrados posible. Devuelve [{x, y, w, h}] en el mismo orden.
+ */
+function squarify(areas, x, y, w, h) {
+  const out = [];
+  const worst = (row, side) => {
+    const s = row.reduce((a, b) => a + b, 0), mx = Math.max(...row), mn = Math.min(...row);
+    return Math.max((side * side * mx) / (s * s), (s * s) / (side * side * mn));
+  };
+  let i = 0;
+  while (i < areas.length) {
+    const side = Math.min(w, h);
+    const row = [areas[i]];
+    let j = i + 1;
+    while (j < areas.length && worst([...row, areas[j]], side) <= worst(row, side)) row.push(areas[j++]);
+    const s = row.reduce((a, b) => a + b, 0);
+    if (w >= h) {               // fila vertical a la izquierda
+      const cw = s / h; let cy = y;
+      for (const a of row) { const ch = a / cw; out.push({ x, y: cy, w: cw, h: ch }); cy += ch; }
+      x += cw; w -= cw;
+    } else {                    // fila horizontal arriba
+      const chh = s / w; let cx = x;
+      for (const a of row) { const cww = a / chh; out.push({ x: cx, y, w: cww, h: chh }); cx += cww; }
+      y += chh; h -= chh;
+    }
+    i = j;
+  }
+  return out;
+}
+
 /* --- Treemap / bloques --- */
 export function renderTreemap(host, props, result) {
   const d = applySortLimit(result, props);
@@ -503,12 +559,19 @@ export function renderTreemap(host, props, result) {
   const total = vals.reduce((a, b) => a + b, 0) || 1;
   // Squarified simple por filas.
   const items = d.labels.map((l, i) => ({ l, v: vals[i], i })).filter((x) => x.v > 0).sort((a, b) => b.v - a.v);
-  host.innerHTML = `<div class="ho-treemap"></div>`;
+  host.innerHTML = `<div class="ho-treemap sq" style="position:relative;width:100%;height:100%"></div>`;
   const box = host.querySelector(".ho-treemap");
-  box.innerHTML = items.map((it) => {
-    const pct = (it.v / total) * 100;
-    return `<div class="ho-tm-cell" style="flex-grow:${it.v}; background:${_c(it.i)}" title="${esc(it.l)}: ${fmt(it.v)}">
-      <span>${esc(it.l)}</span><small>${props.look?.valueLabels !== false ? fmt(it.v) : pct.toFixed(1) + "%"}</small></div>`;
+  // Mismo formato que el resto de gráficos: el de la medida (moneda, millones, %…) si lo tiene.
+  const mf = props.measures?.[0]?.fmt;
+  const show = (v) => (mf && mf !== "auto" ? fmtAs(v, mf) : fmt(v));
+  const pctTxt = (p) => `${p.toLocaleString("es-CO", { maximumFractionDigits: 1 })} %`;
+  // Treemap «squarified» (Bruls et al.): el área de cada bloque es proporcional a su valor, en % del contenedor.
+  const rects = squarify(items.map((it) => it.v / total * 10000), 0, 0, 100, 100);
+  box.innerHTML = items.map((it, k) => {
+    const pct = (it.v / total) * 100, r = rects[k];
+    const small = r.w < 9 || r.h < 9;
+    return `<div class="ho-tm-cell" style="position:absolute;left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%;box-sizing:border-box;border:1px solid rgba(255,255,255,.65);background:${_c(it.i)}" title="${esc(it.l)}: ${esc(show(it.v))} (${pctTxt(pct)})">
+      ${small ? "" : `<span>${esc(it.l)}</span><small>${props.look?.valueLabels !== false ? `${esc(show(it.v))} · ${pctTxt(pct)}` : pctTxt(pct)}</small>`}</div>`;
   }).join("");
   return null;
 }

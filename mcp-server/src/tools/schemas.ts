@@ -106,7 +106,10 @@ const sheetObjectSchema = z
         "Tipo de objeto. Datos: kpi|bar|line|pie|table|filterpane|combo|scatter|pivot|gauge|histogram|boxplot|treemap(block)|waterfall|funnel|sankey|map|text… (ver list_chart_types). Machine Learning: ml-clustermap|ml-elbow|ml-silhouette|ml-segments|ml-profile|ml-sizes|ml-actualpred|ml-importance|ml-coefs|ml-roc|ml-confusion|ml-leaderboard|ml-forecast|ml-corr|ml-pca|ml-anomaly|ml-rules|ml-metrics|ml-insights (requieren props.ml={experimentId,runId}; mas facil: add_ml_chart).",
       ),
     title: z.string().optional().describe("Titulo del objeto."),
-    dimension: z.string().optional().describe("Campo de dimension."),
+    dimension: z
+      .union([z.string(), z.array(z.string()).min(1)])
+      .optional()
+      .describe("Campo de dimension, o lista de campos ['Region','Categoria'] para pivot, block (treemap), filterpane con varios campos o drill-down."),
     measure: z
       .union([
         z.object({

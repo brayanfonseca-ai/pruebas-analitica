@@ -2632,3 +2632,8 @@ html[data-theme="dark"] .nb-t th { background: var(--ds-surface-3); }
 .nb-add button i { margin-top: 2px; }
 .nb-add button span { display: flex; flex-direction: column; gap: 3px; }
 .nb-add button small { font-size: 11px; font-weight: 500; color: var(--ds-muted); line-height: 1.3; }
+
+/* Menú «⋯» de la tarjeta de app: opción destructiva */
+.ds-card-pop button.danger, .ds-card-pop button.danger svg { color: #dc2626; }
+.ds-card-pop button.danger:hover { background: rgba(239, 68, 68, .1); }
+html[data-theme="dark"] .ds-card-pop button.danger, html[data-theme="dark"] .ds-card-pop button.danger svg { color: #fca5a5; }

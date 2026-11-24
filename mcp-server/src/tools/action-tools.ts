@@ -158,7 +158,7 @@ export const actionTools: ContextTool[] = [
     name: "create_sheet",
     title: "Crear hoja / dashboard",
     description:
-      "Crea una hoja (dashboard) con objetos de visualizacion. 'objects' admite tipo kpi|bar|pie|line|table|filterpane… con dimension y measure = {field,agg} | {expression:'fx'} (medida simple o COMPUESTA: Count([A]) / Count([B]) * 100, Sum(If(...)), Count(DISTINCT [x]); el tool la valida con /expressions/parse) | {source:'master', masterId}, y x,y,w,h en una rejilla de 24 columnas (sin solapes). Devuelve 201 SheetOut. POST /api/v1/apps/{appId}/sheets con {title,description,objects,props}.",
+      "Crea una hoja (dashboard) con objetos de visualizacion. 'objects' admite tipo kpi|bar|pie|line|table|filterpane… con dimension y measure = {field,agg} | {expression:'fx'} (medida simple o COMPUESTA: Count([A]) / Count([B]) * 100, Sum(If(...)), Count(DISTINCT [x]); el tool la valida con /expressions/parse) | {source:'master', masterId}, y x,y,w,h en una rejilla de 24 columnas (sin solapes). 'dimension' es un campo o una lista (pivot y block admiten 2). Maximo de medidas por objeto (las de mas se descartan): table 5; bar, line, radar 3; kpi, combo, scatter, mekko 2; filterpane y objetos de diseno 0; el resto 1. Devuelve 201 SheetOut. POST /api/v1/apps/{appId}/sheets con {title,description,objects,props}.",
     inputShape: createSheetShape,
     handler: async (args) => {
       const body: Record<string, unknown> = {};

@@ -512,6 +512,9 @@
 .ho-tm-cell { flex: 1 1 60px; min-width: 50px; min-height: 40px; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px; border-radius: 2px; overflow: hidden; }
 .ho-tm-cell span { font-size: 11px; font-weight: 600; text-align: center; }
 .ho-tm-cell small { font-size: 10px; opacity: .9; }
+/* Squarified: posición y tamaño exactos (área proporcional al valor), sin mínimos que deformen. */
+.ho-treemap.sq { display: block; gap: 0; }
+.ho-treemap.sq .ho-tm-cell { min-width: 0; min-height: 0; border-radius: 0; text-align: center; }
 
 /* Heatmap */
 .ho-heatmap { overflow: auto; height: 100%; }

@@ -34,7 +34,8 @@ public final class TableReader {
                 new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8),
                 CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build())) {
             List<String> headers = new ArrayList<>(parser.getHeaderNames());
-            headers.replaceAll(String::trim);
+            // Excel guarda «CSV UTF-8» con BOM (U+FEFF): sin quitarlo, la primera columna se llamaría «\uFEFFFecha».
+            headers.replaceAll(h -> h.replace("\uFEFF", "").trim());
             List<List<String>> rows = new ArrayList<>();
             for (CSVRecord rec : parser) {
                 List<String> row = new ArrayList<>(headers.size());

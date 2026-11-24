@@ -4,13 +4,14 @@
 //   · Publicar en Producción (con TODAS sus hojas publicadas de una vez) / Volver a Desarrollo.
 //   · Abrir en la hoja, el Gestor de datos, el Editor de carga, el Modelo lógico o Informes.
 //   · Notas para agente, Experimento de ML nuevo, Conexiones y Embedding.
+//   · Eliminar aplicación (apps:delete; en Producción además apps:publish), con confirmación.
 // Cada opción solo aparece si la persona tiene el permiso (el servidor vuelve a validarlo).
 //
 // Uso:  appMenuBtn(app.id) dentro de la tarjeta;  registerApps(lista);  onAppsChanged(recargar).
 
 import { authService } from "./auth-service.js";
 import * as api from "./api.js";
-import { toast } from "./ui-kit.js";
+import { toast, confirmBox, esc } from "./ui-kit.js";
 
 const can = (p) => authService.can(p);
 const registry = new Map();
@@ -37,6 +38,7 @@ const ICO = {
   brain: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17M6 6c3 2 9 2 12 0M6 18c3-2 9-2 12 0"/>',
   plug: '<path d="M6.5 9h11v3.2a5.5 5.5 0 0 1-11 0z"/><path d="M9.5 3.5V9M14.5 3.5V9M12 17.7V21"/>',
   embed: '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="m9.8 9.5-2.5 2.5 2.5 2.5M14.2 9.5l2.5 2.5-2.5 2.5"/>',
+  trash: '<path d="M6 7h12l-1 12.2a1.6 1.6 0 0 1-1.6 1.4H8.6A1.6 1.6 0 0 1 7 19.2z"/><path d="M4 7h16M9.5 7V4.8A.8.8 0 0 1 10.3 4h3.4a.8.8 0 0 1 .8.8V7M10 11v6M14 11v6"/>',
 };
 const ic = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]}</svg>`;
 const go = (u) => () => { location.href = u; };
@@ -65,7 +67,29 @@ function itemsFor(app) {
   if (can("connections:manage")) more.push({ ico: "plug", label: "Conexiones", run: go("conexiones.html") });
   if (can("embed:manage")) more.push({ ico: "embed", label: "Embedding", run: go("embedding.html") });
   if (more.length) items.push({ sep: true }, ...more);
+  // Una app en Producción solo la puede cambiar (y borrar) quien publica; el servidor lo vuelve a exigir.
+  if (can("apps:delete") && (app.stage !== "produccion" || can("apps:publish"))) {
+    items.push({ sep: true }, { ico: "trash", label: "Eliminar aplicación", danger: true, run: () => removeApp(app) });
+  }
   return items;
+}
+
+async function removeApp(app) {
+  const n = (v, one, many) => `${v ?? 0} ${(v ?? 0) === 1 ? one : many}`;
+  const ok = await confirmBox({
+    title: "Eliminar aplicación",
+    message: `¿Eliminar <strong>${esc(app.name)}</strong>${app.stage === "produccion" ? " (está en <strong>Producción</strong>)" : ""}? Se borran sus datos cargados, `
+      + `${app.sheets ? n(app.sheets, "hoja", "hojas") : "hojas"}, informes, cuadernos, medidas, alertas, embeds y experimentos de ML. No se puede deshacer.`,
+    okLabel: "Eliminar",
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await api.deleteApp(app.id);
+    registry.delete(app.id);
+    toast(`«${app.name}» eliminada.`);
+    changed();
+  } catch (e) { toast(e.message, "err"); }
 }
 
 async function publishAll(app) {
@@ -98,7 +122,7 @@ function openPop(btn, app) {
   pop.setAttribute("role", "menu");
   pop.innerHTML = `<div class="ds-card-pop-h" title="${app.name.replace(/"/g, "&quot;")}">${app.name.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</div>` + items.map((it, i) =>
     it.sep ? `<div class="ds-card-pop-sep"></div>`
-      : `<button type="button" role="menuitem" data-i="${i}">${ic(it.ico)}<span>${it.label}</span>${it.hint ? `<em>${it.hint}</em>` : ""}</button>`).join("");
+      : `<button type="button" role="menuitem" data-i="${i}" class="${it.danger ? "danger" : ""}">${ic(it.ico)}<span>${it.label}</span>${it.hint ? `<em>${it.hint}</em>` : ""}</button>`).join("");
   document.body.appendChild(pop);
   const r = btn.getBoundingClientRect();
   const w = pop.offsetWidth, h = pop.offsetHeight;
