@@ -35,27 +35,27 @@ const SOFT = [244, 246, 251];  // relleno suave de tarjetas
 // (dimensión/medida) se resuelven contra los datos reales al generar.
 const TEMPLATES = [
   {
-    id: "exec", name: "Resumen Ejecutivo", icon: "★",
+    id: "exec", name: "Resumen ejecutivo", icon: "★",
     desc: "KPIs principales, ventas por dimensión clave y una gráfica de tendencia. Ideal para dirección.",
     sections: ["cover", "kpis", "bar_primary", "pie_primary", "trend", "analysis"],
   },
   {
-    id: "region", name: "Análisis por Región/Geografía", icon: "◱",
+    id: "region", name: "Análisis por región", icon: "◱",
     desc: "Desglose completo por la primera dimensión: gráfica, tabla detallada y análisis.",
     sections: ["cover", "kpis", "bar_primary", "table_primary", "analysis"],
   },
   {
-    id: "categoria", name: "Análisis por Categoría", icon: "◐",
+    id: "categoria", name: "Análisis por categoría", icon: "◐",
     desc: "Participación y ranking por la segunda dimensión, con tabla y explicación.",
     sections: ["cover", "kpis", "pie_secondary", "bar_secondary", "table_secondary", "analysis"],
   },
   {
-    id: "tendencia", name: "Tendencias en el Tiempo", icon: "📈",
+    id: "tendencia", name: "Tendencias en el tiempo", icon: "📈",
     desc: "Evolución temporal de las medidas, con gráfica de línea y lectura del comportamiento.",
     sections: ["cover", "kpis", "trend", "trend_table", "analysis"],
   },
   {
-    id: "full", name: "Informe Completo", icon: "▦",
+    id: "full", name: "Informe completo", icon: "▦",
     desc: "Todo: KPIs, todas las dimensiones (barras + tarta), tendencia, tablas y análisis extenso.",
     sections: ["cover", "kpis", "bar_primary", "pie_primary", "bar_secondary", "trend", "table_primary", "table_secondary", "analysis"],
   },
@@ -80,19 +80,19 @@ export async function render(mount, ctx) {
     <div class="q-subtoolbar">
       <div class="rp-head">
         <div>
-          <h2 class="rp-title">Generador de informes</h2>
-          <p class="rp-muted">Informes PDF de <strong>${esc(appName)}</strong> con tus datos reales. Elige un modo.</p>
+          <h2 class="rp-title">Informes</h2>
+          <p class="rp-muted">Informes en PDF de <strong>${esc(appName)}</strong> con tus datos reales: parte de una plantilla, de una hoja o pídeselo al asistente.</p>
         </div>
       </div>
       <div class="rp-modes">
         <button class="rp-mode active" data-mode="plantillas">Plantillas</button>
         <button class="rp-mode" data-mode="hojas">Desde una hoja</button>
-        <button class="rp-mode" data-mode="chat">Asistente (conversacional)</button>
+        <button class="rp-mode" data-mode="chat">Con el asistente</button>
       </div>
     </div>
     <div class="rp-wrap">
       ${!ready ? `<div class="rp-empty"><p>Esta aplicación aún no tiene datos cargados.</p>
-        <p class="rp-muted">Carga un archivo en el Editor de carga para poder generar informes.</p></div>`
+        <p class="rp-muted">Carga datos desde Script de datos para poder generar informes.</p></div>`
       : `<div id="rpPane"></div>`}
     </div>
     <div class="rp-progress-backdrop" id="rpProg" hidden>

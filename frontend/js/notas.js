@@ -203,7 +203,7 @@ function editView() {
       </div>
     </div>
     ${empty ? `<div class="cfg-card cn-empty"><div class="cn-empty-ic">${svg("database")}</div><h3>Primero carga datos</h3><p>Las columnas aparecen aquí cuando la aplicación tiene tablas cargadas (archivo, conexión o script).</p>
-      <a class="q-btn primary" href="app.html?app=${encodeURIComponent(st.app.id)}#datos">Ir al Gestor de datos</a></div>` : `
+      <a class="q-btn primary" href="app.html?app=${encodeURIComponent(st.app.id)}#editor">Ir a Script de datos</a></div>` : `
     <div class="cfg-card cfg-pad nt-ctx">
       <label class="nt-lbl">Contexto del negocio <small>(opcional, para toda la app)</small>
         <textarea class="nt-in" id="ntApp" rows="3" placeholder="Ej.: Somos una cadena de tiendas en Colombia. Las ventas están en COP e incluyen IVA. El año fiscal empieza en febrero.">${esc(d.app_text)}</textarea></label>
@@ -232,7 +232,7 @@ function versionsView() {
   return `<section class="vc" id="ntVersions">
     <div class="vc-head"><div><h2>${svg("script")} Versiones del script de carga</h2>
       <p>Cada vez que guardas el script con cambios se crea una versión nueva: queda como <b>principal</b> y la anterior baja al historial. Nada se borra; restaurar crea otra versión.</p></div>
-      <a class="q-btn" href="app.html?app=${encodeURIComponent(st.app.id)}#editor">Abrir el editor de carga</a></div>
+      <a class="q-btn" href="app.html?app=${encodeURIComponent(st.app.id)}#editor">Abrir Script de datos</a></div>
     ${v.length ? `<ol class="vc-line">${v.map((x) => `
       <li class="vc-item ${x.is_head ? "head" : ""} ${st.verDetail?.version === x.version ? "open" : ""}" data-v="${x.version}">
         <span class="vc-dot"></span>
@@ -247,7 +247,7 @@ function versionsView() {
           </div>
           ${st.verDetail?.version === x.version ? diffView(st.verDetail) : ""}
         </div></li>`).join("")}</ol>`
-      : `<div class="cfg-card cn-empty"><p>Aún no hay versiones. Se crea la primera al pulsar <b>Guardar script</b> en el editor de carga.</p></div>`}
+      : `<div class="cfg-card cn-empty"><p>Aún no hay versiones. Se crea la primera al pulsar <b>Guardar script</b> en Script de datos.</p></div>`}
     ${head ? `<p class="cfg-hint">Versión principal: <b>v${head.version}</b> · ${v.length} ${v.length === 1 ? "versión" : "versiones"} en total.</p>` : ""}
   </section>`;
 }

@@ -59,3 +59,12 @@ Las rutas y atajos no cambian (`#hoja`, `#editor`, `#datos`, `#modelo`, `#logico
 - Fondo punteado, líneas y rótulos con el color de la marca.
 
 Archivos de la fase 2: `js/app-editor.js`, `js/app-hoja.js`, `js/app-modelo.js`, `css/theme.css` (secciones «Identidad fase 2»).
+
+## Fase 3: orden y acabado
+- **Títulos de página**: color sólido, mismo tamaño y peso en todas las pantallas (antes el degradado partía la palabra en dos colores: «Cre|ar»). Subtítulo bajo el título en Crear, Colecciones, Analizar y Temas. Las cabeceras de Automatizaciones, Informes, Modelos de ML, Capa de negocio, Tablas y campos y Mapa de relaciones usan el mismo estilo (Automatizaciones ya no va dentro de una tarjeta).
+- **Crear**: solo acciones reales, en tres grupos (Análisis · Inteligencia y automatización · Datos y conexiones) y según los permisos de cada persona. Se retiraron las tarjetas de relleno copiadas de Qlik («Rodear a», «Guion», «Nota», «Receta de tabla», «Base de conocimientos», «Asistente», «Producto de datos», «Conjunto de datos», «Cargar») y las repetidas. Nuevas: **De archivo a tablero**, **Colección** (abre el formulario), **Tablero incrustado** y **Notas para agente**. Toda la tarjeta es el botón.
+- **Analizar**: ya no repite la lista de Aplicaciones; ahora es la galería de **cuadernos de análisis** de todas las apps, y cada app tiene la vista «Cuaderno de análisis» en Explorar (ver [21](./21-cuaderno-analisis.md)).
+- **Textos**: trato de *tú* en todas partes (se corrigieron «No tiene», «Puede», «Suelte», «Haga clic», «Seleccione», «Arrástrelos», «Recargue»…); nombres nuevos en los mensajes que aún decían «Gestor de datos», «Editor de carga», «Modelo lógico» o «Cargar datos»; plurales correctos («1 crítico», «2 tablas cargadas» en vez de «crítico(s)», «tabla(s)»); porcentajes en español («100 %» en vez de «100.0%»); plantillas de informe en minúscula de oración («Resumen ejecutivo», «Análisis por región»); modo «Con el asistente».
+- **Script de datos**: se ocultó el selector de «espacios» (nombres fijos de ejemplo que no filtraban nada).
+- **Tablas y campos**: el botón «Agregar datos» se veía blanco sobre blanco; ahora usa el color de la marca.
+- **Informes / Modelos de ML**: títulos alineados con el menú («Informes», «Modelos de ML»).

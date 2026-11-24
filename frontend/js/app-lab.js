@@ -22,7 +22,7 @@ export async function render(mount, ctx) {
   const algo = (a) => { const k = ALGO_BY_BACKEND(a); return k ? ALGOS[k].name : a || "—"; };
   wrap.innerHTML = `
     <div class="ml-head">
-      <div><h2 class="ml-title">Experimentos de ML</h2>
+      <div><h2 class="ml-title">Modelos de ML</h2>
         <p class="ml-sub">Experimentos que usan los datos de esta aplicación. Se crean y trabajan en el módulo de Experimentos.</p></div>
       <div class="ml-card-actions"><a class="ml-btn ghost" href="experimentos.html">Ver todos</a><a class="ml-btn primary" href="${newHref}"><span class="ml-ic">${PLUS}</span>Nuevo experimento</a></div>
     </div>

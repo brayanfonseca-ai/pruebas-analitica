@@ -328,6 +328,20 @@ public class DatabaseConfig {
             addColumn("master_items", "format_json", "TEXT");
             // Embedding de varias hojas: ids separados por coma, en el orden de las pestañas (sheet_id = la primera).
             addColumn("embeds", "sheet_ids", "TEXT");
+            // Cuadernos de análisis: celdas (SQL, perfil, Pareto/ABC, correlación, atípicos, notas) en JSON.
+            jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS notebooks (
+                    id TEXT PRIMARY KEY,
+                    app_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    cells_json TEXT NOT NULL,
+                    owner_id TEXT,
+                    owner_name TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (app_id) REFERENCES apps (id) ON DELETE CASCADE
+                )""");
             jdbc.execute("""
                 CREATE TABLE IF NOT EXISTS master_item_versions (
                     item_id TEXT NOT NULL,

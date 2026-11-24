@@ -5,6 +5,7 @@ import * as api from "./api.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const nf = (v) => (v == null || isNaN(v) ? "—" : Number(v).toLocaleString("es-CO", { maximumFractionDigits: 2 }));
+const plural = (n, one, many) => `${n} ${Number(n) === 1 ? one : many}`;
 const when = (s) => { if (!s) return "—"; const d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }); };
 const rel = (s) => {
   if (!s) return "";
@@ -62,7 +63,7 @@ export async function render(mount, ctx) {
         <div class="au-score ${cls}" role="img" aria-label="Puntaje de salud ${h.score} de 100" style="--p:${h.score}"><b>${h.score}</b><span>de 100</span></div>
         <div class="au-h-txt">
           <h2>Salud de datos · <span class="au-pill ${cls}">${esc({ buena: "Buena", regular: "Regular", mala: "Mala" }[h.status])}</span></h2>
-          <p class="au-muted">${h.counts.critical} crítico(s) · ${h.counts.warning} advertencia(s) · ${h.counts.info} aviso(s) · revisado ${when(h.checked_at)}</p>
+          <p class="au-muted">${plural(h.counts.critical, "crítico", "críticos")} · ${plural(h.counts.warning, "advertencia", "advertencias")} · ${plural(h.counts.info, "aviso", "avisos")} · revisado ${when(h.checked_at)}</p>
           <div class="au-tables">${(h.tables || []).map((t) => `
             <div class="au-tbl"><b title="${esc(t.table)}">${esc(t.table)}</b>
               <span>${nf(t.rows)} filas · ${t.columns} col.${t.rows_change_pct != null ? ` · <em class="${t.rows_change_pct < 0 ? "dn" : "up"}">${t.rows_change_pct > 0 ? "+" : ""}${nf(t.rows_change_pct)} % vs. carga anterior</em>` : ""}</span>
@@ -93,7 +94,7 @@ export async function render(mount, ctx) {
           <span>Próxima: ${s.enabled && s.next_run_at ? `${when(s.next_run_at)} (${rel(s.next_run_at)})` : "—"}</span>
           <span>Última: ${s.last_run_at ? `${when(s.last_run_at)} · <span class="au-pill ${STATUS[s.last_status]?.[1] || "muted"}">${STATUS[s.last_status]?.[0] || s.last_status}</span>${s.last_duration_ms != null ? ` · ${(s.last_duration_ms / 1000).toFixed(1)} s` : ""}` : "aún no ha corrido"}</span>
           <small>Corre con los permisos de ${esc(s.owner_name || "—")}.</small>
-        </div>` : `<p class="au-muted">Sin programación: los datos se actualizan solo al pulsar «Cargar datos» en el editor.</p>`}
+        </div>` : `<p class="au-muted">Sin programación: los datos se actualizan solo al pulsar «Ejecutar script» en Script de datos.</p>`}
       ${canData ? "" : `<p class="au-muted">Programar la carga requiere el permiso «Importar datos».</p>`}
       <form class="au-form" id="auSchedForm">
         <label>Frecuencia<select name="frequency" ${dis}>

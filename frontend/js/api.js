@@ -213,6 +213,14 @@ export const checkAlert = (appId, id) => request(`${A(appId)}/alerts/${encodeURI
 export const getHealth = (appId) => request(`${A(appId)}/health`);
 // Qué cambió · registros · ¿qué pasaría si…? · listas de acción · agente de guardia
 export const explainChange = (appId, body) => request(`${A(appId)}/insights/explain`, { method: "POST", body });
+// Cuadernos de análisis: SQL, perfil, Pareto/ABC, correlación, atípicos y notas.
+export const listNotebooks = (appId) => request(`${A(appId)}/notebooks`);
+export const getNotebook = (appId, id) => request(`${A(appId)}/notebooks/${encodeURIComponent(id)}`);
+export const createNotebook = (appId, body) => request(`${A(appId)}/notebooks`, { method: "POST", body });
+export const updateNotebook = (appId, id, body) => request(`${A(appId)}/notebooks/${encodeURIComponent(id)}`, { method: "PUT", body });
+export const deleteNotebook = (appId, id) => request(`${A(appId)}/notebooks/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const notebookSchema = (appId) => request(`${A(appId)}/notebooks/schema`);
+export const runNotebookCell = (appId, cell) => request(`${A(appId)}/notebooks/run`, { method: "POST", body: { cell } });
 export const insightRows = (appId, body) => request(`${A(appId)}/insights/rows`, { method: "POST", body });
 export const whatIf = (appId, body) => request(`${A(appId)}/insights/whatif`, { method: "POST", body });
 export async function downloadRowsCsv(appId, body, filename) {

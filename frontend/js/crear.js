@@ -1,12 +1,12 @@
-// crear.js — vista "Crear" estilo Qlik: tarjetas en 3 secciones
-// (Recomendado, Contenido y colaboración, Datos y carga), según la
-// documentación oficial del Analytics activity center de Qlik Cloud.
+// crear.js — vista «Crear»: tarjetas agrupadas (Análisis · Inteligencia y automatización · Datos y conexiones),
+// solo con acciones reales y según los permisos del usuario. Cada tarjeta entera es el botón.
 // El chrome (sidebar/topbar) vive centralizado en js/hub-nav.js.
 
 import { renderNav, svg, wireAppsButton, renderProfileMenu, DUO as D, BRAIN } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
 import { createApp } from "./api.js";
 import { openConnectionsFromHub } from "./conn-hub.js";
+import { openQuick } from "./ask-home.js";
 
 // Guard de sesión.
 if (!authService.isAuthenticated()) {
@@ -39,50 +39,49 @@ function createSvg(name) {
 
 function createCardsHtml(cards) {
   return cards.map((c) => `
-    <article class="q-create-card" data-action="${c.action || ""}">
+    <article class="q-create-card" data-action="${c.action}" tabindex="0" role="button" aria-label="${c.title}">
       <div class="q-create-card-head">
         <span class="q-create-ico">${createSvg(c.icon)}</span>
-        <button class="q-create-add" title="Crear" data-action="${c.action || ""}">+</button>
+        ${c.tag ? `<span class="q-create-tag">${c.tag}</span>` : ""}
       </div>
       <h3 class="q-create-card-title">${c.title}</h3>
       <p class="q-create-card-desc">${c.desc}</p>
-      <a href="#" class="q-create-more">Más información</a>
+      <span class="q-create-more">${c.cta} →</span>
     </article>`).join("");
 }
 
-const RECOMMENDED = [
-  { icon: "app", title: "Aplicación", desc: "Crea una aplicación para visualizar y presentar sus datos.", action: "create-app" },
-  { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento sobre tus datos: segmentación, regresión, clasificación, pronóstico y AutoML.", action: "open-lab" },
-  { icon: "automation", title: "Automatización", desc: "Flujos por nodos: recarga tus datos, consulta, usa agentes de IA y envía correos, WhatsApp o mensajes a Teams.", action: "open-flows" },
-  { icon: "connection", title: "Conexión de datos", desc: "Agregue conexiones a fuentes de datos locales o en la nube.", action: "create-connection" },
-  { icon: "dataflow", title: "Flujo de datos", desc: "Crea un flujo de datos para preparar sus datos con un flujo gráfico o script." },
-];
-
-const CONTENT = [
-  { icon: "app", title: "Aplicación", desc: "Crea una aplicación para visualizar y presentar sus datos.", action: "create-app" },
-  { icon: "assistant", title: "Asistente", desc: "Crea un asistente de chat personalizado para responder preguntas." },
-  { icon: "automation", title: "Automatización", desc: "Configure análisis y flujos de trabajo sin necesidad de programar.", action: "open-flows" },
-  { icon: "knowledge", title: "Base de conocimientos", desc: "Fuentes y archivos de datos no estructurados." },
-  { icon: "surround", title: "Rodear a", desc: "Agregue enlaces a contenido útil." },
-  { icon: "ml", title: "Experimento de ML", desc: "Crea un experimento de aprendizaje automático y compara modelos.", action: "open-lab" },
-  { icon: "dataflow", title: "Flujo de datos", desc: "Crea un flujo de datos para preparar sus datos cuando grafique." },
-  { icon: "note", title: "Nota", desc: "Crea un análisis personal y compartido." },
-  { icon: "recipe", title: "Receta de tabla", desc: "Crea una receta de tabla para preparar los datos de una sola tabla." },
-  { icon: "script", title: "Guion", desc: "Crea un script para cargar, transformar y preparar sus datos." },
-];
-
-const DATA = [
-  { icon: "upload", title: "Cargar", desc: "Cargar archivos existentes en la nube." },
-  { icon: "automation", title: "Conexión de automatización", desc: "Cuentas de correo (SMTP), WhatsApp, webhooks de Teams/Slack y APIs para tus automatizaciones.", action: "open-flow-credentials" },
-  { icon: "connection", title: "Conexión de datos", desc: "Conéctese a fuentes de datos, bases de datos y destinos.", action: "create-connection" },
-  { icon: "dataset", title: "Conjunto de datos", desc: "Cargar un archivo de datos o registre datos externos." },
-  { icon: "product", title: "Producto de datos", desc: "Crear productos de datos seleccionados y controlados." },
+// Solo lo que existe de verdad (las tarjetas de relleno copiadas de Qlik se retiraron). «perm»: se oculta a quien no puede.
+const GROUPS = [
+  {
+    id: "analisis", title: "Análisis", cards: [
+      { icon: "upload", title: "De archivo a tablero", desc: "Sube un CSV o Excel y en segundos tienes una aplicación con su tablero: KPIs, gráficos y filtros.", action: "quick", cta: "Subir archivo", tag: "Rápido", perm: ["apps:create", "data:import", "charts:edit"] },
+      { icon: "app", title: "Aplicación", desc: "Una aplicación vacía para cargar tus datos con SQL y construir hojas a tu medida.", action: "create-app", cta: "Crear aplicación", perm: ["apps:create"] },
+      { icon: "knowledge", title: "Colección", desc: "Agrupa aplicaciones, hojas y gráficos para encontrarlos rápido o compartirlos con tu equipo.", action: "collection", cta: "Crear colección", perm: ["charts:edit"] },
+      { icon: "product", title: "Tablero incrustado", desc: "Publica una o varias hojas dentro de otra página web con un token de solo lectura.", action: "embed", cta: "Crear embed", perm: ["embed:manage"] },
+    ],
+  },
+  {
+    id: "inteligencia", title: "Inteligencia y automatización", cards: [
+      { icon: "ml", title: "Experimento de ML", desc: "Segmentación, regresión, clasificación, pronóstico y AutoML sobre tus datos.", action: "open-lab", cta: "Nuevo experimento", perm: ["ml:run"] },
+      { icon: "automation", title: "Automatización", desc: "Flujos por nodos: recarga datos, consulta tus apps, usa agentes de IA y avisa por correo, WhatsApp o Teams.", action: "open-flows", cta: "Nueva automatización", perm: ["charts:edit"] },
+    ],
+  },
+  {
+    id: "datos", title: "Datos y conexiones", cards: [
+      { icon: "connection", title: "Conexión de datos", desc: "Conecta bases de datos, Amazon S3, Athena y otras fuentes para cargar sus tablas.", action: "create-connection", cta: "Nueva conexión", perm: ["connections:manage"] },
+      { icon: "dataflow", title: "Credencial de automatización", desc: "Correo (SMTP), WhatsApp, webhooks de Teams o Slack y APIs que usan tus automatizaciones.", action: "open-flow-credentials", cta: "Agregar credencial", perm: ["charts:edit"] },
+      { icon: "note", title: "Notas para agente", desc: "Explica a la IA qué significa cada columna para que analice y responda mejor.", action: "notes", cta: "Documentar datos", perm: ["charts:edit"] },
+    ],
+  },
 ];
 
 function renderCreate() {
-  document.getElementById("recommended").innerHTML = createCardsHtml(RECOMMENDED);
-  document.getElementById("content").innerHTML = createCardsHtml(CONTENT);
-  document.getElementById("data").innerHTML = createCardsHtml(DATA);
+  const can = (p) => (p || []).every((x) => authService.can(x));
+  const host = document.getElementById("createGroups");
+  host.innerHTML = GROUPS.map((g) => {
+    const cards = g.cards.filter((c) => can(c.perm));
+    return cards.length ? `<section class="q-create-section"><h2 class="q-create-title">${g.title}</h2><div class="q-create-grid">${createCardsHtml(cards)}</div></section>` : "";
+  }).join("") || `<p class="cfg-muted">Tu rol no tiene permisos para crear contenido. Pídeselo a un administrador.</p>`;
 }
 
 /* ----------------------- "Aplicación" como punto de entrada ----------------------- */
@@ -100,11 +99,16 @@ async function handleCreateApp() {
 
 function wireCreateActions() {
   document.querySelectorAll("main").forEach((main) => {
+    main.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.matches(".q-create-card")) { e.preventDefault(); e.target.click(); } });
     main.addEventListener("click", (e) => {
       const el = e.target.closest("[data-action]");
       if (!el) return;
       const action = el.dataset.action;
       if (action === "create-app") { e.preventDefault(); handleCreateApp(); }
+      else if (action === "quick") { e.preventDefault(); openQuick(); }
+      else if (action === "collection") { e.preventDefault(); location.href = "hub.html?page=colecciones&new=1"; }
+      else if (action === "embed") { e.preventDefault(); location.href = "embedding.html?new=1"; }
+      else if (action === "notes") { e.preventDefault(); location.href = "notas.html"; }
       else if (action === "create-connection") { e.preventDefault(); openConnectionsFromHub(); }
       else if (action === "open-lab") { e.preventDefault(); location.href = "experimentos.html?new=1"; }
       else if (action === "open-flows") { e.preventDefault(); location.href = "automatizaciones.html?new=1"; }

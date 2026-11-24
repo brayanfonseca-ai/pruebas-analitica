@@ -113,6 +113,15 @@ public class AskService {
     /** Olvida el modelo en caché de una app (tras una recarga de datos). */
     public void invalidate(String appId) { cache.remove(appId); }
 
+    /** Tablas de la app ya cargadas en memoria (con sus dimensiones calculadas), en caché. Las usa el cuaderno. */
+    public Map<String, DataFrame> frames(String appId) { return model(appId).frames; }
+
+    /** Tipo efectivo (number|text|date) de cada columna de una tabla, con los ajustes de «Tablas y campos». */
+    public Map<String, String> types(String appId, String table) { return model(appId).types.getOrDefault(table, Map.of()); }
+
+    /** Nombre visible de cada columna de una tabla. */
+    public Map<String, String> displays(String appId, String table) { return model(appId).displays.getOrDefault(table, Map.of()); }
+
     /**
      * Valor total de una medida (fx simple o compuesta, o la de un elemento maestro si {@code masterId}) con unas
      * selecciones. Lo usan las alertas. Lanza {@link Expressions.ExpressionError} si la expresión no es válida.
@@ -820,7 +829,25 @@ public class AskService {
     static int naturalCmp(String a, String b) {
         boolean na = a.matches("-?\\d+(\\.\\d+)?"), nb = b.matches("-?\\d+(\\.\\d+)?");
         if (na && nb) return Double.compare(Double.parseDouble(a), Double.parseDouble(b));
+        // Meses escritos como texto («Ene», «Febrero», «Sep», «Oct», «Jan»…): por su orden en el año, no alfabético.
+        int ma = monthIndex(a), mb = monthIndex(b);
+        if (ma >= 0 && mb >= 0) return Integer.compare(ma, mb);
         return a.compareTo(b);
+    }
+
+    private static final String[][] MONTHS = {
+            {"ene", "enero", "jan", "january"}, {"feb", "febrero", "february"}, {"mar", "marzo", "march"},
+            {"abr", "abril", "apr", "april"}, {"may", "mayo"}, {"jun", "junio", "june"}, {"jul", "julio", "july"},
+            {"ago", "agosto", "aug", "august"}, {"sep", "sept", "septiembre", "setiembre", "september"},
+            {"oct", "octubre", "october"}, {"nov", "noviembre", "november"}, {"dic", "diciembre", "dec", "december"}};
+
+    /** Índice 0-11 si el texto es un nombre de mes (español o inglés, completo o abreviado); si no, -1. */
+    static int monthIndex(String s) {
+        if (s == null) return -1;
+        String t = java.text.Normalizer.normalize(s.strip().toLowerCase(java.util.Locale.ROOT), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").replaceAll("\\.$", "");
+        for (int i = 0; i < MONTHS.length; i++) for (String m : MONTHS[i]) if (m.equals(t)) return i;
+        return -1;
     }
 
     /* =============================== Sugerencias =============================== */

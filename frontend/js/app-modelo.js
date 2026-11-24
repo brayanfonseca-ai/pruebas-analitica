@@ -122,7 +122,7 @@ export async function render(mount, ctx) {
   const box = mount.querySelector("#modelBox");
 
   if (!nodes.length) {
-    box.innerHTML = `<p style="color:var(--q-muted);">El modelo está vacío. Sube tablas en el Gestor de datos.</p>`;
+    box.innerHTML = `<p style="color:var(--q-muted);">El modelo está vacío. Carga tablas desde Script de datos o Tablas y campos.</p>`;
     return;
   }
 

@@ -890,6 +890,97 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await del(`${A(a.appId)}/comments/${E(a.commentId)}`)),
   },
 
+  /* ============================ Cuadernos de analisis ============================ */
+  {
+    name: "list_notebooks",
+    title: "Listar cuadernos de analisis",
+    description:
+      "Cuadernos de analisis de la app (sin celdas): [{id, name, description, cell_count, kinds:{sql:n,...}, owner_id, owner_name, created_at, updated_at}], " +
+      "del mas reciente al mas antiguo. GET /api/v1/apps/{appId}/notebooks.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/notebooks`)),
+  },
+  {
+    name: "get_notebook",
+    title: "Leer un cuaderno",
+    description:
+      "Cuaderno con sus celdas: {id, name, description, cells:[{id, kind: sql|profile|pareto|correlation|outliers|note, title, sql?, text?, params?, view?}], owner_id, ...}. " +
+      "Los resultados no se guardan: ejecuta cada celda con run_notebook_cell. GET /api/v1/apps/{appId}/notebooks/{id}.",
+    inputShape: { ...appId, notebookId: id("Id del cuaderno.") },
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/notebooks/${E(a.notebookId)}`)),
+  },
+  {
+    name: "notebook_schema",
+    title: "Tablas y columnas para el cuaderno",
+    description:
+      "Tablas de la app con sus filas y columnas para escribir consultas: [{table, rows, columns:[{name, type: number|text|date, display?}]}]. " +
+      "GET /api/v1/apps/{appId}/notebooks/schema.",
+    inputShape: appId,
+    handler: async (a) => toToolText(await get(`${A(a.appId)}/notebooks/schema`)),
+  },
+  {
+    name: "save_notebook",
+    title: "Crear o actualizar un cuaderno",
+    description:
+      "Sin notebookId crea el cuaderno (POST /api/v1/apps/{appId}/notebooks; sin cells arranca con una consulta de la tabla principal). " +
+      "Con notebookId lo actualiza (PUT /api/v1/apps/{appId}/notebooks/{id}): solo cambia lo que envies; cells REEMPLAZA la lista completa. " +
+      "Celda: {id?, kind: sql|profile|pareto|correlation|outliers|note, title?, sql? (kind sql), text? (kind note, markdown), " +
+      "params? {table, field (profile/outliers), dimension+measure+where (pareto), fields[] (correlation), k (outliers, 1.5 por defecto)}, view? {chart: auto|table|bar|line|pie|kpi|scatter}}. " +
+      "Maximo 80 celdas. Requiere charts:edit; actualizar solo su dueno o un administrador. Devuelve el cuaderno con celdas.",
+    inputShape: {
+      ...appId,
+      notebookId: z.string().optional().describe("Id del cuaderno a actualizar; omitir para crear uno nuevo."),
+      name: z.string().max(120).optional().describe("Nombre (hasta 120 caracteres)."),
+      description: z.string().max(300).nullable().optional().describe("Descripcion; null la borra."),
+      cells: z.array(z.record(z.string(), z.any())).max(80).optional().describe("Lista completa de celdas (reemplaza la actual)."),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["name", "description", "cells"]);
+      return toToolText(a.notebookId
+        ? await put(`${A(a.appId)}/notebooks/${E(a.notebookId)}`, body)
+        : await post(`${A(a.appId)}/notebooks`, body));
+    },
+  },
+  {
+    name: "delete_notebook",
+    title: "Borrar cuaderno",
+    description: "ACCION DESTRUCTIVA: elimina el cuaderno y todas sus celdas. Solo su dueno o un administrador. DELETE /api/v1/apps/{appId}/notebooks/{id}.",
+    inputShape: { ...appId, notebookId: id("Id del cuaderno.") },
+    handler: async (a) => toToolText(await del(`${A(a.appId)}/notebooks/${E(a.notebookId)}`)),
+  },
+  {
+    name: "run_notebook_cell",
+    title: "Ejecutar SQL o un analisis del cuaderno",
+    description:
+      "Ejecuta una celda en el motor (solo lectura, no guarda nada). POST /api/v1/apps/{appId}/notebooks/run {cell:{kind, sql, params}}. " +
+      "kind=sql: SELECT [DISTINCT] ... FROM tabla [WHERE] [GROUP BY] [HAVING] [ORDER BY] [LIMIT n] sobre UNA tabla (sin JOIN ni WITH); " +
+      "agregaciones SUM/AVG/COUNT/COUNT(DISTINCT)/MIN/MAX/MEDIAN/STDDEV/PERCENTILE(campo, p) con FILTER (WHERE ...), CASE, LIKE, IN, BETWEEN; " +
+      "LIMIT 1000 por defecto, maximo 10000. Devuelve {columns, types, rows, row_count, total_rows, truncated, chart, summary, ms}. " +
+      "kind=profile {table, field}: vacios, distintos, percentiles, asimetria, histograma o valores frecuentes. " +
+      "kind=pareto {table, dimension, measure (SQL, p. ej. SUM(ventas)), where?}: % acumulado y clases A/B/C (A hasta 80 %, B hasta 95 %). " +
+      "kind=correlation {table, fields?[]}: matriz de Pearson y parejas ordenadas por fuerza. " +
+      "kind=outliers {table, field, k?}: atipicos de Tukey (IQR) con z-score y registros. " +
+      "Alternativa: notebookId + cellId ejecuta una celda guardada.",
+    inputShape: {
+      ...appId,
+      kind: z.enum(["sql", "profile", "pareto", "correlation", "outliers"]).optional().describe("Tipo de celda (sql por defecto)."),
+      sql: z.string().max(20000).optional().describe("Consulta (kind sql)."),
+      params: free("Parametros del analisis: table, field, dimension, measure, where, fields, k.").optional(),
+      notebookId: z.string().optional().describe("Ejecutar una celda guardada de este cuaderno (con cellId)."),
+      cellId: z.string().optional().describe("Id de la celda guardada a ejecutar."),
+    },
+    handler: async (a) => {
+      let cell: Record<string, unknown> = { kind: a.kind ?? "sql", sql: a.sql, params: a.params };
+      if (a.notebookId && a.cellId) {
+        const nb = (await get(`${A(a.appId)}/notebooks/${E(a.notebookId)}`)) as { cells?: Array<Record<string, unknown>> };
+        const c = nb?.cells?.find((x) => x.id === a.cellId);
+        if (!c) throw new Error(`La celda ${String(a.cellId)} no existe en el cuaderno ${String(a.notebookId)}.`);
+        cell = { kind: c.kind, sql: c.sql, params: c.params };
+      }
+      return toToolText(await post(`${A(a.appId)}/notebooks/run`, { cell }));
+    },
+  },
+
   /* ============================ Modelo logico ============================ */
   {
     name: "get_logical_model",

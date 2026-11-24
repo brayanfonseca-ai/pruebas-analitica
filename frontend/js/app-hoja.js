@@ -781,7 +781,7 @@ export async function render(mount, ctx) {
     el.classList.toggle("no-hover-menu", p.hoverMenu === false);
     inner.innerHTML = `
       ${titleOn ? `<div class="ho-obj-head">${p.title ? `<div class="ho-obj-title">${esc(p.title)}</div>` : ""}${p.subtitle ? `<div class="ho-obj-sub">${esc(p.subtitle)}</div>` : ""}</div>` : ""}
-      ${!titleOn && st.edit && def && !def.noData && o.type !== "filterpane" ? `<div class="ho-obj-addtitle">⊕ Haga clic para añadir un título</div>` : ""}
+      ${!titleOn && st.edit && def && !def.noData && o.type !== "filterpane" ? `<div class="ho-obj-addtitle">⊕ Haz clic para añadir un título</div>` : ""}
       <div class="ho-obj-body"></div>
       ${footText ? `<div class="ho-obj-foot">${footText}</div>` : ""}`;
     const body = inner.querySelector(".ho-obj-body");
@@ -1229,7 +1229,7 @@ export async function render(mount, ctx) {
   async function applyPlan(action) {
     if (!action || typeof action !== "object") return "No había un plan que aplicar.";
     // El script de carga es cosa del editor, no de la hoja.
-    if (action.kind === "apply-script") return "Ese plan es para el editor de carga, no para la hoja.";
+    if (action.kind === "apply-script") return "Ese plan es para Script de datos, no para la hoja.";
 
     const prefix = [];
 
@@ -1550,7 +1550,7 @@ export async function render(mount, ctx) {
     } else if (key === "graficos") {
       const item = (t, extra = "") => !t.available ? "" : `
             <div class="ho-chart-item ${t.available ? "" : "soon"}" ${t.available ? `draggable="true" data-add-type="${t.type}"` : ""} data-type="${t.type}" data-filter="${esc((t.label + " " + extra + " " + (t.desc || "")).toLowerCase())}"
-                 title="${t.available ? (t.desc ? esc(t.desc) + " · " : "") + "Clic para añadir o arrastre a la hoja" : SOON}">
+                 title="${t.available ? (t.desc ? esc(t.desc) + " · " : "") + "Haz clic para añadirlo o arrástralo a la hoja" : SOON}">
               <span class="ho-chart-ico">${typeIcon(t.icon)}</span>
               <span>${esc(t.label)}</span>
               ${t.available ? `<span class="ho-grip">⋮⋮</span>` : `<span class="ho-soon-tag">${SOON}</span>`}
@@ -1572,7 +1572,7 @@ export async function render(mount, ctx) {
       // Stack de gráficos de Machine Learning: dibujan una ejecución guardada de Experimentos de ML.
       const sm = st.sheet?.props?.ml;
       html = head("Modelos de ML") + search() + `
-        <div class="ho-as-note mlv-as-note">Gráficos de <strong>Machine Learning</strong>. Arrástrelos a la hoja o haga clic para añadirlos; dibujan una ejecución de Experimentos de ML${sm ? ` (por defecto: <strong>${esc(sm.algoritmo || "")}</strong> de «${esc(sm.experimento || "")}»)` : ""}.</div>` +
+        <div class="ho-as-note mlv-as-note">Gráficos de <strong>Machine Learning</strong>. Arrástralos a la hoja o haz clic para añadirlos; dibujan una ejecución de Experimentos de ML${sm ? ` (por defecto: <strong>${esc(sm.algoritmo || "")}</strong> de «${esc(sm.experimento || "")}»)` : ""}.</div>` +
         ML_FAMILIES.map((fam) => {
           const items = CHART_TYPES.filter((t) => t.group === "ml" && t.mlFamily === fam.key);
           if (!items.length) return "";
@@ -2316,7 +2316,7 @@ export async function render(mount, ctx) {
           ${st.fields.length ? st.fields.map((f) => `
             <button class="ho-cat-item" data-cat-field="${esc(f.field)}" data-filter="${esc((f.display || f.field).toLowerCase())} ${esc(f.field.toLowerCase())}">
               <span class="ho-ftype t-${f.type}">${f.type === "number" ? "#" : f.type === "date" ? "📅" : "Abc"}</span>${esc(f.display || f.field)}
-            </button>`).join("") : `<div class="ho-cat-empty">No hay campos. Cargue datos en el Gestor de datos.</div>`}
+            </button>`).join("") : `<div class="ho-cat-empty">No hay campos. Carga datos desde Script de datos.</div>`}
         </div>
       </div>`;
     placePop(anchor);
@@ -2560,7 +2560,7 @@ export async function render(mount, ctx) {
   async function openFilterValues(obj, field, index) {
     openModalHtml(`
       <div class="ho-modal-head"><h3>Filtro del objeto · ${esc(field)}</h3><button class="ho-x" data-close>✕</button></div>
-      <div class="ho-modal-body"><p class="ho-p-hint">Seleccione los valores que este objeto debe mostrar. El filtro se combina con las selecciones de la hoja.</p>
+      <div class="ho-modal-body"><p class="ho-p-hint">Elige los valores que debe mostrar este objeto. El filtro se combina con las selecciones de la hoja.</p>
         <input class="ho-cat-search" id="fvSearch" placeholder="Buscar valores" />
         <div class="ho-fv-list" id="fvList">Cargando valores…</div></div>
       <div class="ho-modal-foot"><button class="ho-btn" data-close>Cancelar</button><button class="ho-btn primary" id="fvOk">Aplicar</button></div>`);

@@ -132,6 +132,9 @@ public final class Permissions {
             if (sub.equals("alerts")) return VIEW;
             // Qué cambió, registros, ¿qué pasaría si…?: análisis de solo lectura (nada se guarda).
             if (sub.equals("insights")) return VIEW;
+            // Cuadernos de análisis: consultar y leer es análisis de solo lectura; guardar/borrar lo valida el
+            // controlador (charts:edit y ser el dueño), también en apps en Producción (no cambian la app).
+            if (sub.equals("notebooks")) return VIEW;
             // Listas de acción (pueden enviar datos a un webhook) y agente de guardia: leerlos basta con ver; cambiarlos, editar.
             // Carga programada: lo mismo que «Cargar datos».
             if (sub.equals("schedule")) return read ? VIEW : DATA;

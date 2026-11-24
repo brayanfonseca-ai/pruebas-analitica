@@ -1,5 +1,5 @@
 // hub.js — shell genérico de las páginas del menú lateral de DataSense,
-// con las páginas que sí tienen contenido real: Colecciones, Analizar (apps por etapa) y Temas.
+// con las páginas que sí tienen contenido real: Colecciones, Analizar (galería de cuadernos de análisis, js/analizar.js) y Temas.
 // Se retiraron las pantallas de relleno sin motor (Páginas, Alimentar, Favoritos, Mercado de datos,
 // Productos, Calidad, Asistentes, Automatizaciones, Alertas, Suscripciones e Información).
 //
@@ -7,6 +7,7 @@
 
 import { renderNav, wireAppsButton, renderProfileMenu, svg, DUO as D, BRAIN } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
+import { analizarHtml, mountAnalizar, newNotebookButton } from "./analizar.js";
 
 if (!authService.isAuthenticated()) location.replace("index.html");
 
@@ -192,32 +193,26 @@ function emptyState({ icon: ic = "empty", title, text, action }) {
 const PAGES = {
   colecciones: {
     title: "Colecciones",
-    headerRight: () => (authService.can("charts:edit") ? `<button class="q-btn" id="newCollectionBtn">Crear colección</button>` : ""),
-    body: () => filterBar(["Tipo"], { right: `<button class="q-filter-chip">Modificado por ▾</button>` }) +
+    sub: "Agrupa aplicaciones, hojas y gráficos para encontrarlos rápido. Tus colecciones son privadas.",
+    headerRight: () => (authService.can("charts:edit") ? `<button class="q-btn primary" id="newCollectionBtn">+ Crear colección</button>` : ""),
+    body: () => filterBar(["Tipo"]) +
       `<div id="collectionsWrap"></div>`,
     mount: mountCollections,
   },
 
-  // Todas las aplicaciones que el usuario puede ver, filtrables por etapa (Personal · Desarrollo · Producción).
+  // Cuadernos de análisis de todas las aplicaciones (js/analizar.js); cada uno se abre en app.html#cuaderno.
   analizar: {
     title: "Analizar",
-    body: () => `
-      <div class="q-filterbar">
-        <div class="q-filter-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg><input id="appsSearch" placeholder="Filtrar por nombre" /></div>
-        <div class="ds-stage-filter" id="stageFilter" role="group" aria-label="Filtrar por etapa">
-          <button type="button" class="ds-stage-f on" data-stage="">Todas</button>
-          <button type="button" class="ds-stage-f" data-stage="personal">Personal</button>
-          <button type="button" class="ds-stage-f" data-stage="desarrollo">Desarrollo</button>
-          <button type="button" class="ds-stage-f" data-stage="produccion">Producción</button>
-        </div>
-      </div>
-      <div class="q-apps-grid" id="appsGrid"></div>`,
-    mount: mountAnalyzeApps,
+    sub: "Cuadernos de análisis: SQL, perfil de campos, Pareto/ABC, correlación y atípicos sobre los datos de cada aplicación, documentados y guardados.",
+    headerRight: () => newNotebookButton(),
+    body: () => analizarHtml(),
+    mount: (main) => mountAnalizar(main),
   },
 
   // Apariencia real de DataSense: la aplica js/theme.js (preferencias por navegador).
   temas: {
     title: "Temas",
+    sub: "Modo, color de acento y fondo de DataSense en este navegador.",
     body: () => temasHtml(),
     mount: (main) => mountTemas(main),
   },
@@ -235,7 +230,7 @@ const TM_BG_DESC = { grid: "Rejilla técnica con aurora de color.", aurora: "Sol
 
 function temasHtml() {
   const T = window.DSTheme;
-  if (!T) return emptyState({ icon: "chart", title: "Tema no disponible", text: "Recargue la página." });
+  if (!T) return emptyState({ icon: "chart", title: "Tema no disponible", text: "Recarga la página." });
   const modeCards = TM_MODES.map((m) => `
     <button type="button" class="ds-tm-card" data-k="theme" data-v="${m.v}">
       <div class="ds-tm-prev ${m.v}" aria-hidden="true"><i class="t"></i><i class="s"></i><div class="c"><i></i><i></i><i></i><i></i></div></div>
@@ -301,6 +296,11 @@ async function mountCollections(main) {
   const btn = main.querySelector("#newCollectionBtn");
   if (btn) btn.addEventListener("click", () => openCollectionModal(main));
   await loadCollections(main);
+  // «Crear → Colección» llega con ?new=1.
+  if (btn && new URLSearchParams(location.search).get("new") === "1") {
+    history.replaceState(null, "", "hub.html?page=colecciones");
+    openCollectionModal(main);
+  }
 }
 
 let _collections = [];
@@ -328,7 +328,7 @@ function renderCollections(main) {
   if (_collectionFilter === "privado") list = list.filter((c) => c.visibility !== "publica");
   else if (_collectionFilter === "publico") list = list.filter((c) => c.visibility === "publica");
   if (!list.length) {
-    wrap.innerHTML = `<div class="q-empty-box">${emptyState({ icon: "book", title: "No tiene ninguna colección todavía.", text: "Puede organizar el contenido en colecciones. Las colecciones son privadas.", action: "Crear colección" })}</div>`;
+    wrap.innerHTML = `<div class="q-empty-box">${emptyState({ icon: "book", title: "Aún no tienes colecciones", text: "Agrupa aplicaciones, hojas y gráficos en una colección para tenerlos a mano.", action: "Crear colección" })}</div>`;
     wrap.querySelector(".q-btn")?.addEventListener("click", () => openCollectionModal(main));
     return;
   }
@@ -474,7 +474,8 @@ function render() {
   const main = document.getElementById("main");
   const header = page.title || page.headerRight
     ? `<div class="q-greeting">
-        <h1>${esc(page.title)}${page.preview ? ` <span class="q-nav-preview inline">Vista preliminar</span>` : ""}</h1>
+        <div><h1>${esc(page.title)}${page.preview ? ` <span class="q-nav-preview inline">Vista preliminar</span>` : ""}</h1>
+        ${page.sub ? `<p class="ds-page-sub">${esc(page.sub)}</p>` : ""}</div>
         ${page.headerRight ? page.headerRight() : ""}
       </div>`
     : "";

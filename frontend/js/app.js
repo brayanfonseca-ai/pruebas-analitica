@@ -22,6 +22,7 @@ const VIEW_GROUPS = [
     views: [
       { key: "hoja", label: "Hojas", icon: "pages", shortcut: "A", module: "./app-hoja.js" },
       { key: "insights", label: "Explicar y actuar", icon: "analyze", shortcut: "Q", module: "./app-insights.js" },
+      { key: "cuaderno", label: "Cuaderno de análisis", icon: "book", shortcut: "N", module: "./app-cuaderno.js" },
     ],
   },
   { label: "Comunicar", views: [{ key: "informes", label: "Informes", icon: "catalog", shortcut: "R", module: "./app-informes.js" }] },

@@ -89,6 +89,15 @@ Permiso exigido por ruta: ver [`modulos/12-configuracion-seguridad.md`](./modulo
 | GET/POST/PUT/DELETE | `/flows/credentials[/{id}]` · POST `/{id}/test` | Credenciales privadas (SMTP, WhatsApp Meta/Twilio, webhook de canal, cabecera HTTP); secretos ocultos. |
 | POST/GET | `/hooks/flows/{token}` | **Público** (solo el token): dispara el flujo y responde `{ok, run_id, data}`; 404 token inválido, 409 pausada. Ver [`modulos/18`](./modulos/18-automatizaciones.md). |
 
+## Cuadernos de análisis
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/apps/{appId}/notebooks` | Lista sin celdas: `[{id, name, description, cell_count, kinds, owner_id, owner_name, created_at, updated_at}]`. |
+| POST | `/apps/{appId}/notebooks` | `{name, description?, cells?}` → 201 con celdas (`charts:edit`). Sin `cells` arranca con una consulta de la tabla principal. |
+| GET/PUT/DELETE | `/apps/{appId}/notebooks/{id}` | Leer con celdas / actualizar `{name?, description?, cells?}` / borrar. Cambiar o borrar: solo el autor o un administrador. |
+| GET | `/apps/{appId}/notebooks/schema` | `[{table, rows, columns:[{name, type, display?}]}]`. |
+| POST | `/apps/{appId}/notebooks/run` | `{cell:{kind: sql\|profile\|pareto\|correlation\|outliers, sql?, params?}}` → resultado (solo lectura). Ver [`modulos/21`](./modulos/21-cuaderno-analisis.md). |
+
 ## Elementos maestros, métricas certificadas y comentarios
 | Método | Ruta | Descripción |
 |---|---|---|

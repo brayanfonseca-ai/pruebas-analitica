@@ -94,7 +94,7 @@ export async function render(mount, ctx) {
 
           <div class="ed-ad-title">Conexiones</div>
           <button class="ed-ad-btn" data-act="createConn" title="Crear conexión de datos">+ Crear conexión</button>
-          <div class="ed-space">
+          <div class="ed-space" hidden>
             <button class="ed-space-btn" id="edSpaceBtn" type="button">
               <span class="ed-space-dot"></span><span id="edSpaceName">DEV_MODELOS_IA</span><span class="ed-space-caret">▾</span>
             </button>
@@ -348,7 +348,7 @@ export async function render(mount, ctx) {
       const lines = log.map((l) => `<span class="log ${logClass(l)}">${esc(l)}</span>`).join("\n");
       bottom.innerHTML = `<pre class="ed-console">${lines}</pre>`;
       const nTables = (result.tables || []).length;
-      prog.done(`Modelo reconstruido: ${nTables} tabla(s) cargada(s).`);
+      prog.done(`Modelo reconstruido: ${nTables} ${nTables === 1 ? "tabla cargada" : "tablas cargadas"}.`);
       runHistory.unshift({ at: new Date().toLocaleTimeString("es-CO"), tables: nTables, ok: true });
     } catch (err) {
       prog.fail(err.message);
@@ -383,7 +383,7 @@ export async function render(mount, ctx) {
   function showHistory() {
     openModal(`<h3>Historial de ejecuciones</h3>`,
       runHistory.length
-        ? `<ul class="ed-hist">${runHistory.map((h) => `<li class="${h.ok ? "ok" : "err"}">${esc(h.at)} — ${h.ok ? `OK, ${h.tables} tabla(s)` : "Error: " + esc(h.error)}</li>`).join("")}</ul>`
+        ? `<ul class="ed-hist">${runHistory.map((h) => `<li class="${h.ok ? "ok" : "err"}">${esc(h.at)} — ${h.ok ? `OK, ${h.tables} ${h.tables === 1 ? "tabla" : "tablas"}` : "Error: " + esc(h.error)}</li>`).join("")}</ul>`
         : `<p class="ed-muted">Aún no has ejecutado el script en esta sesión.</p>`);
   }
 
@@ -461,7 +461,7 @@ export async function render(mount, ctx) {
       </div>
       <div class="q-dropzone" id="edDrop">
         <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-        <strong>Suelte un archivo aquí o haga clic para seleccionar un archivo</strong>
+        <strong>Suelta un archivo aquí o haz clic para elegirlo</strong>
         <span class="muted">.xlsx, .xls, .csv</span>
       </div>
       <p class="ed-ad-status" id="edDropStatus"></p>`,
@@ -500,7 +500,7 @@ export async function render(mount, ctx) {
   /* ---------------- Insertar sentencia Store ---------------- */
   function openInsertStore() {
     openModal(`<h3>Insertar la instrucción Store para DataFiles</h3>`, `
-      <p class="ed-muted">La sentencia creará una salida de archivo QVD, Parquet o de texto. Solo puede exportar campos de una tabla de datos.</p>
+      <p class="ed-muted">La sentencia creará una salida de archivo QVD, Parquet o de texto. Solo puedes exportar campos de una tabla de datos.</p>
       <label class="ed-field"><span>Almacenar</span><input id="stTable" placeholder="Nombre de la tabla" /></label>
       <label class="ed-field"><span>Ruta</span><input id="stPath" placeholder="carpeta/subcarpeta" value="QVD" /></label>
       <label class="ed-field"><span>Archivo</span><span class="ed-field-row"><input id="stFile" placeholder="Nombre de salida" />
@@ -643,7 +643,7 @@ export async function render(mount, ctx) {
         if (!already) insertAtCursor(`\n${tabMarker(t.name)}\n${r.script}`);
         prog.step("Bloque de carga añadido al script (guárdalo para conservarlo).", "ok");
       }
-      prog.done(`${r.message}. Ya puedes modelar: Modelo de datos / Modelo lógico.`);
+      prog.done(`${r.message}. Ya puedes modelar en Mapa de relaciones y Capa de negocio.`);
       status.textContent = r.message || `Tabla ${t.name || ""} cargada.`;
       status.style.color = "var(--q-green-dark, #101d5e)";
       renderConnections(filter);

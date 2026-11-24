@@ -121,6 +121,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Elementos maestros | `list_master_items`, `save_master_item` (medidas simples o compuestas: `Count([A]) / Count([B]) * 100`, `Sum(If(...))`, `Count(DISTINCT [x])`), `delete_master_item`, `parse_expression` |
 | Metricas certificadas | `certify_master_item` (requiere apps:publish), `list_master_item_versions`, `restore_master_item_version` |
 | Comentarios | `list_comments`, `add_comment`, `resolve_comment`, `delete_comment` |
+| Cuadernos de analisis | `list_notebooks`, `get_notebook`, `notebook_schema`, `save_notebook` (crear o actualizar), `delete_notebook`, `run_notebook_cell` (SQL de una tabla, perfil, Pareto/ABC, correlacion, atipicos o una celda guardada) |
 | Preguntale / archivo a tablero | `ask_data`, `ask_suggestions`, `auto_dashboard` |
 | Que cambio / simular / actuar | `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list`, `delete_action_list`, `get_watchdog`, `set_watchdog`, `run_watchdog` |
 | Automatizar | `get_schedule`, `set_schedule`, `delete_schedule`, `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert`, `get_data_health` |

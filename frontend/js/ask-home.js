@@ -174,7 +174,7 @@ export function mountAsk(host, { onAppsChanged } = {}) {
 }
 
 /* ======================= De archivo a tablero ======================= */
-function openQuick({ onDone }) {
+export function openQuick({ onDone } = {}) {
   const wrap = document.createElement("div");
   wrap.className = "ah-modal-bg";
   wrap.innerHTML = `

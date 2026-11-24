@@ -1,4 +1,4 @@
-// app-datos.js — Gestor de datos (estilo enterprise). Sube archivos al backend,
+// app-datos.js — Tablas y campos. Sube archivos al backend,
 // muestra el perfilado real de cada columna (tipo, completitud, distintos,
 // muestra), una vista previa de filas, la preparación visual de campos
 // (renombrar / forzar tipo / ocultar) y el mapa de asociaciones entre tablas.
@@ -16,6 +16,8 @@ import {
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const NF = new Intl.NumberFormat("es-CO");
+/** Porcentaje en español: «100 %», «98,5 %». */
+const pct = (v) => `${new Intl.NumberFormat("es-CO", { maximumFractionDigits: 1 }).format(Number(v) || 0)} %`;
 
 const SV = (d, extra = "") => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
 const ICON = {
@@ -80,7 +82,7 @@ export async function render(mount, ctx) {
         <div class="q-modal-body">
           <div class="q-dropzone" id="dropzone">
             <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            <strong>Suelte un archivo aquí o haga clic para seleccionar</strong>
+            <strong>Suelta un archivo aquí o haz clic para elegirlo</strong>
             <span class="muted">.xlsx, .xls, .csv</span>
             <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden />
           </div>
@@ -134,7 +136,7 @@ export async function render(mount, ctx) {
       ${stat(ICON.table, NF.format(tables.length), tables.length === 1 ? "Tabla" : "Tablas")}
       ${stat(ICON.list, NF.format(rows), "Filas")}
       ${stat(ICON.number, NF.format(cols), "Columnas")}
-      ${stat(ICON.eye, comp.toFixed(1) + "%", "Completitud")}
+      ${stat(ICON.eye, pct(comp), "Completitud")}
     </div>`;
   }
 
@@ -161,7 +163,7 @@ export async function render(mount, ctx) {
           <div class="dm-badges">
             <span class="dm-badge">${NF.format(t.rows ?? 0)} filas</span>
             <span class="dm-badge">${t.columns.length} columnas</span>
-            <span class="dm-badge ${comp >= 98 ? "ok" : comp >= 90 ? "warn" : "bad"}">${comp.toFixed(1)}% completo</span>
+            <span class="dm-badge ${comp >= 98 ? "ok" : comp >= 90 ? "warn" : "bad"}">${pct(comp)} completo</span>
           </div>
           <div class="dm-card-actions">
             ${canPrepare ? `<button class="dm-btn-ghost" data-prep-table="${esc(t.id)}"><span class="dm-ic">${ICON.edit}</span>Preparar campos</button>` : ""}

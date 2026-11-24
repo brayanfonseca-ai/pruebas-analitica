@@ -383,7 +383,7 @@ export function openDataSelector(conn, host) {
 
   function drawScript() {
     work.innerHTML = `
-      <div class="ed-ds-scriptbar"><span class="ed-muted">Script que se añadirá al editor de carga. Lo genera el asistente; para modificarlo a mano usa <strong>Editar script</strong>.</span>
+      <div class="ed-ds-scriptbar"><span class="ed-muted">Script que se añadirá a Script de datos. Lo genera el asistente; para modificarlo a mano usa <strong>Editar script</strong>.</span>
         <span class="ed-ds-spacer"></span><button class="ho-btn" id="dsCopy">Copiar</button><button class="ho-btn" id="dsToEdit">Editar script</button></div>
       <pre class="ed-ds-code big">${esc(st.script || "// Valida la extracción para generar el script.")}</pre>`;
     q("#dsCopy").addEventListener("click", async () => { try { await navigator.clipboard.writeText(st.script); setStatus("Script copiado.", "ok"); } catch { setStatus("No se pudo copiar.", "err"); } });
