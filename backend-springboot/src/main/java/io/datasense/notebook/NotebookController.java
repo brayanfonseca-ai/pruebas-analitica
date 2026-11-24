@@ -28,7 +28,8 @@ import java.util.*;
  *   <li>{@code GET    /api/v1/apps/{appId}/notebooks/schema} — tablas y columnas para escribir consultas</li>
  *   <li>{@code POST   /api/v1/apps/{appId}/notebooks/run} {kind: sql|profile|pareto|correlation|outliers, sql?, params?} — ejecuta una celda (solo lectura)</li>
  * </ul>
- * Celda: {@code {id, kind, title?, sql?, text?, params?: {table, field, dimension, measure, fields, k, where}, view?: {chart}}}.
+ * Celda: {@code {id, kind, title?, sql?, text?, params?: {table, field, dimension, measure, fields, k, where}, view?: {chart},
+ * builder?: {table, dims[], metrics[{agg, field}], filters[{field, op, value}], order{by, dir}, limit}}}.
  * Los tokens de embedding no tienen acceso.
  */
 @RestController
@@ -267,6 +268,8 @@ public class NotebookController {
             }
             if (m.get("params") instanceof Map<?, ?> pm) c.put("params", pm);
             if (m.get("view") instanceof Map<?, ?> vm) c.put("view", vm);
+            // Constructor visual de la celda SQL ({table, dims, metrics, filters, order, limit}); el SQL generado va en «sql».
+            if (m.get("builder") instanceof Map<?, ?> bm) c.put("builder", bm);
             out.add(c);
         }
         return out;

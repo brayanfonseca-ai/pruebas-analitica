@@ -15,6 +15,7 @@
 import * as api from "./api.js";
 import { authService } from "./auth-service.js";
 import { toast, confirmBox, modal } from "./ui-kit.js";
+import { builderHtml, toSql, describe, starterBuilder, ideas, pickNumber, pickText, naturalAgg, AGGS, metricLabel } from "./notebook-builder.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const nf = (v, d = 2) => (v == null || v === "" || isNaN(v) ? (v ?? "") : Number(v).toLocaleString("es-CO", { maximumFractionDigits: d }));
@@ -23,13 +24,16 @@ const ident = (n) => (/^[\p{L}_][\p{L}\p{N}_]*$/u.test(n) ? n : `"${String(n).re
 const when = (s) => { if (!s) return ""; const d = new Date(s); return isNaN(d) ? "" : d.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }); };
 
 const KINDS = {
-  sql: { label: "SQL", icon: "⌗", desc: "Consulta" },
-  profile: { label: "Perfil", icon: "◔", desc: "Perfil de un campo" },
-  pareto: { label: "Pareto", icon: "▤", desc: "Pareto 80/20 y ABC" },
-  correlation: { label: "Correlación", icon: "⊞", desc: "Matriz de correlación" },
-  outliers: { label: "Atípicos", icon: "⇕", desc: "Valores atípicos (IQR)" },
-  note: { label: "Nota", icon: "¶", desc: "Texto" },
+  sql: { label: "Consulta", icon: "⌗", desc: "Consulta", hint: "Tabla o gráfico: eliges qué ver y qué calcular" },
+  profile: { label: "Perfil", icon: "◔", desc: "Perfil de un campo", hint: "Cómo son los valores de un campo" },
+  pareto: { label: "Pareto 80/20", icon: "▤", desc: "Pareto 80/20 y ABC", hint: "Qué pocos elementos concentran la mayoría" },
+  correlation: { label: "Correlación", icon: "⊞", desc: "Matriz de correlación", hint: "Qué números se mueven juntos" },
+  outliers: { label: "Atípicos", icon: "⇕", desc: "Valores atípicos", hint: "Registros fuera de lo normal" },
+  note: { label: "Nota", icon: "¶", desc: "Texto", hint: "Escribe lo que encontraste" },
 };
+const PARETO_AGGS = [["count", "Contar registros"], ["sum", "Suma de"], ["avg", "Promedio de"], ["distinct", "Valores distintos de"]];
+const paretoMeasure = (agg, f) => (agg === "count" || !f ? "COUNT(*)" : agg === "avg" ? `AVG(${ident(f)})` : agg === "distinct" ? `COUNT(DISTINCT ${ident(f)})` : `SUM(${ident(f)})`);
+const isVisual = (c) => c.kind === "sql" && c.builder && !c.builder.manual;
 const PAL = ["#6366f1", "#06b6d4", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6"];
 
 export async function render(mount, ctx) {
@@ -46,7 +50,7 @@ export async function render(mount, ctx) {
         <div class="nb-side-h"><span>Datos</span></div>
         <input class="nb-search" id="nbQ" type="search" placeholder="Buscar tabla o campo" aria-label="Buscar tabla o campo" />
         <div class="nb-tree" id="nbTree"></div>
-        <p class="nb-tip">Clic en un campo: lo inserta en la consulta. ◔ abre su perfil.</p>
+        <p class="nb-tip">Clic en un campo: un texto se agrega a «Ver por» y un número a «Calcular» de la consulta activa (o crea una nueva). ◔ abre su perfil.</p>
       </aside>
       <section class="nb-main" id="nbMain"><div class="nb-empty"><span class="in-spin"></span> Cargando…</div></section>
     </div>`;
@@ -55,9 +59,9 @@ export async function render(mount, ctx) {
   function paintWelcome() {
     $("#nbMain").innerHTML = `<div class="nb-welcome">
       <h2>Cuaderno de análisis</h2>
-      <p>Explora los datos de esta aplicación con <b>SQL</b> y análisis estadísticos, documenta lo que encuentras y guárdalo para volver o compartirlo.</p>
+      <p>Responde preguntas sobre los datos de esta aplicación, paso a paso y sin programar: <b>eliges qué ver y qué calcular</b>, el resultado sale como tabla o gráfico y queda guardado con tus notas para volver a él o compartirlo. Si prefieres, cada consulta también se puede escribir en SQL.</p>
       <div class="nb-wl-grid">
-        ${Object.entries(KINDS).filter(([k]) => k !== "note").map(([k, d]) => `<div class="nb-wl-it"><b><i>${d.icon}</i>${esc(d.label)}</b><span>${esc({ sql: "SELECT, GROUP BY, HAVING, FILTER (WHERE …), CASE, percentiles", profile: "Nulos, distintos, percentiles, asimetría e histograma", pareto: "Qué 20 % explica el 80 %, con clases A/B/C", correlation: "Qué variables se mueven juntas", outliers: "Registros fuera de lo normal (Tukey)" }[k])}</span></div>`).join("")}
+        ${Object.entries(KINDS).filter(([k]) => k !== "note").map(([k, d]) => `<div class="nb-wl-it"><b><i>${d.icon}</i>${esc(d.label)}</b><span>${esc({ sql: "«Ventas por región», «registros por estado», «top 10 clientes»: con filtros y orden.", profile: "Vacíos, valores distintos, rango, promedio y distribución de un campo.", pareto: "Qué 20 % de clientes, productos o rutas explica el 80 % del resultado.", correlation: "Si dos números suben o bajan juntos (por ejemplo, edad y antigüedad).", outliers: "Los registros con valores fuera de lo normal, para revisarlos." }[k])}</span></div>`).join("")}
       </div>
       ${canEdit ? `<button type="button" class="q-btn primary" id="nbFirst">＋ Crear mi primer cuaderno</button>` : `<p class="nb-muted">Aún no hay cuadernos en esta aplicación.</p>`}
     </div>`;
@@ -83,14 +87,14 @@ export async function render(mount, ctx) {
       return `<details class="nb-tbl" ${q || st.schema.length <= 2 ? "open" : ""}>
         <summary><span class="nb-tbl-n" title="${esc(t.table)}">${esc(t.table)}</span><em>${nf(t.rows, 0)}</em>
           <button type="button" class="nb-ibtn sm" data-tq="${esc(t.table)}" title="Nueva consulta sobre esta tabla">⌗</button></summary>
-        ${cols.map((c) => `<div class="nb-col" data-ins="${esc(c.name)}" title="${esc(c.display ? c.display + " · " + c.name : c.name)} · clic para insertar">
+        ${cols.map((c) => `<div class="nb-col" data-ins="${esc(t.table)}|${esc(c.name)}|${esc(c.type)}" title="${esc(c.display ? c.display + " · " + c.name : c.name)} · clic: ${c.type === "number" ? "calcular su suma" : "ver por este campo"}">
           <span class="nb-ty ${esc(c.type)}">${tIco(c.type)}</span><span class="nb-col-n">${esc(c.display || c.name)}</span>
           <button type="button" class="nb-ibtn sm" data-prof="${esc(t.table)}|${esc(c.name)}" title="Perfil de ${esc(c.name)}">◔</button></div>`).join("")}
       </details>`;
     }).join("") || `<p class="nb-muted">Sin coincidencias.</p>`;
-    host.querySelectorAll("[data-tq]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); addCell({ kind: "sql", title: b.dataset.tq, sql: `SELECT *\nFROM ${ident(b.dataset.tq)}\nLIMIT 100` }, true); }));
+    host.querySelectorAll("[data-tq]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); addCell(sqlCell(starterBuilder(tableOf(b.dataset.tq))), true); }));
     host.querySelectorAll("[data-prof]").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); const [t, f] = b.dataset.prof.split("|"); addCell({ kind: "profile", title: `Perfil · ${f}`, params: { table: t, field: f } }, true); }));
-    host.querySelectorAll("[data-ins]").forEach((el) => el.addEventListener("click", () => insertField(el.dataset.ins)));
+    host.querySelectorAll("[data-ins]").forEach((el) => el.addEventListener("click", () => { const [t, f, ty] = el.dataset.ins.split("|"); insertField(t, f, ty); }));
   }
   $("#nbQ").addEventListener("input", (e) => { st.q = e.target.value; paintTree(); });
   $("#nbNew")?.addEventListener("click", async () => { if (await leave()) newNotebook(); });
@@ -110,7 +114,8 @@ export async function render(mount, ctx) {
 
   async function newNotebook() {
     try {
-      const n = await api.createNotebook(ctx.appId, { name: `Análisis ${new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })}` });
+      const first = starterBuilder(mainTable());
+      const n = await api.createNotebook(ctx.appId, { name: `Análisis ${new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })}`, ...(first ? { cells: [{ id: uid(), ...sqlCell(first) }] } : {}) });
       st.list = await api.listNotebooks(ctx.appId);
       await open(n.id);
       mount.querySelector(".nb-title")?.select();
@@ -134,8 +139,16 @@ export async function render(mount, ctx) {
           ${ro ? "" : `<button type="button" class="q-btn danger" id="nbDel" title="Eliminar cuaderno">🗑</button>`}
         </div>
       </header>
+      ${helpHidden() ? "" : `<div class="nb-help" id="nbHelp">
+        <div><b>Cómo funciona</b>
+          <ol><li><b>Elige qué quieres saber</b>: en cada consulta indicas <i>Ver por</i> (por ejemplo Región), qué <i>Calcular</i> (Suma de Ventas) y, si quieres, filtros y orden.</li>
+          <li><b>El resultado se actualiza solo</b> como tabla o gráfico; arriba de cada consulta verás en una frase qué está respondiendo.</li>
+          <li><b>Documenta y comparte</b>: añade notas, guarda (es automático) y abre el cuaderno desde «Analizar». Un total se puede guardar como medida para las hojas.</li></ol></div>
+        <button type="button" class="nb-ibtn" id="nbHelpX" title="Ocultar">✕</button></div>`}
       <div class="nb-cells" id="nbCells"></div>
-      ${ro ? "" : addBar("end")}`;
+      ${ro ? "" : `${ideasBar()}${addBar("end")}`}`;
+    $("#nbHelpX")?.addEventListener("click", () => { try { localStorage.setItem("ds.nb.help", "0"); } catch {} $("#nbHelp")?.remove(); });
+    wireIdeas($("#nbMain"));
     paintCells();
     const title = mount.querySelector(".nb-title"), desc = mount.querySelector(".nb-desc");
     title.addEventListener("input", () => { nb.name = title.value; markDirty(); });
@@ -147,19 +160,39 @@ export async function render(mount, ctx) {
     wireAddBar(mount.querySelector(".nb-add[data-at='end']"), null);
   }
 
-  const addBar = (at) => `<div class="nb-add" data-at="${at}">${Object.entries(KINDS).map(([k, d]) => `<button type="button" data-add="${k}" title="${esc(d.desc)}"><i>${d.icon}</i>${esc(d.label)}</button>`).join("")}</div>`;
+  const helpHidden = () => { try { return localStorage.getItem("ds.nb.help") === "0"; } catch { return false; } };
+  const addBar = (at) => `<div class="nb-add" data-at="${at}"><span class="nb-add-h">Añadir</span>${Object.entries(KINDS).map(([k, d]) => `<button type="button" data-add="${k}" title="${esc(d.hint)}"><i>${d.icon}</i><span><b>${esc(d.label)}</b><small>${esc(d.hint)}</small></span></button>`).join("")}</div>`;
+  const ideasBar = () => {
+    const list = ideas(mainTable());
+    return list.length ? `<div class="nb-ideas"><span>¿Qué quieres saber?</span>${list.map((x, i) => `<button type="button" data-idea="${i}">${esc(x.label)}</button>`).join("")}</div>` : "";
+  };
+  function wireIdeas(root) {
+    const list = ideas(mainTable());
+    root.querySelectorAll("[data-idea]").forEach((b) => b.addEventListener("click", () => {
+      const it = list[Number(b.dataset.idea)];
+      if (!it) return;
+      const cell = it.cell.kind === "sql" ? sqlCell(it.cell.builder, it.label) : { ...it.cell, title: it.label };
+      addCell(cell, true);
+    }));
+  }
+  /** Celda de consulta en modo visual, con el SQL ya generado. */
+  function sqlCell(builder, title = "") {
+    const b = JSON.parse(JSON.stringify(builder));
+    return { kind: "sql", title, builder: b, sql: toSql(b, tableOf(b.table)) };
+  }
   function wireAddBar(el, afterId) {
     el?.querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => addCell(defaults(b.dataset.add), true, afterId)));
   }
 
   function defaults(kind) {
-    const t = mainTable();
-    const num = t?.columns.find((c) => c.type === "number")?.name;
-    const txt = t?.columns.find((c) => c.type === "text")?.name;
+    const act = st.nb?.cells.find((x) => x.id === st.activeCell);
+    const t = tableOf(act?.builder?.table || act?.params?.table) || mainTable();
+    const num = pickNumber(t);
+    const txt = pickText(t);
     switch (kind) {
-      case "sql": return { kind, title: "Consulta", sql: t ? `SELECT ${txt ? ident(txt) + ",\n       " : ""}COUNT(*) AS registros${num ? `,\n       ROUND(AVG(${ident(num)}), 2) AS promedio_${num.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "_")}` : ""}\nFROM ${ident(t.table)}${txt ? `\nGROUP BY ${ident(txt)}\nORDER BY registros DESC` : ""}\nLIMIT 20` : "SELECT 1" };
-      case "profile": return { kind, title: "Perfil", params: { table: t?.table, field: num || txt } };
-      case "pareto": return { kind, title: "Pareto", params: { table: t?.table, dimension: txt, measure: num ? `SUM(${ident(num)})` : "COUNT(*)" } };
+      case "sql": return t ? sqlCell(starterBuilder(t)) : { kind, sql: "" };
+      case "profile": return { kind, title: "", params: { table: t?.table, field: num || txt } };
+      case "pareto": return { kind, title: "", params: { table: t?.table, dimension: txt, magg: num ? "sum" : "count", mfield: num || "", measure: num ? `SUM(${ident(num)})` : "COUNT(*)", label: num ? `Suma de ${num}` : "Registros" } };
       case "correlation": return { kind, title: "Correlación", params: { table: t?.table } };
       case "outliers": return { kind, title: "Atípicos", params: { table: t?.table, field: num, k: 1.5 } };
       default: return { kind: "note", text: "## Hallazgo\nEscribe aquí lo que encontraste y por qué importa." };
@@ -198,7 +231,8 @@ export async function render(mount, ctx) {
     return `<section class="nb-cell k-${c.kind} ${st.activeCell === c.id ? "on" : ""}" data-id="${esc(c.id)}">
       <header class="nb-c-h">
         <span class="nb-c-n">[${i + 1}]</span><span class="nb-badge k-${c.kind}"><i>${k.icon}</i>${esc(k.label)}</span>
-        <input class="nb-c-t" value="${esc(c.title || "")}" placeholder="${esc(k.desc)}" ${ro ? "readonly" : ""} aria-label="Título de la celda" />
+        <input class="nb-c-t" value="${esc(c.title || "")}" placeholder="${ro ? esc(k.desc) : "Ponle un título (opcional)"}" ${ro ? "readonly" : ""} aria-label="Título de la celda" />
+        ${c.kind === "sql" ? `<span class="nb-seg nb-mode" title="Visual: eliges campos y cálculos. SQL: escribes la consulta."><button type="button" data-mode="visual" class="${isVisual(c) ? "on" : ""}" ${ro ? "disabled" : ""}>Visual</button><button type="button" data-mode="sql" class="${isVisual(c) ? "" : "on"}" ${ro ? "disabled" : ""}>SQL</button></span>` : ""}
         <span class="nb-c-st" data-st></span>
         ${c.kind !== "note" ? `<button type="button" class="nb-ibtn run" data-act="run" title="Ejecutar (Ctrl+Enter)">▶</button>` : ""}
         ${ro ? "" : `<button type="button" class="nb-ibtn" data-act="up" title="Subir">↑</button><button type="button" class="nb-ibtn" data-act="down" title="Bajar">↓</button>
@@ -219,11 +253,19 @@ export async function render(mount, ctx) {
       return `<label>${label}<select data-p="${key}" ${ro ? "disabled" : ""}><option value="">— elige —</option>${cols.map((x) => `<option value="${esc(x.name)}" ${x.name === p[key] ? "selected" : ""}>${esc(x.display || x.name)}${x.type === "number" ? " #" : x.type === "date" ? " ◷" : ""}</option>`).join("")}</select></label>`;
     };
     switch (c.kind) {
-      case "sql": return `<div class="nb-code"><textarea data-sql spellcheck="false" ${ro ? "readonly" : ""} aria-label="Consulta SQL">${esc(c.sql || "")}</textarea></div>`;
+      case "sql": return isVisual(c)
+        ? builderHtml({ ...c.builder, _id: c.id }, st.schema, ro)
+        : `<div class="nb-code"><textarea data-sql spellcheck="false" ${ro ? "readonly" : ""} aria-label="Consulta SQL" placeholder="SELECT campo, SUM(otro) AS total FROM tabla GROUP BY campo ORDER BY total DESC LIMIT 20">${esc(c.sql || "")}</textarea>
+          <p class="nb-code-tip">SQL de una tabla: <code>SELECT … FROM tabla WHERE … GROUP BY … ORDER BY … LIMIT n</code>. Ctrl+Enter ejecuta. Clic en un campo del panel lo agrega a las columnas.</p></div>`;
       case "profile": return `<div class="nb-form">${tSel()}${fSel("field", "Campo")}</div>`;
-      case "pareto": return `<div class="nb-form">${tSel()}${fSel("dimension", "Dimensión", ["text", "date", "number"])}
-        <label class="w">Medida (SQL)<input data-p="measure" value="${esc(p.measure || "COUNT(*)")}" placeholder="SUM(ventas)" ${ro ? "readonly" : ""} /></label>
-        <label class="w">Solo donde (opcional)<input data-p="where" value="${esc(p.where || "")}" placeholder="estado = 'Activo'" ${ro ? "readonly" : ""} /></label></div>`;
+      case "pareto": {
+        const t = tableOf(p.table);
+        const agg = p.magg || (p.measure && p.measure !== "COUNT(*)" ? "custom" : "count");
+        return `<div class="nb-form">${tSel()}${fSel("dimension", "¿Qué elementos? (por ejemplo clientes)", ["text", "date", "number"])}
+        <label>¿Medidos por?<select data-pm="magg" ${ro ? "disabled" : ""}>${PARETO_AGGS.map(([v, l]) => `<option value="${v}" ${v === agg ? "selected" : ""}>${l}</option>`).join("")}${agg === "custom" ? `<option value="custom" selected>Fórmula: ${esc(p.measure)}</option>` : ""}</select></label>
+        ${agg !== "count" && agg !== "custom" ? `<label>Campo<select data-pm="mfield" ${ro ? "disabled" : ""}><option value="">— elige —</option>${(t?.columns || []).filter((x) => agg === "distinct" || x.type === "number").map((x) => `<option value="${esc(x.name)}" ${x.name === p.mfield ? "selected" : ""}>${esc(x.display || x.name)}</option>`).join("")}</select></label>` : ""}
+        <label class="w">Solo donde (opcional, condición SQL)<input data-p="where" value="${esc(p.where || "")}" placeholder="estado = 'Activo'" ${ro ? "readonly" : ""} /></label></div>`;
+      }
       case "correlation": {
         const t = tableOf(p.table);
         const nums = (t?.columns || []).filter((x) => x.type === "number");
@@ -236,12 +278,111 @@ export async function render(mount, ctx) {
     }
   }
 
+  /** Cabecera de la celda (una sola vez) + cuerpo. */
   function wireCell(c) {
     const el = mount.querySelector(`.nb-cell[data-id="${c.id}"]`);
     if (!el) return;
-    el.addEventListener("focusin", () => { st.activeCell = c.id; mount.querySelectorAll(".nb-cell.on").forEach((x) => x !== el && x.classList.remove("on")); el.classList.add("on"); });
+    const activate = () => { st.activeCell = c.id; mount.querySelectorAll(".nb-cell.on").forEach((x) => x !== el && x.classList.remove("on")); el.classList.add("on"); };
+    el.addEventListener("focusin", activate);
+    el.addEventListener("pointerdown", activate);
     el.querySelector(".nb-c-t").addEventListener("input", (e) => { c.title = e.target.value; markDirty(); });
     el.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => cellAction(c, b.dataset.act, el)));
+    el.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => setMode(c, b.dataset.mode)));
+    wireBody(c, el);
+  }
+
+  function repaintBody(c) {
+    const el = mount.querySelector(`.nb-cell[data-id="${c.id}"]`);
+    if (!el) return;
+    el.querySelector(".nb-c-b").innerHTML = editorHtml(c, !ownerOk());
+    el.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", (b.dataset.mode === "visual") === isVisual(c)));
+    wireBody(c, el);
+  }
+
+  /** Visual ⇄ SQL. Pasar a SQL conserva la consulta generada; volver a visual la regenera desde el constructor. */
+  async function setMode(c, mode) {
+    if (!ownerOk() || (mode === "visual") === isVisual(c)) return;
+    if (mode === "sql") { c.builder = { ...(c.builder || {}), manual: true }; repaintBody(c); markDirty(); mount.querySelector(`.nb-cell[data-id="${c.id}"] textarea[data-sql]`)?.focus(); return; }
+    const from = /\bFROM\s+("(?:[^"]|"")+"|[\p{L}_][\p{L}\p{N}_]*)/iu.exec(c.sql || "")?.[1]?.replace(/^"|"$/g, "").replace(/""/g, '"');
+    const hasBuilder = c.builder && c.builder.table;
+    const b = hasBuilder ? { ...c.builder, manual: false } : starterBuilder(tableOf(from));
+    const gen = toSql(b, tableOf(b.table));
+    if ((c.sql || "").trim() && (c.sql || "").trim() !== gen.trim()
+      && !(await confirmBox({ title: "Volver al modo visual", message: "El constructor reemplazará el SQL que escribiste a mano por la consulta que arme. ¿Continuar?", okLabel: "Usar el constructor" }))) return;
+    c.builder = b; c.sql = gen;
+    repaintBody(c); markDirty(); runCell(c.id);
+  }
+
+  const runTimers = new Map();
+  function runSoon(id, ms = 350) { clearTimeout(runTimers.get(id)); runTimers.set(id, setTimeout(() => runCell(id), ms)); }
+
+  /** Eventos del constructor visual. Cada cambio regenera el SQL, guarda y ejecuta. */
+  function wireBuilder(c, el) {
+    const host = el.querySelector("[data-bld]");
+    if (!host || !ownerOk()) return;
+    const b = c.builder;
+    b.dims ||= []; b.metrics ||= []; b.filters ||= []; b.order ||= {};
+    const tbl = () => tableOf(b.table);
+    const colType = (f) => tbl()?.columns.find((x) => x.name === f)?.type;
+    const commit = (repaint = true, delay = 250) => {
+      c.sql = toSql(b, tbl());
+      markDirty();
+      if (repaint) repaintBody(c);
+      else {
+        host.querySelector("[data-say]").textContent = describe(b, tbl());
+        host.querySelector("[data-sqlprev]").textContent = c.sql;
+      }
+      staleResult(c.id);
+      runSoon(c.id, delay);
+    };
+    const on = (sel, ev, fn) => host.querySelectorAll(sel).forEach((x) => x.addEventListener(ev, (e) => fn(x, e)));
+    on('[data-b="table"]', "change", (x) => { Object.assign(b, starterBuilder(tableOf(x.value)), { manual: false }); commit(); });
+    on("[data-adddim]", "change", (x) => { if (x.value && !b.dims.includes(x.value)) b.dims.push(x.value); commit(); });
+    on("[data-rmdim]", "click", (x) => { b.dims.splice(Number(x.dataset.rmdim), 1); commit(); });
+    on("[data-magg]", "change", (x) => {
+      const m = b.metrics[Number(x.dataset.magg)], a = AGGS.find((y) => y.v === x.value);
+      m.agg = x.value;
+      if (!a?.needs) delete m.field;
+      else if (!m.field || (a.needs === "number" && colType(m.field) !== "number")) m.field = a.needs === "number" ? pickNumber(tbl()) : (m.field || pickText(tbl()));
+      commit();
+    });
+    on("[data-mfield]", "change", (x) => { b.metrics[Number(x.dataset.mfield)].field = x.value; commit(); });
+    on("[data-rmm]", "click", (x) => { const m = b.metrics.splice(Number(x.dataset.rmm), 1)[0]; if (m && b.order.by === metricLabel(m, tbl())) b.order.by = ""; commit(); });
+    on("[data-addm]", "click", () => {
+      const n = pickNumber(tbl()), ag = naturalAgg(n), used = new Set(b.metrics.map((m) => m.agg + "|" + (m.field || "")));
+      b.metrics.push(n && !used.has(ag + "|" + n) ? { agg: ag, field: n } : n && !used.has("avg|" + n) ? { agg: "avg", field: n } : used.has("count|") ? { agg: "max", field: n || pickText(tbl()) } : { agg: "count" });
+      commit();
+    });
+    // Sugerencias de valores reales en cada filtro (precargadas: no dependen del foco).
+    host.querySelectorAll("[data-fval]").forEach((x) => fillValues(b.table, b.filters[Number(x.dataset.fval)]?.field, x));
+    on("[data-ffield]", "change", (x) => { const f = b.filters[Number(x.dataset.ffield)]; f.field = x.value; f.value = ""; if (colType(x.value) === "number" && ["contains", "starts"].includes(f.op)) f.op = "eq"; commit(); });
+    on("[data-fop]", "change", (x) => { b.filters[Number(x.dataset.fop)].op = x.value; commit(); });
+    on("[data-fval]", "input", (x) => { b.filters[Number(x.dataset.fval)].value = x.value; commit(false, 700); });
+    on("[data-fval]", "keydown", (x, e) => { if (e.key === "Enter") { e.preventDefault(); runSoon(c.id, 0); } });
+    on("[data-rmf]", "click", (x) => { b.filters.splice(Number(x.dataset.rmf), 1); commit(); });
+    on("[data-addf]", "click", () => { b.filters.push({ field: b.dims[0] || pickText(tbl()) || "", op: "eq", value: "" }); commit(); el.querySelector(`[data-fval="${b.filters.length - 1}"]`)?.focus(); });
+    on('[data-b="orderby"]', "change", (x) => { b.order.by = x.value; commit(); });
+    on('[data-b="dir"]', "change", (x) => { b.order.dir = x.value; commit(); });
+    on('[data-b="limit"]', "change", (x) => { b.limit = Number(x.value); commit(); });
+    on("[data-tosql]", "click", () => setMode(c, "sql"));
+  }
+
+  /** Sugerencias de valores reales para un filtro (los 200 más frecuentes del campo). */
+  const valueCache = new Map();
+  async function fillValues(table, field, input) {
+    const dl = input?.list;
+    if (!dl || !table || !field) return;
+    const key = table + "|" + field;
+    if (!valueCache.has(key)) {
+      valueCache.set(key, api.runNotebookCell(ctx.appId, { kind: "sql", sql: `SELECT ${ident(field)} AS v, COUNT(*) AS n FROM ${ident(table)} WHERE ${ident(field)} IS NOT NULL GROUP BY 1 ORDER BY n DESC LIMIT 200` })
+        .then((r) => r.rows.map((x) => String(x[0]))).catch(() => []));
+    }
+    const vals = await valueCache.get(key);
+    dl.innerHTML = vals.map((v) => `<option value="${esc(v)}"></option>`).join("");
+  }
+
+  function wireBody(c, el) {
+    if (isVisual(c)) wireBuilder(c, el);
     const ta = el.querySelector("textarea[data-sql]");
     if (ta) {
       autosize(ta);
@@ -254,9 +395,22 @@ export async function render(mount, ctx) {
     }
     el.querySelectorAll("[data-p]").forEach((inp) => inp.addEventListener(inp.tagName === "SELECT" ? "change" : "input", () => {
       c.params = { ...(c.params || {}), [inp.dataset.p]: inp.value };
-      if (inp.dataset.p === "table") { delete c.params.field; delete c.params.dimension; c.params.fields = []; el.querySelector(".nb-c-b").innerHTML = editorHtml(c, !ownerOk()); wireCell(c); }
+      if (inp.dataset.p === "table") {
+        const t = tableOf(inp.value);
+        delete c.params.field; delete c.params.dimension; c.params.fields = [];
+        if (c.kind === "pareto") { c.params.dimension = pickText(t); c.params.mfield = pickNumber(t) || ""; c.params.magg = c.params.mfield ? "sum" : "count"; c.params.measure = paretoMeasure(c.params.magg, c.params.mfield); }
+        if (c.kind === "profile" || c.kind === "outliers") c.params.field = pickNumber(t) || (c.kind === "profile" ? pickText(t) : undefined);
+        repaintBody(c);
+      }
       markDirty();
       if (inp.tagName === "SELECT") runCell(c.id); else staleResult(c.id);
+    }));
+    el.querySelectorAll("[data-pm]").forEach((sel) => sel.addEventListener("change", () => {
+      const p = (c.params = { ...(c.params || {}), [sel.dataset.pm]: sel.value });
+      if (sel.dataset.pm === "magg" && p.magg !== "count" && !p.mfield) p.mfield = pickNumber(tableOf(p.table)) || "";
+      p.measure = paretoMeasure(p.magg, p.mfield);
+      p.label = p.magg === "count" || !p.mfield ? "Registros" : `${PARETO_AGGS.find((x) => x[0] === p.magg)?.[1] || "Suma de"} ${p.mfield}`;
+      repaintBody(c); markDirty(); runCell(c.id);
     }));
     el.querySelectorAll("input[data-p]").forEach((inp) => inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); runCell(c.id); } }));
     el.querySelectorAll("[data-fld]").forEach((b) => b.addEventListener("click", () => {
@@ -295,14 +449,40 @@ export async function render(mount, ctx) {
     else if (ownerOk()) addCell(defaults("sql"));
   }
 
-  function insertField(name) {
-    const id = st.activeCell && st.nb?.cells.find((c) => c.id === st.activeCell && c.kind === "sql") ? st.activeCell : st.nb?.cells.find((c) => c.kind === "sql")?.id;
-    const ta = id && mount.querySelector(`.nb-cell[data-id="${id}"] textarea[data-sql]`);
-    if (!ta || ta.readOnly) { navigator.clipboard?.writeText(ident(name)); toast(`Copiado: ${ident(name)}`); return; }
-    const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? s;
-    const before = ta.value.slice(0, s), sep = /[\p{L}\p{N}_")]$/u.test(before) ? ", " : "";
-    ta.setRangeText(sep + ident(name), s, e, "end");
-    ta.focus(); ta.dispatchEvent(new Event("input"));
+  /**
+   * Clic en un campo del panel. Con una consulta visual activa de esa tabla: un texto o fecha va a «Ver por» y un
+   * número a «Calcular» (suma). Con una consulta SQL de esa tabla: se agrega a las columnas del SELECT (y al GROUP BY
+   * si la consulta agrupa). Si no, crea una consulta nueva sobre la tabla del campo.
+   */
+  function insertField(table, name, type) {
+    if (!st.nb) return;
+    if (!ownerOk()) { navigator.clipboard?.writeText(ident(name)); toast(`Copiado: ${ident(name)}`); return; }
+    const cur = st.nb.cells.find((c) => c.id === st.activeCell && c.kind === "sql");
+    const flash = (c) => { const el = mount.querySelector(`.nb-cell[data-id="${c.id}"]`); el?.classList.add("flash"); setTimeout(() => el?.classList.remove("flash"), 700); };
+    if (cur && isVisual(cur) && cur.builder.table === table) {
+      const b = cur.builder;
+      if (type === "number") b.metrics.push({ agg: naturalAgg(name), field: name });
+      else if (!b.dims.includes(name)) { b.dims.push(name); if (!b.metrics.length) b.metrics.push({ agg: "count" }); }
+      cur.sql = toSql(b, tableOf(table));
+      repaintBody(cur); markDirty(); runSoon(cur.id, 0); flash(cur);
+      return;
+    }
+    const from = cur && /\bFROM\s+("(?:[^"]|"")+"|[\p{L}_][\p{L}\p{N}_]*)/iu.exec(cur.sql || "")?.[1]?.replace(/^"|"$/g, "").replace(/""/g, '"');
+    if (cur && !isVisual(cur) && from === table) {
+      const sql = addToSelect(cur.sql || "", name, type !== "number");
+      if (sql == null) { toast("No encontré el SELECT … FROM de la consulta: escribe el campo a mano.", "err"); return; }
+      cur.sql = sql;
+      const ta = mount.querySelector(`.nb-cell[data-id="${cur.id}"] textarea[data-sql]`);
+      if (ta) { ta.value = sql; autosize(ta); }
+      markDirty(); runSoon(cur.id, 0); flash(cur);
+      return;
+    }
+    const t = tableOf(table);
+    const b = type === "number"
+      ? { table, dims: [], metrics: [{ agg: "count" }, { agg: "sum", field: name }, { agg: "avg", field: name }, { agg: "min", field: name }, { agg: "max", field: name }], filters: [], order: {}, limit: 1 }
+      : { table, dims: [name], metrics: [{ agg: "count" }], filters: [], order: {}, limit: 20 };
+    addCell(sqlCell(b), true, cur?.id || null);
+    if (t) toast(type === "number" ? `Nueva consulta: resumen de ${name}` : `Nueva consulta: registros por ${name}`);
   }
 
   /* =============================== ejecutar =============================== */
@@ -514,7 +694,7 @@ export async function render(mount, ctx) {
   }
 
   async function saveMeasure(c, r) {
-    const m = String(c.sql || "").replace(/--[^\n]*/g, " ").replace(/\s+/g, " ").trim().match(/^SELECT\s+(.+?)(?:\s+AS\s+("[^"]+"|[\p{L}_][\p{L}\p{N}_]*))?\s+FROM\s+("[^"]+"|[\p{L}_][\p{L}\p{N}_]*)\s*(WHERE\s+(.+?))?\s*;?$/iu);
+    const m = String(c.sql || "").replace(/--[^\n]*/g, " ").replace(/\s+/g, " ").trim().match(/^SELECT\s+(.+?)(?:\s+AS\s+("[^"]+"|[\p{L}_][\p{L}\p{N}_]*))?\s+FROM\s+("[^"]+"|[\p{L}_][\p{L}\p{N}_]*)\s*(WHERE\s+(.+?))?\s*(?:LIMIT\s+\d+)?\s*;?$/iu);
     if (!m) { toast("Para guardarla como medida, la consulta debe ser SELECT <expresión> FROM tabla [WHERE …].", "err"); return; }
     let expr = m[1].trim();
     if (m[5]) {
@@ -638,6 +818,24 @@ export async function render(mount, ctx) {
 
 /* =============================== utilidades =============================== */
 function autosize(ta) { ta.style.height = "auto"; ta.style.height = Math.max(64, Math.min(560, ta.scrollHeight + 2)) + "px"; }
+
+/**
+ * Agrega un campo a la lista del SELECT de una consulta escrita a mano (no al final del texto).
+ * Texto/fecha: va primero y, si la consulta agrupa, también al GROUP BY. Número: si la consulta agrupa entra como
+ * SUM(campo); si no, como columna. «SELECT *» se reemplaza por el campo. null si no hay SELECT … FROM.
+ */
+function addToSelect(sql, name, isDim) {
+  const m = /^(\s*SELECT\s+(?:DISTINCT\s+)?)([\s\S]*?)(\s+FROM\s)/i.exec(sql);
+  if (!m) return null;
+  const col = ident(name), list = m[2].trim();
+  if (list.split(",").map((s) => s.trim()).includes(col)) return sql;
+  const grouped = /\bGROUP\s+BY\b/i.test(sql);
+  const item = !isDim && grouped ? `SUM(${col}) AS ${ident("Suma de " + name)}` : col;
+  const newList = list === "*" ? item : isDim ? `${item},\n       ${list}` : `${list},\n       ${item}`;
+  let out = m[1] + newList + sql.slice(m[1].length + m[2].length);
+  if (isDim && grouped) out = out.replace(/(\bGROUP\s+BY\s+)([\s\S]*?)(?=\s+(?:HAVING|ORDER\s+BY|LIMIT)\b|\s*;?\s*$)/i, (all, k, g) => `${k}${col}, ${g.trim()}`);
+  return out;
+}
 
 function prettySql(s) {
   return String(s || "").replace(/\s+(FROM|WHERE|GROUP BY|HAVING|ORDER BY|LIMIT)\s+/gi, "\n$1 ").trim();

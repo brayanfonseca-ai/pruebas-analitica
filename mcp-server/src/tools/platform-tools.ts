@@ -925,7 +925,9 @@ export const platformTools: ContextTool[] = [
       "Sin notebookId crea el cuaderno (POST /api/v1/apps/{appId}/notebooks; sin cells arranca con una consulta de la tabla principal). " +
       "Con notebookId lo actualiza (PUT /api/v1/apps/{appId}/notebooks/{id}): solo cambia lo que envies; cells REEMPLAZA la lista completa. " +
       "Celda: {id?, kind: sql|profile|pareto|correlation|outliers|note, title?, sql? (kind sql), text? (kind note, markdown), " +
-      "params? {table, field (profile/outliers), dimension+measure+where (pareto), fields[] (correlation), k (outliers, 1.5 por defecto)}, view? {chart: auto|table|bar|line|pie|kpi|scatter}}. " +
+      "params? {table, field (profile/outliers), dimension+measure+where (pareto; en la UI magg: count|sum|avg|distinct + mfield), fields[] (correlation), k (outliers, 1.5 por defecto)}, view? {chart: auto|table|bar|line|pie|kpi|scatter}, " +
+      "builder? (kind sql en modo visual: {table, dims[campo], metrics[{agg: count|sum|avg|min|max|median|distinct, field}], filters[{field, op: eq|ne|gt|gte|lt|lte|contains|starts|in|null|notnull, value}], order{by, dir: asc|desc}, limit, manual?}; " +
+      "la UI regenera el SQL desde builder, asi que envia tambien el sql equivalente; manual:true = la celda se edita como SQL)}. " +
       "Maximo 80 celdas. Requiere charts:edit; actualizar solo su dueno o un administrador. Devuelve el cuaderno con celdas.",
     inputShape: {
       ...appId,
