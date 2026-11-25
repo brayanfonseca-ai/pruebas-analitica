@@ -1976,7 +1976,7 @@ export async function render(mount, ctx) {
       if (k === "mlLegend") pres.push(`<label class="ho-check"><input type="checkbox" data-look-chk="legend" ${look.legend !== false ? "checked" : ""}/> Mostrar leyenda</label>
         <label class="ho-check"><input type="checkbox" data-look-chk="tooltip" ${look.tooltip !== false ? "checked" : ""}/> Mostrar información al pasar el cursor</label>`);
       if (k === "mlPalette") pres.push(`<div class="ho-p-field"><label class="ho-p-label">Paleta de colores</label><select data-look-sel="mlPalette">
-          <option value="datasense" ${look.mlPalette !== "sense" ? "selected" : ""}>DataSense (azul, verde, ocre…)</option>
+          <option value="datasense" ${look.mlPalette !== "sense" ? "selected" : ""}>PROTHEO (azul, verde, ocre…)</option>
           <option value="sense" ${look.mlPalette === "sense" ? "selected" : ""}>Sense (verde, azul, naranja…)</option></select></div>`);
       if (k === "totals") pres.push(`<label class="ho-check"><input type="checkbox" data-look-chk="totals" ${look.totals !== false ? "checked" : ""}/> Mostrar totales (calculados por el motor)</label>`);
     });
@@ -2673,7 +2673,7 @@ export async function render(mount, ctx) {
           ${layoutThumb(t.objects)}
           <div class="ho-tpl-info">
             <div class="ho-tpl-name">${esc(t.label)}<button class="ho-tpl-star ${fav.has(t.key) ? "on" : ""}" data-star="${t.key}" title="Favorita">★</button></div>
-            <div class="ho-tpl-author">◆ DataSense</div>
+            <div class="ho-tpl-author">PROTHEO</div>
             ${t.category ? `<span class="ho-tpl-chip">${esc(catLabel(t.category))}</span>` : ""}
           </div>
         </div>`).join("") : `<div class="ho-tpl-empty">${view.startsWith("cat:") ? `No hay plantillas en esta categoría todavía. Las plantillas con menú de navegación llegarán cuando el objeto «Menú de navegación» esté disponible.` : "No hay plantillas para mostrar."}</div>`;

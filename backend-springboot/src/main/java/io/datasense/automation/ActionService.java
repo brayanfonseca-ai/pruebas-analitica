@@ -146,7 +146,7 @@ public class ActionService {
         else {
             try {
                 Map<String, Object> payload = new LinkedHashMap<>();
-                payload.put("source", "DataSense");
+                payload.put("source", "PROTHEO");
                 payload.put("app", apps.getApp(AutomationService.str(a.get("app_id"))).map(x -> x.name()).orElse(""));
                 payload.put("list", a.get("name"));
                 payload.put("reason", reason);
@@ -156,9 +156,9 @@ public class ActionService {
                 payload.put("truncated", r.get("truncated"));
                 payload.put("generated_at", Ids.now());
                 // texto listo para Teams / Slack (los dos aceptan {"text": ...})
-                payload.put("text", "DataSense · " + a.get("name") + ": " + total + " registro(s)" + (reason == null ? "" : " — " + reason));
+                payload.put("text", "PROTHEO · " + a.get("name") + ": " + total + " registro(s)" + (reason == null ? "" : " — " + reason));
                 HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10))
-                        .header("Content-Type", "application/json").header("User-Agent", "DataSense-webhook")
+                        .header("Content-Type", "application/json").header("User-Agent", "PROTHEO-webhook")
                         .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload))).build();
                 HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
                 sent = res.statusCode() >= 200 && res.statusCode() < 300;

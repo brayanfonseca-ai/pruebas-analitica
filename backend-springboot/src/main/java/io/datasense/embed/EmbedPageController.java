@@ -86,7 +86,7 @@ public class EmbedPageController {
     private ResponseEntity<String> error(int status, String msg, List<String> origins) {
         String safe = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
         String body = "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-                + "<title>DataSense · Embed</title><style>html,body{height:100%;margin:0}body{display:grid;place-items:center;font-family:Segoe UI,system-ui,sans-serif;"
+                + "<title>PROTHEO · Embed</title><style>html,body{height:100%;margin:0}body{display:grid;place-items:center;font-family:Segoe UI,system-ui,sans-serif;"
                 + "background:#0b1022;color:#e6ebf5}div{max-width:420px;text-align:center;padding:28px;border:1px solid #222e4d;border-radius:16px;background:#10182c}"
                 + "b{display:block;font-size:1.05rem;margin-bottom:8px}p{margin:0;color:#94a3b8;font-size:.9rem;line-height:1.5}</style></head><body><div>"
                 + "<b>No se puede mostrar este tablero</b><p>" + safe + "</p></div></body></html>";

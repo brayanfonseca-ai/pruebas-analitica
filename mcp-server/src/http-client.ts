@@ -1,7 +1,7 @@
 /**
  * Wrapper HTTP sobre el fetch GLOBAL de Node (>= 18). No usa node-fetch.
  *
- * Centraliza las llamadas al backend DataSense contra getBaseUrl() + path,
+ * Centraliza las llamadas al backend PROTHEO contra getBaseUrl() + path,
  * con cabeceras JSON y manejo uniforme de errores HTTP.
  */
 

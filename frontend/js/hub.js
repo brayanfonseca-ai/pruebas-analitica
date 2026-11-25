@@ -1,4 +1,4 @@
-// hub.js — shell genérico de las páginas del menú lateral de DataSense,
+// hub.js — shell genérico de las páginas del menú lateral de PROTHEO,
 // con las páginas que sí tienen contenido real: Colecciones, Analizar (galería de cuadernos de análisis, js/analizar.js) y Temas.
 // Se retiraron las pantallas de relleno sin motor (Páginas, Alimentar, Favoritos, Mercado de datos,
 // Productos, Calidad, Asistentes, Automatizaciones, Alertas, Suscripciones e Información).
@@ -209,10 +209,10 @@ const PAGES = {
     mount: (main) => mountAnalizar(main),
   },
 
-  // Apariencia real de DataSense: la aplica js/theme.js (preferencias por navegador).
+  // Apariencia real de PROTHEO: la aplica js/theme.js (preferencias por navegador).
   temas: {
     title: "Temas",
-    sub: "Modo, color de acento y fondo de DataSense en este navegador.",
+    sub: "Modo, color de acento y fondo de PROTHEO en este navegador.",
     body: () => temasHtml(),
     mount: (main) => mountTemas(main),
   },
@@ -247,7 +247,7 @@ function temasHtml() {
     </button>`).join("");
   return `
     <div class="ds-tm">
-      <section class="ds-tm-sec"><h2>Modo</h2><p>Elige cómo se ve DataSense. También puedes cambiarlo con el botón junto a la campana.</p>
+      <section class="ds-tm-sec"><h2>Modo</h2><p>Elige cómo se ve PROTHEO. También puedes cambiarlo con el botón junto a la campana.</p>
         <div class="ds-tm-grid">${modeCards}</div></section>
       <section class="ds-tm-sec"><h2>Color de acento</h2><p>Botones, enlaces, brillos y el marco de neón usan este color.</p>
         <div class="ds-tm-sws">${swatches}</div></section>
@@ -480,7 +480,7 @@ function render() {
       </div>`
     : "";
   main.innerHTML = `${page.topbar ? page.topbar() : ""}${header}<div class="q-page-body">${page.body()}</div>`;
-  document.title = `DataSense · ${page.title || "Analítica"}`;
+  document.title = `PROTHEO · ${page.title || "Analítica"}`;
   // Tarjetas de creación con destino: navegan; las "Próximamente" no hacen nada.
   main.querySelectorAll(".q-create-card[data-href]").forEach((card) =>
     card.addEventListener("click", () => { location.href = card.dataset.href; }));

@@ -15,7 +15,7 @@ public final class FlowCatalog {
 
     public static final List<Map<String, Object>> CATEGORIES = List.of(
             cat("trigger", "Disparadores", "#f59e0b", "Cuándo empieza el flujo"),
-            cat("data", "Datos DataSense", "#6366f1", "Recargar, consultar y analizar tus apps"),
+            cat("data", "Datos PROTHEO", "#6366f1", "Recargar, consultar y analizar tus apps"),
             cat("ai", "Agentes de IA", "#a855f7", "Agentes que leen tus datos, razonan y redactan"),
             cat("logic", "Lógica", "#0ea5e9", "Condiciones, filtros y transformaciones"),
             cat("action", "Acciones", "#10b981", "Correo, WhatsApp, Teams/Slack, HTTP y avisos"));
@@ -151,7 +151,7 @@ public final class FlowCatalog {
                 p("headers", "Cabeceras", "kv", null, null, false, null),
                 p("credential", "Autenticación (opcional)", "credential:http", null, null, false, null),
                 p("body", "Cuerpo (JSON / texto)", "textarea", null, "{\"total\": {{ $json.value }}}", false, null));
-        node("action.notify", "action", "Aviso en la campana", "bell", "Deja un aviso en la campana de DataSense de quien creó el flujo.",
+        node("action.notify", "action", "Aviso en la campana", "bell", "Deja un aviso en la campana de PROTHEO de quien creó el flujo.",
                 List.of("out"), true,
                 p("title", "Título", "text", null, "Revisar rotación", true, null),
                 p("message", "Mensaje", "textarea", null, "{{ $json.text }}", false, null));
@@ -165,7 +165,7 @@ public final class FlowCatalog {
             cred("smtp", "Correo (SMTP)", "Gmail: smtp.gmail.com, 465 SSL y una contraseña de aplicación. Office 365: smtp.office365.com, 587 STARTTLS.",
                     f("host", "Servidor SMTP", false, "smtp.gmail.com"), f("port", "Puerto", false, "465"),
                     f("security", "Seguridad (ssl | starttls | none)", false, "ssl"), f("user", "Usuario", false, "alertas@empresa.com"),
-                    f("password", "Contraseña / contraseña de aplicación", true, ""), f("from", "Remitente", false, "DataSense <alertas@empresa.com>")),
+                    f("password", "Contraseña / contraseña de aplicación", true, ""), f("from", "Remitente", false, "PROTHEO <alertas@empresa.com>")),
             cred("whatsapp_meta", "WhatsApp Business (Meta Cloud API)", "En Meta for Developers: el «Phone number ID» y un token permanente de un usuario del sistema.",
                     f("phone_number_id", "Phone number ID", false, "123456789012345"), f("token", "Token de acceso", true, ""),
                     f("api_base", "URL de la API", false, "https://graph.facebook.com/v20.0")),

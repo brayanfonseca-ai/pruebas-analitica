@@ -91,7 +91,7 @@ public class ExpressionAssist {
 
     private static String system(boolean measure) {
         String common = """
-                Eres el asistente de expresiones de DataSense. Escribes expresiones en SQL estándar para el motor analítico.
+                Eres el asistente de expresiones de PROTHEO. Escribes expresiones en SQL estándar para el motor analítico.
                 Responde SOLO con JSON, sin texto alrededor: {"expression": "...", "explanation": "una o dos frases en español"}.
                 Reglas:
                 - Usa EXACTAMENTE los nombres de campo del catálogo. Si un nombre tiene espacios, tildes o símbolos va entre comillas dobles: "ESTADO CONTRATO". Si es simple puede ir sin comillas.

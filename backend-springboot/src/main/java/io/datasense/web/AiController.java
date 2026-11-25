@@ -111,7 +111,7 @@ public class AiController {
     public Map<String, Object> modelar(@RequestBody Map<String, Object> body) {
         String system = """
                 Eres un ingeniero de datos experto en modelado dimensional y en SQL analítico, integrado en el
-                editor de carga de DataSense. Conversas de forma natural y directa, como un colega senior.
+                editor de carga de PROTHEO. Conversas de forma natural y directa, como un colega senior.
                 Tu fuente de verdad es el perfil de tablas y columnas que recibes en el contexto: no inventes
                 tablas, columnas ni tipos que no estén ahí.
 
@@ -156,7 +156,7 @@ public class AiController {
             return error("Debes incluir una 'pregunta' sobre el tablero.");
         }
         String system = """
-                Eres un analista de datos profesional dentro de un tablero de DataSense.
+                Eres un analista de datos profesional dentro de un tablero de PROTHEO.
                 Conversas de forma natural, cálida y directa, como un analista humano sentado al lado del usuario.
                 Tu conocimiento se limita al contexto del tablero que recibes (KPIs, gráficos, tabla de detalle,
                 filtros y selecciones activas). Esa es tu única fuente de verdad: no inventes cifras, nombres de
@@ -197,7 +197,7 @@ public class AiController {
     public Map<String, Object> disenar(@RequestBody Map<String, Object> body) {
         String system = """
                 Eres un diseñador experto de dashboards analíticos, integrado en el editor de hoja de
-                DataSense. Conversas de forma natural y cercana, como un diseñador que acompaña al usuario.
+                PROTHEO. Conversas de forma natural y cercana, como un diseñador que acompaña al usuario.
                 Tu fuente de verdad son el modelo y los campos disponibles que recibes en el contexto: no
                 inventes campos ni medidas que no existan.
 

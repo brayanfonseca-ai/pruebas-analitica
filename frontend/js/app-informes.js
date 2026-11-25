@@ -1,4 +1,4 @@
-// app-informes.js — vista "Informes" (grupo Narrar) de DataSense.
+// app-informes.js — vista "Informes" (grupo Narrar) de PROTHEO.
 //
 // NO es un asesor que "aconseja": es un GENERADOR DE INFORMES PDF real y guiado.
 // El usuario elige una PLANTILLA BASE (tarjeta con preview), y el módulo:
@@ -516,7 +516,7 @@ export async function render(mount, ctx) {
       doc.setFillColor(...BRAND); doc.rect(0, 0, W, 210, "F");
       doc.setFillColor(...BRAND_DARK); doc.rect(0, 200, W, 10, "F");
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11.5); doc.text("DATASENSE · INFORME ANALÍTICO", M, 66);
+      doc.setFontSize(11.5); doc.text("PROTHEO · INFORME ANALÍTICO", M, 66);
       doc.setFontSize(27); doc.setFont(undefined, "bold");
       doc.text(doc.splitTextToSize(title, W - M * 2), M, 108);
       doc.setFont(undefined, "normal"); doc.setFontSize(13); doc.text(appName, M, 168);
@@ -762,7 +762,7 @@ export async function render(mount, ctx) {
       const pages = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pages; i++) {
         doc.setPage(i); doc.setFontSize(8); doc.setTextColor(...MUTED);
-        doc.text(`DataSense · ${appName}`, M, H - 20);
+        doc.text(`PROTHEO · ${appName}`, M, H - 20);
         doc.text(`Página ${i} de ${pages}`, W - M, H - 20, { align: "right" });
       }
       doc.save(fname);

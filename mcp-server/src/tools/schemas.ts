@@ -8,7 +8,7 @@
 
 import { z } from "zod";
 
-/** Identificador de aplicacion DataSense. */
+/** Identificador de aplicacion PROTHEO. */
 export const appIdShape = {
   appId: z.string().min(1).describe("Identificador de la aplicacion (appId)."),
 };

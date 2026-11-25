@@ -1,4 +1,4 @@
-# DataSense — plataforma de analítica local estilo Qlik
+# PROTHEO — plataforma de analítica local estilo Qlik
 
 Plataforma analítica autocontenida inspirada en **Qlik Sense**: cargas datos (Excel, CSV o
 conexiones reales), construyes un modelo asociativo, diseñas hojas y dashboards, generas

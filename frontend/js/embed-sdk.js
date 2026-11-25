@@ -1,10 +1,10 @@
 /*!
- * DataSense Embed SDK — incrusta un tablero publicado en cualquier página web.
+ * PROTHEO Embed SDK — incrusta un tablero publicado en cualquier página web.
  *
  *   <div id="tablero"></div>
  *   <script src="https://TU-SERVIDOR/js/embed-sdk.js"></script>
  *   <script>
- *     const h = DataSense.embed({
+ *     const h = PROTHEO.embed({
  *       container: "#tablero",            // selector o elemento
  *       token: "dse_xxxxxxxx",            // token del embed (Embedding → copiar)
  *       baseUrl: "https://TU-SERVIDOR",   // opcional; por defecto, el origen de este script
@@ -32,14 +32,14 @@
   function embed(opts) {
     opts = opts || {};
     var host = typeof opts.container === "string" ? document.querySelector(opts.container) : opts.container;
-    if (!host) throw new Error("DataSense.embed: no se encontró el contenedor.");
-    if (!opts.token) throw new Error("DataSense.embed: falta el token.");
+    if (!host) throw new Error("PROTHEO.embed: no se encontró el contenedor.");
+    if (!opts.token) throw new Error("PROTHEO.embed: falta el token.");
     var base = String(opts.baseUrl || scriptOrigin || location.origin).replace(/\/+$/, "");
     var origin = new URL(base).origin;
 
     var iframe = document.createElement("iframe");
     iframe.src = base + "/embed/" + encodeURIComponent(opts.token);
-    iframe.title = opts.title || "Tablero DataSense";
+    iframe.title = opts.title || "Tablero PROTHEO";
     iframe.loading = "lazy";
     iframe.setAttribute("allowfullscreen", "");
     iframe.style.cssText = "border:0;width:100%;display:block;height:" + (opts.height && opts.height !== "auto" ? opts.height : "600px");
@@ -75,6 +75,8 @@
     };
   }
 
-  global.DataSense = global.DataSense || {};
-  global.DataSense.embed = embed;
+  global.PROTHEO = global.PROTHEO || {};
+  global.PROTHEO.embed = embed;
+  // Compatibilidad: los tableros ya incrustados con el nombre anterior siguen funcionando.
+  global.DataSense = global.DataSense || global.PROTHEO;
 })(window);

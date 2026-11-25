@@ -1,5 +1,5 @@
 /**
- * Entrypoint del servidor MCP de DataSense.
+ * Entrypoint del servidor MCP de PROTHEO.
  *
  * Instancia el Server del SDK MCP, registra las tools y lo conecta por STDIO.
  */
@@ -33,6 +33,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error("Error fatal al arrancar el servidor MCP de DataSense:", err);
+  console.error("Error fatal al arrancar el servidor MCP de PROTHEO:", err);
   process.exit(1);
 });

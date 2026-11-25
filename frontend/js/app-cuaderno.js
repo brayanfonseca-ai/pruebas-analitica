@@ -779,7 +779,7 @@ export async function render(mount, ctx) {
     } catch (e) { toast(e.message, "err"); }
   }
   function exportSql() {
-    const parts = [`-- ${st.nb.name}`, st.nb.description ? `-- ${st.nb.description}` : "", `-- Exportado de DataSense · ${new Date().toLocaleString("es-CO")}`, ""];
+    const parts = [`-- ${st.nb.name}`, st.nb.description ? `-- ${st.nb.description}` : "", `-- Exportado de PROTHEO · ${new Date().toLocaleString("es-CO")}`, ""];
     st.nb.cells.forEach((c, i) => {
       if (c.kind === "sql") parts.push(`-- [${i + 1}] ${c.title || "Consulta"}`, (c.sql || "").trim().replace(/;?\s*$/, ";"), "");
       else if (c.kind === "note") parts.push(...(c.text || "").split("\n").map((l) => `-- ${l}`), "");

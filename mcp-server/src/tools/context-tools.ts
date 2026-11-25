@@ -1,5 +1,5 @@
 /**
- * Tools de CONTEXTO (solo lectura) del MCP de DataSense.
+ * Tools de CONTEXTO (solo lectura) del MCP de PROTHEO.
  *
  * Cada tool llama al http-client contra el backend REST /api/v1 y devuelve el
  * JSON de respuesta como contenido de texto para el agente. Rutas EXACTAS

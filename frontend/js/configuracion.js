@@ -1,4 +1,4 @@
-// configuracion.js — Configuración de DataSense (administración).
+// configuracion.js — Configuración de PROTHEO (administración).
 //
 //  · Usuarios: CRUD completo (crear, editar, activar/desactivar, restablecer contraseña, eliminar) con
 //    rol y permisos individuales (concedidos / denegados sobre los del rol).
@@ -83,7 +83,7 @@ function render() {
   const body = { usuarios: usersView, roles: rolesView, etapas: stagesView, cuenta: accountView }[st.tab]();
   main.innerHTML = `
     <div class="q-greeting"><h1>Configuración</h1></div>
-    <p class="cfg-sub">${isAdmin() ? "Administra quién entra a DataSense, qué puede hacer y qué aplicaciones y hojas ven los visualizadores." : "Tu cuenta y tus permisos."}</p>
+    <p class="cfg-sub">${isAdmin() ? "Administra quién entra a PROTHEO, qué puede hacer y qué aplicaciones y hojas ven los visualizadores." : "Tu cuenta y tus permisos."}</p>
     ${tabs()}
     <div class="cfg-pane">${body}</div>`;
   wire();

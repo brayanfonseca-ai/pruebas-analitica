@@ -1,5 +1,5 @@
 /**
- * Tools de ACCION (ejecucion) del MCP de DataSense.
+ * Tools de ACCION (ejecucion) del MCP de PROTHEO.
  *
  * Dan al agente la capacidad de EJECUTAR acciones reales en el aplicativo:
  * crear/borrar apps, correr queries/agregaciones, gestionar el script de carga,
@@ -72,7 +72,7 @@ export const actionTools: ContextTool[] = [
     name: "create_app",
     title: "Crear aplicacion",
     description:
-      "Crea una nueva aplicacion DataSense. Devuelve 201 AppOut {id, name, created_at}. POST /api/v1/apps con {name}.",
+      "Crea una nueva aplicacion PROTHEO. Devuelve 201 AppOut {id, name, created_at}. POST /api/v1/apps con {name}.",
     inputShape: createAppShape,
     handler: async (args) =>
       toToolText(await post("/api/v1/apps", { name: String(args.name) })),

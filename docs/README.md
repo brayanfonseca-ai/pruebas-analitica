@@ -1,4 +1,4 @@
-# DataSense — Documentación
+# PROTHEO — Documentación
 
 Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: cargas datos (Excel/CSV o conexiones reales), construyes un modelo, diseñas hojas/dashboards, generas informes PDF y conversas con un asistente de IA que lee tus datos reales (Amazon Bedrock · Nova Micro). Incluye un servidor **MCP** para que agentes externos operen la plataforma.
 

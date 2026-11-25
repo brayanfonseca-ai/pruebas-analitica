@@ -11,7 +11,7 @@
 
 import { ML_TYPE_DEFS } from "./ml-views.js";
 
-// Paleta propia de DataSense (índigo, cian, ámbar, rosa, violeta…), legible en claro y oscuro.
+// Paleta propia de PROTHEO (índigo, cian, ámbar, rosa, violeta…), legible en claro y oscuro.
 export const PALETTE = [
   "#6366f1", "#06b6d4", "#f59e0b", "#f43f5e", "#8b5cf6",
   "#10b981", "#ec4899", "#0ea5e9", "#84cc16", "#64748b",

@@ -1,4 +1,4 @@
-// theme.js — apariencia de DataSense: modo claro / oscuro / sistema, color de acento,
+// theme.js — apariencia de PROTHEO: modo claro / oscuro / sistema, color de acento,
 // estilo de fondo y animaciones, más la paleta de comandos (Ctrl + K).
 // Script clásico (no módulo) cargado en <head>: aplica la apariencia ANTES de pintar
 // (sin parpadeo). Inserta el botón de modo junto a la campana de notificaciones, adapta

@@ -1,6 +1,6 @@
 {
   "version": "2026.11",
-  "titulo": "Centro de ayuda de DataSense",
+  "titulo": "Centro de ayuda de PROTHEO",
   "secciones": [
     {
       "id": "inicio",
@@ -8,8 +8,8 @@
       "tipo": "guia",
       "items": [
         {
-          "titulo": "¿Qué es DataSense?",
-          "cuerpo": "DataSense es una plataforma de analítica **local y autocontenida**: cargas datos (Excel, CSV o conexiones reales como Amazon S3 y Athena), construyes un modelo asociativo, diseñas hojas interactivas, generas informes PDF, entrenas modelos de Machine Learning y conversas con un asistente de IA que lee tus datos reales.\n\nTodo corre en tu equipo: el backend guarda la información en `backend-springboot/data/` y el navegador solo muestra lo que el servidor calcula."
+          "titulo": "¿Qué es PROTHEO?",
+          "cuerpo": "PROTHEO es una plataforma de analítica **local y autocontenida**: cargas datos (Excel, CSV o conexiones reales como Amazon S3 y Athena), construyes un modelo asociativo, diseñas hojas interactivas, generas informes PDF, entrenas modelos de Machine Learning y conversas con un asistente de IA que lee tus datos reales.\n\nTodo corre en tu equipo: el backend guarda la información en `backend-springboot/data/` y el navegador solo muestra lo que el servidor calcula."
         },
         {
           "titulo": "Tu primera aplicación en 5 pasos",
@@ -72,7 +72,7 @@
         },
         {
           "titulo": "Servidor MCP",
-          "cuerpo": "`mcp-server/` expone la plataforma como herramientas para agentes de IA (apps, datos, consultas, hojas, conexiones, ML, usuarios y permisos, etapas, notificaciones, ayuda…). Se compila con `npm run build` y se registra en `~/.kiro/settings/mcp.json`. El MCP inicia sesión con las variables de entorno `DATASENSE_USER` y `DATASENSE_PASSWORD` (por defecto, la cuenta administradora de demostración): si cambias esa contraseña, actualízalas en `mcp.json`. **Regla del proyecto**: todo lo que hace DataSense debe poder hacerse también desde el MCP."
+          "cuerpo": "`mcp-server/` expone la plataforma como herramientas para agentes de IA (apps, datos, consultas, hojas, conexiones, ML, usuarios y permisos, etapas, notificaciones, ayuda…). Se compila con `npm run build` y se registra en `~/.kiro/settings/mcp.json`. El MCP inicia sesión con las variables de entorno `DATASENSE_USER` y `DATASENSE_PASSWORD` (por defecto, la cuenta administradora de demostración): si cambias esa contraseña, actualízalas en `mcp.json`. **Regla del proyecto**: todo lo que hace PROTHEO debe poder hacerse también desde el MCP."
         },
         {
           "titulo": "Notificaciones",

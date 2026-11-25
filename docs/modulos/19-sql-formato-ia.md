@@ -1,6 +1,6 @@
 # 19 · Lenguaje SQL, formato de presentación y ayuda de IA
 
-DataSense usa **SQL** (estándar abierto, sin licencias de terceros) en tres sitios:
+PROTHEO usa **SQL** (estándar abierto, sin licencias de terceros) en tres sitios:
 
 1. el script del editor de carga;
 2. las medidas y dimensiones (maestras y fx de los gráficos);

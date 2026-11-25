@@ -2,7 +2,7 @@
 
 ## Visión general
 
-DataSense es una aplicación **cliente-servidor monolítica local**:
+PROTHEO es una aplicación **cliente-servidor monolítica local**:
 
 - **Backend**: Spring Boot (Java 21). Expone una API REST bajo `/api/v1/**`, sirve el frontend estático y es la **única fuente de verdad** de los datos (apps, tablas, hojas, modelo, conexiones, modelo lógico). Persiste en **SQLite** (`backend-springboot/data/datasense.db`) y materializa las tablas como **CSV** en `backend-springboot/data/tables/<appId>/<tableId>.csv`.
 - **Frontend**: HTML + CSS + **JavaScript vanilla (ESM)** en la carpeta `frontend/` (`pages/`, `css/`, `js/`), servida por el backend (`WebConfig` apunta a `../frontend/`). La raíz `/` redirige a `/pages/index.html`. No hay framework ni paso de build. Chart.js, jsPDF y SheetJS se cargan por CDN.
@@ -104,7 +104,7 @@ Módulo ES cargado en todas las páginas con barra superior.
 ### Identidad visual y temas (`frontend/css/theme.css` + `frontend/js/theme.js`)
 
 `theme.css` se carga **después** del resto de hojas en todas las páginas y define la
-identidad «Neon Grid» de DataSense: marco oscuro (barra superior + menú lateral) con una
+identidad «Neon Grid» de PROTHEO: marco oscuro (barra superior + menú lateral) con una
 línea de neón animada, fondo con rejilla y aurora que deriva lentamente, tarjetas con
 miniaturas generativas (rejilla + mini-gráfico), borde en degradado y brillo que sigue al
 cursor, botones principales con degradado animado y KPIs con texto en degradado. Solo

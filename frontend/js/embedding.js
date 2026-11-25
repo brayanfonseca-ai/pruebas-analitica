@@ -1,4 +1,4 @@
-// embedding.js — módulo Embedding: incrusta un tablero de DataSense en cualquier página web.
+// embedding.js — módulo Embedding: incrusta un tablero de PROTHEO en cualquier página web.
 //
 // Cada embed tiene un ID y un token (dse_…). El token da acceso de SOLO LECTURA a una o VARIAS hojas de una app
 // (con varias, el tablero las muestra como pestañas), y solo mientras la aplicación esté en Producción; de sus
@@ -33,7 +33,7 @@ async function load() {
 function render() {
   main.innerHTML = `
     <div class="q-greeting"><h1>Embedding</h1></div>
-    <p class="cfg-sub">Muestra un tablero de DataSense dentro de otra página web. Cada embed tiene un ID y un token de solo lectura que puedes copiar, rotar o desactivar cuando quieras.</p>
+    <p class="cfg-sub">Muestra un tablero de PROTHEO dentro de otra página web. Cada embed tiene un ID y un token de solo lectura que puedes copiar, rotar o desactivar cuando quieras.</p>
     ${body()}`;
   wire();
 }
@@ -196,7 +196,7 @@ function snippets(e) {
   const url = urlOf(e), origin = location.origin;
   return {
     iframe: `<iframe src="${url}"\n        width="100%" height="600" style="border:0"\n        allow="fullscreen" title="${e.name.replace(/"/g, "&quot;")}"></iframe>`,
-    sdk: `<div id="tablero"></div>\n<script src="${origin}/js/embed-sdk.js"><\/script>\n<script>\n  const tablero = DataSense.embed({\n    container: "#tablero",\n    token: "${e.token}",\n    height: "600px",\n    // theme: "dark",\n    onReady: () => console.log("Tablero listo"),\n    onError: (msg) => console.error(msg),${(e.sheet_ids || []).length > 1 ? `\n    onSheetChange: (id) => console.log("Hoja", id),` : ""}\n  });${(e.sheet_ids || []).length > 1 ? `\n  // Abrir otra hoja desde tu página:\n  // tablero.setSheet("${e.sheet_ids[1]}");` : ""}\n<\/script>`,
+    sdk: `<div id="tablero"></div>\n<script src="${origin}/js/embed-sdk.js"><\/script>\n<script>\n  const tablero = PROTHEO.embed({\n    container: "#tablero",\n    token: "${e.token}",\n    height: "600px",\n    // theme: "dark",\n    onReady: () => console.log("Tablero listo"),\n    onError: (msg) => console.error(msg),${(e.sheet_ids || []).length > 1 ? `\n    onSheetChange: (id) => console.log("Hoja", id),` : ""}\n  });${(e.sheet_ids || []).length > 1 ? `\n  // Abrir otra hoja desde tu página:\n  // tablero.setSheet("${e.sheet_ids[1]}");` : ""}\n<\/script>`,
     api: `# Extraer las hojas incrustadas (objetos, propiedades y diseño) en JSON\ncurl -H "Authorization: Bearer ${e.token}" \\\n  ${origin}/api/v1/apps/${e.app_id}/sheets\n\n# Datos de la aplicación (solo lectura)\ncurl -H "Authorization: Bearer ${e.token}" ${origin}/api/v1/apps/${e.app_id}`,
   };
 }

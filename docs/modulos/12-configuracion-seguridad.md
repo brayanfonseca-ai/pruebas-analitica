@@ -1,6 +1,6 @@
 # 12 · Configuración, usuarios, permisos y etapas
 
-Seguridad real de DataSense: usuarios con contraseña, roles, permisos por persona y **etapas** de las
+Seguridad real de PROTHEO: usuarios con contraseña, roles, permisos por persona y **etapas** de las
 aplicaciones (Personal · Desarrollo · Producción) con publicación de hojas. Todo lo aplica el **servidor**
 en cada petición a `/api/v1/**`; la interfaz solo oculta lo que no se puede usar.
 

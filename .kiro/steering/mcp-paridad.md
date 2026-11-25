@@ -2,9 +2,9 @@
 inclusion: always
 ---
 
-# Paridad MCP: todo lo que hace DataSense lo puede hacer el MCP
+# Paridad MCP: todo lo que hace PROTHEO lo puede hacer el MCP
 
-Regla del proyecto (pedida por el usuario): **cada cambio o funcionalidad nueva de DataSense debe poder ejecutarse también desde el servidor MCP** (`mcp-server/`). Un cambio no está terminado si la UI o el backend pueden hacer algo que el MCP no.
+Regla del proyecto (pedida por el usuario): **cada cambio o funcionalidad nueva de PROTHEO debe poder ejecutarse también desde el servidor MCP** (`mcp-server/`). Un cambio no está terminado si la UI o el backend pueden hacer algo que el MCP no.
 
 ## Cómo cumplirla en cada cambio
 

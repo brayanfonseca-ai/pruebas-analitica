@@ -3,7 +3,7 @@ package io.datasense.auth;
 import java.util.*;
 
 /**
- * Catálogo de roles, permisos y etapas de DataSense, y la regla que decide qué permiso exige cada
+ * Catálogo de roles, permisos y etapas de PROTHEO, y la regla que decide qué permiso exige cada
  * endpoint. Fuente de verdad única: el frontend (página Configuración) y el MCP lo leen de
  * {@code GET /api/v1/auth/catalog}.
  *

@@ -49,7 +49,7 @@ const label = (f) => allFields().find((x) => x.field === f)?.display || f;
 async function load() {
   st.exp = await api.getExperiment(ID);
   st.ds = st.exp.dataset;
-  document.title = `DataSense · ${st.exp.name}`;
+  document.title = `PROTHEO · ${st.exp.name}`;
   document.getElementById("crumbName").textContent = st.exp.name;
 }
 

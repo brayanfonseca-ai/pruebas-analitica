@@ -405,7 +405,7 @@ public class FlowEngine {
             "writer", "Eres un redactor corporativo. Escribes mensajes claros, cordiales y breves (correo o WhatsApp) a partir de los datos que recibes. Sin relleno, con una acción concreta.",
             "classifier", "Eres un clasificador. Asignas a cada caso una prioridad (alta, media, baja) y un motivo corto, con criterios explícitos y consistentes.",
             "hr", "Eres experto en rotación de personal y retención de conductores. Interpretas la rotación, la probabilidad de retiro y sus causas, y propones acciones de retención concretas y realistas.",
-            "custom", "Eres un asistente experto que trabaja dentro de una automatización de DataSense.");
+            "custom", "Eres un asistente experto que trabaja dentro de una automatización de PROTHEO.");
 
     private static final Pattern TOOL = Pattern.compile("(?s)HERRAMIENTA\\s*:\\s*(\\{.*?\\})\\s*$");
 
@@ -656,7 +656,7 @@ public class FlowEngine {
         try { u = URI.create(url.trim()); } catch (Exception e) { throw new FlowException("URL no válida: " + url); }
         String sc = u.getScheme() == null ? "" : u.getScheme().toLowerCase(Locale.ROOT);
         if (!sc.equals("http") && !sc.equals("https")) throw new FlowException("Solo se admiten URLs http(s).");
-        HttpRequest.Builder b = HttpRequest.newBuilder(u).timeout(Duration.ofSeconds(20)).header("User-Agent", "DataSense-Automatizaciones");
+        HttpRequest.Builder b = HttpRequest.newBuilder(u).timeout(Duration.ofSeconds(20)).header("User-Agent", "PROTHEO-Automatizaciones");
         headers.forEach((k, v) -> { if (k != null && !k.isBlank()) b.header(k, v == null ? "" : v); });
         HttpRequest.BodyPublisher pub = body == null || body.isEmpty() ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body);
         b.method(method, "GET".equals(method) || "DELETE".equals(method) && (body == null || body.isEmpty()) ? HttpRequest.BodyPublishers.noBody() : pub);

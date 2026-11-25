@@ -75,7 +75,7 @@ Las conexiones **ya no pertenecen a una app**: son del usuario que las crea y se
 Las rutas `/apps/{id}/connections…` siguen como alias de compatibilidad (el editor de carga las usa) y aplican las mismas reglas.
 
 ### Pantalla
-`frontend/pages/conexiones.html` + `js/conexiones.js`, con tres pestañas: **Mis conexiones** (agrupadas por proveedor, con distintivos Tuya/Compartida por, probar, editar, compartir, eliminar), **Catálogo de conectores** y **Conectar un agente** (bloque `mcp.json` para usar el MCP de DataSense).
+`frontend/pages/conexiones.html` + `js/conexiones.js`, con tres pestañas: **Mis conexiones** (agrupadas por proveedor, con distintivos Tuya/Compartida por, probar, editar, compartir, eliminar), **Catálogo de conectores** y **Conectar un agente** (bloque `mcp.json` para usar el MCP de PROTHEO).
 El catálogo (`js/connections.js`) se organiza por proveedor: **AWS**, **Microsoft**, **Google**, **Bases de datos**, **APIs y archivos web** e **IA y agentes (MCP)**. Con ejecutor real (**Disponible**): s3, athena, postgres, mysql, mariadb, sqlserver, oracle, redshift, webfile, rest. El resto guarda la configuración pero responde con un aviso honesto al probar/cargar (**Vista previa**).
 
 ### MCP

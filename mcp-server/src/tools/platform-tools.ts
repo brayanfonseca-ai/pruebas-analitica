@@ -1,5 +1,5 @@
 /**
- * Tools de PLATAFORMA del MCP de DataSense: cubren todo lo que hace la UI y no
+ * Tools de PLATAFORMA del MCP de PROTHEO: cubren todo lo que hace la UI y no
  * estaba en las tools de contexto/accion originales.
  *
  *  - Conexiones realizadas (stack global): listar, explorar, vista previa, cargar, borrar.
@@ -11,7 +11,7 @@
  *  - Experimentos de ML: CRUD, entrenar, ejecuciones, "Asociar a" (tabla + hoja).
  *  - Colecciones.
  *
- * REGLA DEL PROYECTO: toda funcionalidad nueva de DataSense debe exponerse aqui
+ * REGLA DEL PROYECTO: toda funcionalidad nueva de PROTHEO debe exponerse aqui
  * (o en action/context-tools) en el mismo cambio. Ver .kiro/steering/mcp-paridad.md.
  */
 
@@ -716,7 +716,7 @@ export const platformTools: ContextTool[] = [
   {
     name: "run_action_list",
     title: "Ejecutar lista de accion",
-    description: "Ejecuta la lista: cuenta los registros y devuelve una muestra; con send=true la envia tambien a su webhook (ENVIA DATOS FUERA de DataSense). Devuelve {count, sent, status ok|fail|no_webhook, message, columns, rows}. POST /api/v1/apps/{appId}/actions/{actionId}/run.",
+    description: "Ejecuta la lista: cuenta los registros y devuelve una muestra; con send=true la envia tambien a su webhook (ENVIA DATOS FUERA de PROTHEO). Devuelve {count, sent, status ok|fail|no_webhook, message, columns, rows}. POST /api/v1/apps/{appId}/actions/{actionId}/run.",
     inputShape: { ...appId, actionId: id("Id de la lista."), send: z.boolean().optional() },
     handler: async (a) => toToolText(await post(`${A(a.appId)}/actions/${E(a.actionId)}/run`, { send: a.send === true })),
   },
@@ -1319,7 +1319,7 @@ export const platformTools: ContextTool[] = [
     name: "get_help",
     title: "Centro de ayuda (manual técnico y FAQ)",
     description:
-      "Contenido del centro de ayuda de DataSense (botón «?»): primeros pasos, manual técnico, preguntas frecuentes y " +
+      "Contenido del centro de ayuda de PROTHEO (botón «?»): primeros pasos, manual técnico, preguntas frecuentes y " +
       "atajos. Con 'query' devuelve solo los artículos que contienen todas las palabras; con 'section' (inicio | manual | " +
       "faq | atajos) solo esa sección. Fuente: GET /help/ayuda.json.",
     inputShape: {

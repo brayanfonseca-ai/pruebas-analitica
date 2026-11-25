@@ -1,7 +1,7 @@
 # 14 · Embedding
 
 ## A nivel de usuario
-Muestra una o **varias hojas** de una app de DataSense dentro de otra página web (portal de clientes, intranet…). Cada **embed** tiene un **ID** y un **token** (`dse_…`) de solo lectura que da acceso a las hojas elegidas.
+Muestra una o **varias hojas** de una app de PROTHEO dentro de otra página web (portal de clientes, intranet…). Cada **embed** tiene un **ID** y un **token** (`dse_…`) de solo lectura que da acceso a las hojas elegidas.
 
 - **Varias hojas**: al crear o en **Ajustes** se marcan las hojas con casillas (**Todas**, **Ninguna**, **Solo publicadas**; cada una indica si está publicada). Con más de una, el tablero incrustado muestra **pestañas** arriba, en el orden elegido. Al cambiar de pestaña **se conservan los filtros**. Hasta 20 hojas.
 - **Requisitos**: la app debe estar en **Producción**. De sus hojas se muestran las **publicadas**: si alguna elegida no lo está, no aparece (el detalle lo avisa); si no hay ninguna publicada, el estado es *Sin publicar*. El botón **Publicar app y hojas** lo resuelve (requiere `apps:publish`).
@@ -16,7 +16,7 @@ Muestra una o **varias hojas** de una app de DataSense dentro de otra página we
   - Cambiar las hojas no cambia el token: el código ya pegado en el sitio sigue sirviendo.
 - **Tres formas de usarlo** (el detalle del embed trae el código listo para copiar):
   1. `<iframe src="https://SERVIDOR/embed/TOKEN">`.
-  2. SDK: `<script src="https://SERVIDOR/js/embed-sdk.js">` + `DataSense.embed({container, token, height, theme, onReady, onSheetChange, onError})`; `setTheme()`, `setSheet(id)` (abrir otra de sus hojas desde tu página) y `destroy()`.
+  2. SDK: `<script src="https://SERVIDOR/js/embed-sdk.js">` + `PROTHEO.embed({container, token, height, theme, onReady, onSheetChange, onError})`; `setTheme()`, `setSheet(id)` (abrir otra de sus hojas desde tu página) y `destroy()`.
   3. API REST con `Authorization: Bearer TOKEN` (`GET /api/v1/apps/{appId}/sheets` devuelve sus hojas publicadas en JSON, en el orden del embed).
 - Requiere el permiso `embed:manage` (solo administrador por defecto).
 

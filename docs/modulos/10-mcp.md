@@ -1,6 +1,6 @@
 # Módulo: Servidor MCP (Model Context Protocol)
 
-Un servidor **MCP en TypeScript** que expone DataSense como herramientas para agentes de IA (como Kiro). Permite a un agente obtener contexto de la plataforma y **operarla**: leer datos reales, consultar, crear hojas, etc.
+Un servidor **MCP en TypeScript** que expone PROTHEO como herramientas para agentes de IA (como Kiro). Permite a un agente obtener contexto de la plataforma y **operarla**: leer datos reales, consultar, crear hojas, etc.
 
 ## A nivel de usuario
 - No es una pantalla: es un servicio que se conecta a un cliente MCP (p.ej. Kiro) vía `mcp.json`.

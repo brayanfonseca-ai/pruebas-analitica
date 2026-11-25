@@ -29,7 +29,7 @@ const DIM_FUNCS = [
   { n: "CEIL", sig: "CEIL(número)", d: "Redondea hacia arriba.", t: "CEIL(campo)", g: "Números" },
   { n: "ABS", sig: "ABS(número)", d: "Valor absoluto.", t: "ABS(campo)", g: "Números" },
   { n: "CAST", sig: "CAST(valor AS INTEGER | DOUBLE | VARCHAR | DATE)", d: "Convierte el tipo de dato.", t: "CAST(campo AS INTEGER)", g: "Números" },
-  { n: "CLASS", sig: "CLASS(número, ancho)", d: "Agrupa un número en rangos: «30 - 40» (función de DataSense).", t: "CLASS(campo, 10)", g: "Números" },
+  { n: "CLASS", sig: "CLASS(número, ancho)", d: "Agrupa un número en rangos: «30 - 40» (función de PROTHEO).", t: "CLASS(campo, 10)", g: "Números" },
   { n: "YEAR", sig: "YEAR(fecha)", d: "Año de una fecha.", t: "YEAR(campo)", g: "Fechas" },
   { n: "MONTH", sig: "MONTH(fecha)", d: "Mes (1-12).", t: "MONTH(campo)", g: "Fechas" },
   { n: "DAY", sig: "DAY(fecha)", d: "Día del mes.", t: "DAY(campo)", g: "Fechas" },

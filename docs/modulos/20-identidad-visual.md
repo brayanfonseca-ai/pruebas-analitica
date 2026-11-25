@@ -1,9 +1,9 @@
 # 20 · Identidad visual propia (fase 1: marco y nombres)
 
-DataSense deja de imitar la interfaz de Qlik sin perder ninguna función. La fase 1 cambia lo que se ve en todas las pantallas: el marco (barra superior y menú) y los nombres.
+PROTHEO deja de imitar la interfaz de Qlik sin perder ninguna función. La fase 1 cambia lo que se ve en todas las pantallas: el marco (barra superior y menú) y los nombres.
 
 ## Marco común
-- **Sin lanzador de 9 puntos.** El logo **DataSense** lleva a Inicio en todas las páginas (`js/topbar.js`). Se quitó el subtítulo junto al logo («Analítica», «Aplicación», «Catálogo»).
+- **Sin lanzador de 9 puntos.** El logo **PROTHEO** lleva a Inicio en todas las páginas (`js/topbar.js`). Se quitó el subtítulo junto al logo («Analítica», «Aplicación», «Catálogo»).
 - **Menú lateral dentro de la app.** El selector desplegable de vistas (Analizar / Narrar / Preparar…) se sustituyó por un menú lateral agrupado, igual al del hub: se pliega con **☰**, plegado muestra solo iconos con su nombre al pasar el cursor, y la elección se recuerda (`ds.side`). Arriba, **‹ Aplicaciones** vuelve a la lista.
 - **Miga de la barra:** nombre de la app · etapa (Personal / Desarrollo / Producción) › sección actual.
 - Cambiar de sección rápido ya no deja un error «Cannot set properties of null»: solo se pinta la última sección pedida (`app.js`, `viewSeq`).
@@ -36,7 +36,7 @@ Las rutas y atajos no cambian (`#hoja`, `#editor`, `#datos`, `#modelo`, `#logico
 - **Mapa de relaciones:** los iconos de clave tienen su tamaño real (antes `hub.css` los estiraba) y cada relación se rotula con los campos que comparte, en lugar de «association».
 
 ## Archivos
-`pages/app.html`, `js/app.js`, `js/topbar.js`, `js/hub-nav.js`, `pages/inicio.html`, `pages/catalogo.html`, `js/app-editor.js`, `js/app-datos.js`, `js/app-modelo.js`, `js/app-logico.js`, `js/app-menu.js`, `js/app-hoja.js`, `help/ayuda.json`, `css/theme.css` (sección «Identidad DataSense»).
+`pages/app.html`, `js/app.js`, `js/topbar.js`, `js/hub-nav.js`, `pages/inicio.html`, `pages/catalogo.html`, `js/app-editor.js`, `js/app-datos.js`, `js/app-modelo.js`, `js/app-logico.js`, `js/app-menu.js`, `js/app-hoja.js`, `help/ayuda.json`, `css/theme.css` (sección «Identidad PROTHEO»).
 
 ## Fase 2: pantallas por dentro
 ### Script de datos
@@ -74,3 +74,9 @@ Archivos de la fase 2: `js/app-editor.js`, `js/app-hoja.js`, `js/app-modelo.js`,
 - **KPIs que se ajustan a cualquier pantalla.** El cuerpo de un KPI es un *container query*: el valor usa `clamp(14px, min(13cqw, 42cqh), 40px)` y no se corta en dos líneas, así crece o encoge con el tamaño real de la tarjeta, no con la ventana.
 - **Etiquetas de valor en gráficos densos.** Si hay menos de 46 px por punto, solo se rotulan el máximo, el mínimo y el último valor (`js/hoja-render.js`, `valueLabelsPlugin`).
 - **Selector de datos (Seleccionar datos → Transformar).** Se reorganizó en tarjetas plegables (Columnas · Columnas calculadas · Filas), una abierta a la vez; los pasos aplicados son una tira de chips arriba en lugar de una columna lateral. Se retiró el texto «igual que un LOAD de Qlik» (`js/data-selector.js` `drawTransform`, `css/editor.css` `.ed-ds-card`, `.ed-ds-tf-steps`).
+
+## Fase 5: nuevo nombre, PROTHEO
+- El producto se llama **PROTHEO** (antes DataSense) en todas las pantallas, títulos de pestaña, ayuda, PDFs, textos de la IA, automatizaciones (remitente, `User-Agent` de webhooks, `source` del payload) y descripciones del MCP.
+- **Logo nuevo**: un hexágono de datos con tres barras crecientes y una línea de tendencia con nodos; el último nodo late suavemente (se desactiva con «reducir movimiento»). Es el mismo dibujo en el favicon (`frontend/favicon.svg`, con fondo oscuro) y en la barra superior de cada página (SVG en línea, clase `q-logo-mark`), y más grande en el inicio de sesión. Estilos: `css/theme.css`, sección «Marca PROTHEO».
+- **No cambian** (para no romper datos ni integraciones): el paquete Java `io.datasense`, la clase `DataSenseApplication`, las variables de entorno `DATASENSE_*`, el id `datasense` del servidor MCP en `mcp.json`, las claves `ds.*` del navegador y el valor interno `datasense` de la paleta.
+- **Embedding**: el SDK expone `PROTHEO.embed(...)`; `DataSense.embed(...)` sigue funcionando como alias para los tableros ya incrustados.

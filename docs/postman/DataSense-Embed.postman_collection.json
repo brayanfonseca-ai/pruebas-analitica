@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "DataSense · Embed (token de solo lectura)",
+    "name": "PROTHEO · Embed (token de solo lectura)",
     "description": "Extrae un tablero incrustado con el token del embed (Embedding → Código → Opción 3). Edita las variables de la colección: baseUrl, appId, sheetId y token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

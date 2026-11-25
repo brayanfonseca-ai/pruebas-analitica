@@ -1,6 +1,6 @@
-# Servidor MCP de DataSense
+# Servidor MCP de PROTHEO
 
-Servidor [MCP](https://modelcontextprotocol.io) standalone en TypeScript/Node que expone el backend REST de **DataSense** (clon local de Qlik Sense) como herramientas para un agente de IA. El servidor habla por **STDIO** y consume la API `/api/v1` del backend.
+Servidor [MCP](https://modelcontextprotocol.io) standalone en TypeScript/Node que expone el backend REST de **PROTHEO** (clon local de Qlik Sense) como herramientas para un agente de IA. El servidor habla por **STDIO** y consume la API `/api/v1` del backend.
 
 El servidor **no modifica el backend Java**: todas las tools se apoyan en endpoints REST existentes.
 
@@ -10,7 +10,7 @@ El servidor **no modifica el backend Java**: todas las tools se apoyan en endpoi
 - En este entorno Windows, `node`/`npm` pueden no estar en el PATH. Invocalos por **ruta absoluta**:
   - `"C:\Program Files\nodejs\node.exe"`
   - `"C:\Program Files\nodejs\npm.cmd"`
-- El backend DataSense corriendo y accesible (por defecto en `http://localhost:8080`).
+- El backend PROTHEO corriendo y accesible (por defecto en `http://localhost:8080`).
 
 ## Instalar dependencias
 
@@ -138,7 +138,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 
 `create_sheet` / `update_sheet` aceptan cualquier tipo de objeto, incluidos los graficos de ML (`ml-clustermap`, `ml-silhouette`, `ml-roc`… con `props.ml = {experimentId, runId}`).
 
-**Regla de paridad:** cada funcionalidad nueva de DataSense debe exponerse tambien aqui en el mismo cambio (ver `.kiro/steering/mcp-paridad.md`).
+**Regla de paridad:** cada funcionalidad nueva de PROTHEO debe exponerse tambien aqui en el mismo cambio (ver `.kiro/steering/mcp-paridad.md`).
 
 ## Nota
 

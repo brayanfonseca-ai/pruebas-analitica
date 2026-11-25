@@ -5,7 +5,7 @@
 //
 //  · Mis conexiones: propias y compartidas conmigo; probar, editar, compartir y eliminar.
 //  · Catálogo: conectores agrupados por proveedor (AWS, Microsoft, Google, bases de datos, APIs, IA y MCP).
-//  · Conectar un agente: configuración para que un agente de IA use DataSense por MCP.
+//  · Conectar un agente: configuración para que un agente de IA use PROTHEO por MCP.
 
 import { renderNav, wireAppsButton, renderProfileMenu, svg } from "./hub-nav.js";
 import { authService } from "./auth-service.js";
@@ -143,8 +143,8 @@ function agenteView() {
   }, null, 2);
   return `
     <div class="cfg-card cfg-pad cn-agent">
-      <h3>${svg("assist")} Usa DataSense desde un agente de IA</h3>
-      <p>DataSense incluye un servidor <strong>MCP</strong> (Model Context Protocol) con todas las acciones de la plataforma: crear aplicaciones, cargar datos,
+      <h3>${svg("assist")} Usa PROTHEO desde un agente de IA</h3>
+      <p>PROTHEO incluye un servidor <strong>MCP</strong> (Model Context Protocol) con todas las acciones de la plataforma: crear aplicaciones, cargar datos,
         consultar, crear hojas, compartir conexiones, escribir notas para el agente y más. Cualquier agente compatible (Kiro, Claude, etc.) puede usarlo.</p>
       <ol class="cn-steps">
         <li>Compila el servidor una vez: <code>npm install &amp;&amp; npm run build</code> dentro de <code>mcp-server/</code>.</li>
@@ -156,7 +156,7 @@ function agenteView() {
         Para que un agente entienda tus datos, documenta las columnas en <a href="notas.html">Notas para agente</a>.</p>
     </div>
     <div class="cfg-card cfg-pad cn-agent">
-      <h3>${svg("plug")} Que DataSense use un servidor MCP externo</h3>
+      <h3>${svg("plug")} Que PROTHEO use un servidor MCP externo</h3>
       <p>También puedes registrar servidores MCP de otros (stdio o HTTP/SSE) como conexión para tenerlos guardados junto a tus demás conectores.</p>
       <div class="cn-tiles">${["mcp-stdio", "mcp-http"].map(connectorById).map((c) => `
         <button type="button" class="cn-pick" data-new="${c.id}">${connectorTile(c.id)}<span class="cn-pick-t"><b>${esc(c.name)}</b><i class="cn-badge soon">Vista previa</i></span></button>`).join("")}</div>

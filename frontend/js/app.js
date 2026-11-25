@@ -228,7 +228,7 @@ async function boot() {
   try {
     const app = await getApp(APP_ID);
     document.getElementById("appName").textContent = app.name || "Aplicación";
-    document.title = `DataSense · ${app.name || "Aplicación"}`;
+    document.title = `PROTHEO · ${app.name || "Aplicación"}`;
     ctx.app = app;
     mountStageChip(app);
   } catch (err) {

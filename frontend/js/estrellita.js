@@ -1,4 +1,4 @@
-// estrellita.js — widget flotante del asistente de IA de DataSense (FEAT-002).
+// estrellita.js — widget flotante del asistente de IA de PROTHEO (FEAT-002).
 //
 // Un botón flotante (estrella) + un panel de chat moderno (estilo Copilot/Gemini)
 // que cambia de personalidad según el contexto donde se monta (ingeniero de datos,

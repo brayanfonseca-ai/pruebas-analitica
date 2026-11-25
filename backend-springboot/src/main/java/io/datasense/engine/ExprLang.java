@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Lenguaje de expresiones de DataSense: <b>SQL</b> (estándar abierto) para medidas, dimensiones y el script de carga.
+ * Lenguaje de expresiones de PROTHEO: <b>SQL</b> (estándar abierto) para medidas, dimensiones y el script de carga.
  *
  * <p>Ambas sintaxis se leen a un mismo árbol y se escriben en cualquiera de las dos:
  * <ul>

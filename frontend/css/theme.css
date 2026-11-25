@@ -1,4 +1,4 @@
-/* theme.css — identidad visual propia de DataSense (no Qlik).
+/* theme.css — identidad visual propia de PROTHEO (no Qlik).
    Concepto «Neon Grid»: marco oscuro (barra superior + menú lateral) con línea de neón,
    fondo con rejilla y aurora animada, tarjetas con miniaturas generativas, borde en
    degradado y brillo que sigue al cursor. Modo claro / oscuro / sistema, 5 colores de
@@ -2173,7 +2173,7 @@ html[data-theme="dark"] .au-pill.ok { color: #6ee7b7; } html[data-theme="dark"] 
 @media (max-width: 1500px) { .fe-body { grid-template-columns: 210px 1fr 300px; } .fe-pal-it small { -webkit-line-clamp: 1; } }
 @media (max-width: 1280px) { .fe-body { grid-template-columns: 180px 1fr 280px; } .fe-pal-it small { display: none; } .fe-hint { display: none; } }
 
-/* ======================= Identidad DataSense: marco común ======================= */
+/* ======================= Identidad PROTHEO: marco común ======================= */
 /* Logo = enlace a Inicio (topbar.js); sin lanzador de 9 puntos. */
 .q-topbar .q-logo { cursor: pointer; border-radius: 8px; padding: 4px 6px; margin-left: 2px; }
 .q-topbar .q-logo:hover { background: rgba(255, 255, 255, .06); }
@@ -2782,3 +2782,15 @@ body.st-open { overflow: hidden; }
 .st-sw input:checked + i { background: var(--ds-a, #6366f1); }
 .st-sw input:checked + i::after { transform: translateX(14px); }
 .st-sw input:disabled + i { opacity: .5; }
+
+/* ======================= Marca PROTHEO: logo SVG (hexágono de datos) ======================= */
+svg.q-logo-mark {
+  width: 28px; height: 28px; flex: 0 0 28px; display: block;
+  background: none; -webkit-background-clip: border-box; background-clip: border-box; color: inherit;
+  overflow: visible;
+}
+svg.q-logo-mark .q-logo-node { transform-box: fill-box; transform-origin: center; animation: pth-node 2.6s ease-in-out infinite; }
+@keyframes pth-node { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+.q-topbar .q-logo:hover svg.q-logo-mark { transform: rotate(-8deg) scale(1.06); transition: transform .25s ease; }
+.q-logo-text { letter-spacing: .14em; font-weight: 800; }
+@media (prefers-reduced-motion: reduce) { svg.q-logo-mark, svg.q-logo-mark .q-logo-node { animation: none; } }

@@ -1,5 +1,5 @@
-/* estrellita.css — widget flotante del asistente de IA de DataSense (FEAT-002).
-   Rediseño moderno estilo Copilot/Gemini/ChatGPT con identidad DataSense
+/* estrellita.css — widget flotante del asistente de IA de PROTHEO (FEAT-002).
+   Rediseño moderno estilo Copilot/Gemini/ChatGPT con identidad PROTHEO
    (azul empresarial #172983). SOLO AÑADE: todas las clases van prefijadas con star- para no
    colisionar con las clases existentes (ed-, ho-, q-). Usa los tokens
    --q-green / --q-green-dark de css/hub.css, con fallback por si el widget se
