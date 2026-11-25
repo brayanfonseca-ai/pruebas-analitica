@@ -32,6 +32,7 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/12-configuracion-seguridad.md`](./modulos/12-configuracion-seguridad.md) | Configuración: usuarios, roles, permisos, etapas (Personal/Desarrollo/Producción) y publicación de hojas. |
 | [`modulos/13-notas-agente.md`](./modulos/13-notas-agente.md) | Notas para agente: diccionario de datos (qué es cada columna, con qué se cruza) que leen la IA y el MCP. |
 | [`modulos/14-embedding.md`](./modulos/14-embedding.md) | Embedding: incrustar hojas publicadas en otras webs con ID + token (iframe, SDK, API). |
+| [`modulos/22-agentes-conocimiento.md`](./modulos/22-agentes-conocimiento.md) | Agentes de IA (estudio por nodos, herramientas de solo lectura, traza) y base de conocimiento personal opcional (red neuronal, búsqueda). |
 
 ---
 
@@ -67,6 +68,7 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Experimentos de ML | ✅ 24 algoritmos verificados con datos de verdad conocida y QA en navegador. **Asociar a**: el resultado pasa a una app como tabla del modelo + hoja nueva que el analista IA explica |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |
+| Agentes y conocimiento | ✅ estudio por nodos, 7 herramientas de solo lectura con traza, conversaciones; base de conocimiento personal apagada por defecto, con grafo y búsqueda (ver [22](./modulos/22-agentes-conocimiento.md)) |
 | Configuración: usuarios, permisos y etapas | ✅ CRUD de usuarios, roles, permisos individuales, etapas Personal/Desarrollo/Producción y hojas publicadas; validado por el servidor (ver [12](./modulos/12-configuracion-seguridad.md)) |
 | Identidad visual «Neon Grid» + Temas | ✅ modo claro/oscuro/sistema (botón junto a la campana), página **Temas** (acento, fondo, animaciones) y paleta de comandos **Ctrl+K** (ver [arquitectura](./arquitectura.md)) |
 

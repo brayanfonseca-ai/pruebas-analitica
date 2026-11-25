@@ -81,6 +81,30 @@ export const resetRolePermissions = (role) => request(`/users/roles/${encodeURIC
 export const createRole = (body) => request("/users/roles", { method: "POST", body });
 export const updateRole = (role, patch) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "PUT", body: patch });
 export const deleteRole = (role, reassignTo) => request(`/users/roles/${encodeURIComponent(role)}${reassignTo ? `?reassign_to=${encodeURIComponent(reassignTo)}` : ""}`, { method: "DELETE" });
+// Agentes de IA propios (estudio, conversaciones con traza de herramientas).
+export const agentCatalog = () => request("/agents/catalog");
+export const listAgents = () => request("/agents");
+export const getAgent = (id) => request(`/agents/${encodeURIComponent(id)}`);
+export const createAgent = (body) => request("/agents", { method: "POST", body });
+export const updateAgent = (id, patch) => request(`/agents/${encodeURIComponent(id)}`, { method: "PUT", body: patch });
+export const deleteAgent = (id) => request(`/agents/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const agentChat = (id, message, conversationId) => request(`/agents/${encodeURIComponent(id)}/chat`, { method: "POST", body: { message, ...(conversationId ? { conversation_id: conversationId } : {}) } });
+export const agentConversations = (id) => request(`/agents/${encodeURIComponent(id)}/conversations`);
+export const agentConversation = (id, cid) => request(`/agents/${encodeURIComponent(id)}/conversations/${encodeURIComponent(cid)}`);
+export const deleteAgentConversation = (id, cid) => request(`/agents/${encodeURIComponent(id)}/conversations/${encodeURIComponent(cid)}`, { method: "DELETE" });
+// Base de conocimiento personal (apagada por defecto).
+const qs = (o) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
+export const kbSettings = () => request("/knowledge/settings");
+export const kbUpdateSettings = (patch) => request("/knowledge/settings", { method: "PUT", body: patch });
+export const kbDocs = (p = {}) => request(`/knowledge/docs?${qs(p)}`);
+export const kbSearch = (q, p = {}) => request(`/knowledge/search?${qs({ q, ...p })}`);
+export const kbGraph = (p = {}) => request(`/knowledge/graph?${qs(p)}`);
+export const kbEntity = (key) => request(`/knowledge/entities/${encodeURIComponent(key)}`);
+export const kbAddNote = (body) => request("/knowledge/notes", { method: "POST", body });
+export const kbCapture = (body) => request("/knowledge/capture", { method: "POST", body });
+export const kbDeleteDoc = (id) => request(`/knowledge/docs/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const kbClear = () => request("/knowledge/docs", { method: "DELETE" });
+export const kbExport = () => request("/knowledge/export");
 // Permisos efectivos de una persona con el motivo de cada uno, y auditoría de seguridad.
 export const userEffective = (id) => request(`/users/${encodeURIComponent(id)}/effective`);
 export const securityAudit = ({ limit = 150, targetType, targetId } = {}) =>

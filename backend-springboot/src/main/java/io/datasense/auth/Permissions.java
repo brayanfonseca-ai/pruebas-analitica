@@ -293,7 +293,9 @@ public final class Permissions {
         }
         if (path.startsWith("/agents")) {
             if (read) return AGENTS_USE;
+            // Conversar y borrar las conversaciones propias es «usar»; crear, cambiar o borrar agentes es «construir».
             if (post && path.matches("/agents/[^/]+/chat")) return AGENTS_USE;
+            if (path.matches("/agents/[^/]+/conversations(/.*)?")) return AGENTS_USE;
             return AGENTS_BUILD;
         }
         if (path.startsWith("/knowledge")) return KNOWLEDGE;

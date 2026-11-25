@@ -588,6 +588,130 @@ export const platformTools: ContextTool[] = [
     handler: async (a) => toToolText(await post(`${A(a.appId)}/auto-dashboard`, pick(a, ["table", "title"]))),
   },
 
+  /* ===================== Agentes de IA propios ===================== */
+  {
+    name: "agent_catalog",
+    title: "Catalogo de agentes",
+    description: "Plantillas de agente (analyst, sentinel, narrator, strategist, modeler, custom), herramientas de solo lectura (preguntar, que_cambio, registros, simular, salud, medidas, conocimiento) con su formato, estilos (concise|executive|detailed) y el motor (Bedrock interno). GET /api/v1/agents/catalog.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/agents/catalog")),
+  },
+  {
+    name: "list_agents",
+    title: "Agentes",
+    description: "Agentes visibles: los propios (borrador o publicados) y los publicados de otros cuya app puedes ver. [{id, name, description, template, app_id, app_name, tools, knowledge, memory, max_steps, style, guard_pii, starters, status draft|published, uses, last_used_at, editable}]. Requiere agents:use. GET /api/v1/agents.",
+    inputShape: {},
+    handler: async () => toToolText(await get("/api/v1/agents")),
+  },
+  {
+    name: "get_agent",
+    title: "Ver agente",
+    description: "Un agente con su configuracion completa (incluye layout de nodos del estudio). GET /api/v1/agents/{id}.",
+    inputShape: { agentId: id("Id del agente.") },
+    handler: async (a) => toToolText(await get(`/api/v1/agents/${E(a.agentId)}`)),
+  },
+  {
+    name: "save_agent",
+    title: "Crear/editar agente",
+    description: "Sin agentId crea (template analyst|sentinel|narrator|strategist|modeler|custom; nace en borrador con las herramientas de la plantilla); con agentId actualiza solo lo enviado. Campos: name, description, icon, color, instructions (max 4000), app_id (la app que consulta), tools [ids de agent_catalog], knowledge (usar la base de conocimiento de quien conversa), memory 0-20 turnos, max_steps 1-8, style concise|executive|detailed, guard_pii (oculta correos/telefonos/documentos), starters [preguntas sugeridas], status draft|published (publicado = lo usa quien vea su app). Requiere agents:build; solo el dueño o un admin edita. POST /api/v1/agents | PUT /api/v1/agents/{id}.",
+    inputShape: {
+      agentId: z.string().optional(), template: z.string().optional(), name: z.string().optional(), description: z.string().optional(),
+      icon: z.string().optional(), color: z.string().optional(), instructions: z.string().optional(), app_id: z.string().optional(),
+      tools: z.array(z.string()).optional(), knowledge: z.boolean().optional(), memory: z.number().int().min(0).max(20).optional(),
+      max_steps: z.number().int().min(1).max(8).optional(), style: z.enum(["concise", "executive", "detailed"]).optional(),
+      guard_pii: z.boolean().optional(), starters: z.array(z.string()).optional(), status: z.enum(["draft", "published"]).optional(),
+    },
+    handler: async (a) => {
+      const body = pick(a, ["template", "name", "description", "icon", "color", "instructions", "app_id", "tools", "knowledge", "memory", "max_steps", "style", "guard_pii", "starters", "status"]);
+      return toToolText(a.agentId ? await put(`/api/v1/agents/${E(a.agentId)}`, body) : await post("/api/v1/agents", body));
+    },
+  },
+  {
+    name: "delete_agent",
+    title: "Borrar agente",
+    description: "ACCION DESTRUCTIVA. Borra el agente y todas sus conversaciones. Solo el dueño o un admin. Requiere agents:build. DELETE /api/v1/agents/{id}.",
+    inputShape: { agentId: id("Id del agente.") },
+    handler: async (a) => toToolText(await del(`/api/v1/agents/${E(a.agentId)}`)),
+  },
+  {
+    name: "agent_chat",
+    title: "Conversar con un agente",
+    description: "Envia un mensaje al agente. Razona, usa sus herramientas de solo lectura sobre su app (con los permisos de quien llama) y, si tiene conocimiento activo, cita la base personal como [K1]. Con conversation_id continua la misma conversacion (memoria). Devuelve {ok, answer, steps:[{tool, label, input, ok, result, ms}], knowledge:[{id,title,kind}], conversation_id, duration_ms} o {ok:false, error}. Requiere agents:use. POST /api/v1/agents/{id}/chat con {message, conversation_id?}.",
+    inputShape: { agentId: id("Id del agente."), message: id("Mensaje (max 2000)."), conversation_id: z.string().optional() },
+    handler: async (a) => toToolText(await post(`/api/v1/agents/${E(a.agentId)}/chat`, { message: String(a.message), ...(a.conversation_id ? { conversation_id: String(a.conversation_id) } : {}) })),
+  },
+  {
+    name: "list_agent_conversations",
+    title: "Conversaciones con un agente",
+    description: "Conversaciones propias con el agente (sin conversationId) o una completa con sus mensajes y la traza de herramientas (con conversationId). GET /api/v1/agents/{id}/conversations[/{cid}].",
+    inputShape: { agentId: id("Id del agente."), conversationId: z.string().optional() },
+    handler: async (a) => toToolText(await get(`/api/v1/agents/${E(a.agentId)}/conversations${a.conversationId ? `/${E(a.conversationId)}` : ""}`)),
+  },
+
+  /* ===================== Base de conocimiento personal ===================== */
+  {
+    name: "knowledge_settings",
+    title: "Base de conocimiento: ajustes",
+    description: "Sin argumentos lee; con enabled/sources/retention_days los cambia. La base esta APAGADA por defecto y es personal: solo guarda cuando quien la usa la activa. sources: {ask, ai, insight, report, agent, sheet, master, notebook, note: bool}; retention_days 0 (siempre) a 3650. Devuelve {enabled, sources, retention_days, enabled_at, source_catalog, stats {docs, entities, edges, by_kind, last_at}}. Requiere knowledge:use. GET|PUT /api/v1/knowledge/settings.",
+    inputShape: { enabled: z.boolean().optional(), sources: z.record(z.string(), z.boolean()).optional(), retention_days: z.number().int().min(0).max(3650).optional() },
+    handler: async (a) => {
+      const body = pick(a, ["enabled", "sources", "retention_days"]);
+      return toToolText(Object.keys(body).length ? await put("/api/v1/knowledge/settings", body) : await get("/api/v1/knowledge/settings"));
+    },
+  },
+  {
+    name: "knowledge_search",
+    title: "Buscar en la base de conocimiento",
+    description: "Busqueda por relevancia (BM25 con normalizacion del español y refuerzo por entidad) en lo que la persona pregunto, analizo, informo o converso. Devuelve {query, total, results:[{id, kind, app_id, app_name, title, text, snippet, score, entities, created_at}], entities:[{key,label,type,docs}]}. GET /api/v1/knowledge/search?q=&app_id=&kind=&limit=.",
+    inputShape: { q: id("Que buscar (max 300)."), app_id: z.string().optional(), kind: z.string().optional(), limit: z.number().int().min(1).max(100).optional() },
+    handler: async (a) => {
+      const qs = [`q=${E(a.q)}`, a.app_id ? `app_id=${E(a.app_id)}` : "", a.kind ? `kind=${E(a.kind)}` : "", `limit=${a.limit ?? 20}`].filter(Boolean).join("&");
+      return toToolText(await get(`/api/v1/knowledge/search?${qs}`));
+    },
+  },
+  {
+    name: "knowledge_docs",
+    title: "Documentos de la base de conocimiento",
+    description: "Documentos recientes (sin docId) o uno (con docId). kind: ask|ai|insight|report|agent|sheet|master|notebook|note. GET /api/v1/knowledge/docs[?kind=&app_id=&limit=&offset=] | /docs/{id}.",
+    inputShape: { docId: z.string().optional(), kind: z.string().optional(), app_id: z.string().optional(), limit: z.number().int().min(1).max(200).optional() },
+    handler: async (a) => {
+      if (a.docId) return toToolText(await get(`/api/v1/knowledge/docs/${E(a.docId)}`));
+      const qs = [a.kind ? `kind=${E(a.kind)}` : "", a.app_id ? `app_id=${E(a.app_id)}` : "", `limit=${a.limit ?? 50}`].filter(Boolean).join("&");
+      return toToolText(await get(`/api/v1/knowledge/docs?${qs}`));
+    },
+  },
+  {
+    name: "knowledge_graph",
+    title: "Grafo de conocimiento",
+    description: "Red de entidades (app, measure, dimension, field, value, agent, concept) con su peso (documentos) y aristas (aparecieron juntas, con peso). Con entity devuelve el detalle de una entidad: documentos y vecinos. Con docs=true añade los documentos como nodos. GET /api/v1/knowledge/graph?app_id=&kind=&limit=&docs= | /entities/{key}.",
+    inputShape: { entity: z.string().optional().describe("Clave de entidad (p. ej. v:andina)."), app_id: z.string().optional(), kind: z.string().optional(),
+      limit: z.number().int().min(10).max(600).optional(), docs: z.boolean().optional() },
+    handler: async (a) => {
+      if (a.entity) return toToolText(await get(`/api/v1/knowledge/entities/${E(a.entity)}`));
+      const qs = [a.app_id ? `app_id=${E(a.app_id)}` : "", a.kind ? `kind=${E(a.kind)}` : "", `limit=${a.limit ?? 200}`, `docs=${a.docs === true}`].filter(Boolean).join("&");
+      return toToolText(await get(`/api/v1/knowledge/graph?${qs}`));
+    },
+  },
+  {
+    name: "knowledge_add_note",
+    title: "Nota en la base de conocimiento",
+    description: "Guarda una nota manual (acuerdos, contexto del negocio) que la busqueda y los agentes usaran. 409 si la base esta apagada. POST /api/v1/knowledge/notes con {title, text, app_id?, entities?: [{label, type}]}.",
+    inputShape: { title: id("Titulo."), text: z.string().optional(), app_id: z.string().optional(),
+      entities: z.array(z.object({ label: z.string(), type: z.string().optional() })).optional() },
+    handler: async (a) => toToolText(await post("/api/v1/knowledge/notes", pick(a, ["title", "text", "app_id", "entities"]))),
+  },
+  {
+    name: "knowledge_delete",
+    title: "Borrar de la base de conocimiento",
+    description: "ACCION DESTRUCTIVA. Con docId borra un documento; con all=true vacia toda la base de quien llama (documentos, entidades y aristas). DELETE /api/v1/knowledge/docs[/{id}].",
+    inputShape: { docId: z.string().optional(), all: z.boolean().optional() },
+    handler: async (a) => {
+      if (a.docId) return toToolText(await del(`/api/v1/knowledge/docs/${E(a.docId)}`));
+      if (a.all === true) return toToolText(await del("/api/v1/knowledge/docs"));
+      throw new Error("Indica docId o all=true.");
+    },
+  },
+
   /* ===================== Informes: historia de datos ===================== */
   {
     name: "data_story",

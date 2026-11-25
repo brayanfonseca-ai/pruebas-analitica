@@ -20,6 +20,9 @@ export const NAV = [
   { key: "analizar", label: "Analizar", icon: "analyze", href: "hub.html?page=analizar" },
   { key: "prediccion", label: "Experimentos de ML", icon: "predict", href: "experimentos.html", perm: "ml:run" },
   { key: "automatizaciones", label: "Automatizaciones", icon: "auto", href: "automatizaciones.html", perm: "charts:edit" },
+  { key: "agentes", label: "Agentes", icon: "agent", href: "agentes.html", perm: "agents:use" },
+  // La base de conocimiento solo aparece cuando la persona la activa (Agentes → Activar o Conocimiento → Ajustes).
+  { key: "conocimiento", label: "Conocimiento", icon: "neural", href: "conocimiento.html", perm: "knowledge:use", when: () => localStorage.getItem("ds.kb") === "1" },
   { divider: true },
   { key: "conexiones", label: "Conexiones", icon: "plug", href: "conexiones.html", perm: "connections:manage" },
   { key: "notas", label: "Notas para agente", icon: "notes", href: "notas.html", perm: "charts:edit" },
@@ -83,6 +86,8 @@ export const ICON = {
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1"/>',
   refresh: '<path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5"/>',
   eye: `<path ${D} d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>`,
+  agent: `<path ${D} d="M12 3.2 19.6 7.6v8.8L12 20.8l-7.6-4.4V7.6z"/><circle cx="12" cy="12" r="2.6" fill="currentColor" fill-opacity=".35"/><path d="M12 3.2V9.4M12 14.6v6.2M4.4 7.6l5.3 3.1M14.3 13.3l5.3 3.1M19.6 7.6l-5.3 3.1M9.7 13.3l-5.3 3.1"/>`,
+  neural: `<circle ${D} cx="5" cy="6" r="2"/><circle ${D} cx="5" cy="18" r="2"/><circle ${D} cx="12" cy="12" r="2.4"/><circle ${D} cx="19" cy="6" r="2"/><circle ${D} cx="19" cy="18" r="2"/><path d="M6.8 7l3.3 3.6M6.8 17l3.3-3.6M13.9 10.6 17.2 7M13.9 13.4l3.3 3.6M7 6h10M7 18h10"/>`,
   model: `<circle ${D} cx="6" cy="6.5" r="2.8"/><circle ${D} cx="18" cy="6.5" r="2.8"/><circle ${D} cx="12" cy="18" r="2.8"/><path d="M8.4 8 10.7 15.3M15.6 8 13.3 15.3M8.8 6.5h6.4"/>`,
 };
 
@@ -101,7 +106,7 @@ export function renderNav(mountEl, { active = "" } = {}) {
   if (!nav) return;
   // Solo las opciones que el usuario puede usar (el servidor lo vuelve a comprobar). Se quitan separadores
   // sobrantes (al inicio, al final o repetidos) que quedan al ocultar opciones.
-  const shown = NAV.filter((i) => i.divider || i.spacer || !i.perm || _auth.can(i.perm));
+  const shown = NAV.filter((i) => i.divider || i.spacer || ((!i.perm || _auth.can(i.perm)) && (!i.when || i.when())));
   const items = shown.filter((it, i, a) => {
     if (!it.divider) return true;
     const prev = a.slice(0, i).reverse().find((x) => !x.spacer);

@@ -685,6 +685,13 @@ export function mountStoryStudio(pane, { appId, appName, fields }) {
         onStep: (t) => { const e = $("#stStep"); if (e) e.textContent = t; },
       });
       paint();
+      // Base de conocimiento (solo guarda si la persona la tiene activa): titulares y hallazgos de la historia.
+      const s = st.story;
+      api.kbCapture({
+        kind: "report", app_id: appId, ref: `story:${appId}:${s.measure}`, title: `Historia de datos · ${s.title}`,
+        text: [s.period ? `Periodo: ${s.period}` : "", ...s.slides.filter((x) => x.type !== "cover").map((x) => `${x.kicker}: ${x.title}`), ...(s.facts || [])].filter(Boolean).join("\n"),
+        entities: [{ label: s.measure, type: "measure" }],
+      }).catch(() => {});
     } catch (e) { out.innerHTML = `<div class="st-empty err">${esc(e.message)}</div>`; }
     st.busy = false; b.disabled = false;
   }
