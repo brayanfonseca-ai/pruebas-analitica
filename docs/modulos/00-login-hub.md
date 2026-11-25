@@ -3,7 +3,7 @@
 El punto de entrada y la navegación general antes de abrir una app.
 
 ## A nivel de usuario
-- **Login** (`frontend/pages/index.html`): pantalla de inicio de sesión con diseño moderno (panel visual + formulario), "Recordarme", mostrar/ocultar contraseña. **No muestra credenciales demo** a la vista. Credenciales de prueba: `admin@datasense.io` / `admin123`.
+- **Login** (`frontend/pages/index.html`): pantalla completa siempre oscura, con una **esfera de datos 3D** en canvas (520 puntos, constelación, anillo de escaneo, «consultas» que viajan entre puntos y una órbita) que gira y sigue al ratón; titular que se reescribe con efecto de decodificación («Tus datos, ahora piensan / responden en español / se presentan solos…»); tarjetas de señales (ventas, concentración, alerta); tarjeta de acceso de vidrio con borde animado y reloj; barra inferior con el **estado real del servidor** (latencia medida cada 10 s) y una cinta con lo que hace PROTHEO. Respeta «reducir movimiento». "Recordarme", mostrar/ocultar contraseña. **No muestra credenciales demo** a la vista. Credenciales de prueba: `admin@datasense.io` / `admin123`.
 - **Inicio** (`frontend/pages/inicio.html`): página de bienvenida con accesos a lo usado recientemente y apps para explorar.
 - **Catálogo** (`frontend/pages/catalogo.html`): lista todas las apps; desde aquí abres una (va a `pages/app.html?app=<id>`).
 - **Crear** (`frontend/pages/crear.html`): tarjetas para crear Aplicación, Conexión de datos, etc., al estilo del Activity Center de Qlik.

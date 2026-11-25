@@ -7,210 +7,370 @@
   <meta name="google" content="notranslate" />
   <title>PROTHEO · Iniciar sesión</title>
   <style>
+    /* El acceso siempre es oscuro: es la puerta de entrada de la marca. */
     :root {
-      --green:var(--ds-a,#6366f1); --green-dark:var(--ds-a-lo,#3730a3); --green-soft:rgba(99,102,241,.12);
-      --border:#e2e6f1; --text:#0f172a; --muted:#5b6b85; --danger:#e11d48;
-      --a2:var(--ds-b,#06b6d4);
+      --a: #6366f1; --v: #8b5cf6; --c: #22d3ee; --pink: #f472b6;
+      --ink: #e8ecff; --muted: #93a0c4; --line: rgba(148, 163, 255, .18); --danger: #fb7185;
+      color-scheme: dark;
     }
-    html[data-theme="dark"] { --border:#2a3658; --text:#e6ebf5; --muted:#94a3b8; --green-soft:rgba(99,102,241,.22); }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body { height: 100%; margin: 0; }
     body {
-      margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; color:var(--text);
-      display:grid; grid-template-columns: 1.1fr 1fr; min-height:100vh;
+      font-family: "Segoe UI", system-ui, Arial, sans-serif; color: var(--ink); overflow: hidden;
+      background: radial-gradient(1200px 800px at 18% 20%, #1a1250 0%, transparent 60%),
+                  radial-gradient(900px 700px at 90% 90%, #062a3a 0%, transparent 60%), #04060f;
     }
-    /* ---------- Panel izquierdo (marca) ---------- */
-    .hero {
-      position:relative; overflow:hidden; color:#fff; padding:56px 52px;
-      display:flex; flex-direction:column; justify-content:space-between;
-      background: radial-gradient(900px 600px at 0% -10%, rgba(99,102,241,.75) 0%, transparent 55%),
-                  radial-gradient(800px 520px at 110% 110%, rgba(6,182,212,.55) 0%, transparent 60%),
-                  radial-gradient(600px 420px at 80% 10%, rgba(168,85,247,.45) 0%, transparent 60%),
-                  linear-gradient(135deg, #0b1022 0%, #070a16 100%);
-    }
-    .hero::before {
-      content:""; position:absolute; left:0; right:0; bottom:0; height:2px; z-index:2;
-      background:linear-gradient(90deg, transparent, #6366f1 25%, #06b6d4 60%, transparent); background-size:200% 100%;
-      animation:neon 8s linear infinite;
-    }
-    @keyframes neon { from { background-position:0 0; } to { background-position:-200% 0; } }
-    .hero::after {
-      content:""; position:absolute; inset:0; opacity:.16;
-      background-image: linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
-      background-size: 38px 38px; mask-image: radial-gradient(600px 400px at 70% 30%, #000 0%, transparent 75%);
-    }
-    .hero > * { position:relative; z-index:1; }
-    .hero .logo { display:flex; align-items:center; gap:12px; font-size:1.35rem; font-weight:700; letter-spacing:.3px; }
-    .hero .logo svg.mark { width:40px; height:40px; background:none; -webkit-background-clip:border-box; background-clip:border-box; filter:drop-shadow(0 0 10px rgba(34,211,238,.65)); }
-    .hero .logo > span { letter-spacing:.16em; font-weight:800; }
-    .hero .logo .mark { font-size:1.5rem; background:linear-gradient(135deg,#a5b4fc,#22d3ee); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 10px rgba(34,211,238,.8)); }
-    .hero .pitch h2 { background:linear-gradient(90deg,#fff 0%,#c7d2fe 60%,#a5f3fc 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .hero .pitch h2 { font-size:2.1rem; line-height:1.15; margin:0 0 14px; font-weight:700; }
-    .hero .pitch p { margin:0; color:rgba(255,255,255,.85); font-size:1rem; max-width:34ch; line-height:1.55; }
-    .hero .feats { display:flex; flex-direction:column; gap:12px; margin-top:26px; }
-    .hero .feat { display:flex; align-items:center; gap:10px; font-size:.92rem; color:rgba(255,255,255,.92); }
-    .hero .feat .dot { width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.18);
-      display:grid; place-items:center; font-size:.8rem; }
-    .hero .foot { font-size:.78rem; color:rgba(255,255,255,.65); }
+    #field { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    .noise { position: fixed; inset: 0; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+    .scan { position: fixed; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 3px); }
 
-    /* ---------- Panel derecho (formulario) ---------- */
-    .pane { display:grid; place-items:center; padding:24px;
-      background: linear-gradient(rgba(99,102,241,.06) 1px, transparent 1px) 0 0/26px 26px,
-                  linear-gradient(90deg, rgba(99,102,241,.06) 1px, transparent 1px) 0 0/26px 26px,
-                  radial-gradient(600px 400px at 100% 0%, rgba(6,182,212,.12), transparent 60%),
-                  linear-gradient(135deg,#f5f7fd,#eceffa); }
-    html[data-theme="dark"] .pane {
-      background: linear-gradient(rgba(148,163,184,.06) 1px, transparent 1px) 0 0/26px 26px,
-                  linear-gradient(90deg, rgba(148,163,184,.06) 1px, transparent 1px) 0 0/26px 26px,
-                  radial-gradient(600px 400px at 100% 0%, rgba(99,102,241,.25), transparent 60%), #070b16; }
-    html[data-theme="dark"] input { background:#0c1324; color:var(--text); }
-    .card h1 { background:linear-gradient(90deg,var(--text) 40%,var(--green) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .card { width:100%; max-width:400px; }
-    .card h1 { font-size:1.55rem; margin:0 0 6px; }
-    .card .sub { color:var(--muted); font-size:.92rem; margin:0 0 24px; }
-    form { display:flex; flex-direction:column; }
-    label { font-size:.8rem; color:var(--muted); font-weight:600; margin:14px 0 6px; }
-    .field { position:relative; }
-    input {
-      width:100%; border:1px solid var(--border); border-radius:10px; padding:12px 14px; font-size:.95rem;
-      outline:none; transition:border-color .15s, box-shadow .15s; background:#fff;
-    }
-    input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(23,41,131,.14); }
-    input.bad { border-color:var(--danger); box-shadow:0 0 0 3px rgba(192,57,43,.1); }
-    .toggle {
-      position:absolute; right:8px; top:50%; transform:translateY(-50%); border:none; background:none;
-      cursor:pointer; color:var(--muted); font-size:.78rem; font-weight:600; padding:6px 8px; border-radius:6px;
-    }
-    .toggle:hover { color:var(--green-dark); background:var(--green-soft); }
-    .err { color:var(--danger); font-size:.84rem; min-height:1.1em; margin:12px 0 0; }
-    .btn {
-      margin-top:18px; border:none; border-radius:10px; padding:13px; font-size:.98rem; font-weight:700;
-      background:var(--green); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
-      transition:background .15s, transform .05s;
-    }
-    .btn { background:linear-gradient(110deg,var(--green) 0%,var(--a2) 60%,var(--green) 100%); background-size:220% 100%;
-      box-shadow:0 10px 24px -10px rgba(99,102,241,.9); transition:background-position .5s, transform .05s; }
-    .btn:hover { background-position:100% 0; }
-    input:focus { box-shadow:0 0 0 3px rgba(99,102,241,.2) !important; }
-    .btn:active { transform:translateY(1px); }
-    .btn[disabled] { opacity:.75; cursor:default; }
-    .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
-      border-radius:50%; animation:spin .6s linear infinite; display:none; }
-    .btn.loading .spinner { display:inline-block; }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    /* ---------- HUD (esquinas) ---------- */
+    .hud { position: fixed; inset: 18px; pointer-events: none; z-index: 2; }
+    .hud i { position: absolute; width: 26px; height: 26px; border: 1.5px solid rgba(34, 211, 238, .55); }
+    .hud i:nth-child(1) { left: 0; top: 0; border-right: 0; border-bottom: 0; }
+    .hud i:nth-child(2) { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+    .hud i:nth-child(3) { left: 0; bottom: 0; border-right: 0; border-top: 0; }
+    .hud i:nth-child(4) { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+    .mono { font-family: "Cascadia Code", Consolas, "Courier New", monospace; letter-spacing: .08em; }
 
-    .meta { display:flex; align-items:center; justify-content:space-between; margin-top:16px; font-size:.84rem; }
-    .remember { display:flex; align-items:center; gap:7px; color:var(--muted); cursor:pointer; }
-    .remember input { width:15px; height:15px; accent-color:var(--green); }
-    .link { color:var(--green-dark); text-decoration:none; font-weight:600; }
-    .link:hover { text-decoration:underline; }
-    .legal { margin-top:22px; font-size:.74rem; color:#9aa2ad; text-align:center; }
+    /* ---------- Composición ---------- */
+    .stage { position: relative; z-index: 3; height: 100%; display: grid; grid-template-columns: 1.15fr 460px; gap: 40px;
+      align-items: center; padding: 56px clamp(28px, 5vw, 86px); }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand svg { width: 46px; height: 46px; filter: drop-shadow(0 0 14px rgba(34, 211, 238, .6)); }
+    .brand b { font-size: 1.45rem; font-weight: 800; letter-spacing: .32em; }
+    .kicker { margin: 46px 0 14px; display: inline-flex; align-items: center; gap: 10px; font-size: .72rem; color: var(--c);
+      text-transform: uppercase; padding: 6px 12px; border: 1px solid rgba(34, 211, 238, .35); border-radius: 99px; background: rgba(34, 211, 238, .06); }
+    .kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); animation: blink 1.6s infinite; }
+    @keyframes blink { 50% { opacity: .25; } }
+    h1.claim { margin: 0; font-size: clamp(2.3rem, 4.6vw, 4.4rem); line-height: 1.02; font-weight: 800; letter-spacing: -.02em; max-width: 13ch; }
+    h1.claim .l1 { display: block; color: #fff; }
+    h1.claim .l2 { display: block; min-height: 1.05em;
+      background: linear-gradient(92deg, #a5b4fc 0%, var(--v) 35%, var(--c) 70%, #a5f3fc 100%); background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent; animation: flow 6s linear infinite; }
+    @keyframes flow { to { background-position: -200% 0; } }
+    h1.claim .l2 .g { color: var(--c); -webkit-text-fill-color: var(--c); opacity: .85; }
+    .lead { margin: 22px 0 0; color: var(--muted); font-size: 1.04rem; line-height: 1.6; max-width: 46ch; }
+    .lead strong { color: var(--ink); font-weight: 600; }
 
-    /* ---------- Mini-panel de analítica en el hero ---------- */
-    .viz {
-      margin-top:26px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
-      border-radius:14px; padding:16px 18px; max-width:380px; backdrop-filter:blur(4px);
-      box-shadow:0 18px 40px rgba(0,0,0,.18);
-    }
-    .viz-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-    .viz-title { font-size:.9rem; font-weight:600; }
-    .viz-live { display:flex; align-items:center; gap:6px; font-size:.72rem; color:rgba(255,255,255,.85); }
-    .viz-live i { width:7px; height:7px; border-radius:50%; background:#aeb9f0; box-shadow:0 0 0 0 rgba(142,160,246,.7); animation:pulse 1.8s infinite; }
-    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(142,160,246,.6)} 70%{box-shadow:0 0 0 7px rgba(142,160,246,0)} 100%{box-shadow:0 0 0 0 rgba(142,160,246,0)} }
-    .viz-kpis { display:flex; gap:18px; margin-bottom:14px; }
-    .viz-kpis .kpi { display:flex; flex-direction:column; }
-    .viz-kpis .kpi-v { font-size:1.25rem; font-weight:700; line-height:1.1; }
-    .viz-kpis .kpi-l { font-size:.68rem; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.04em; }
-    .viz-bars { display:flex; align-items:flex-end; gap:12px; height:88px; }
-    .viz-bars .bar {
-      position:relative; flex:1; height:var(--h); min-height:8px; border-radius:6px 6px 0 0;
-      background:linear-gradient(180deg,#22d3ee,#6366f1); box-shadow:0 0 14px rgba(99,102,241,.55); transform-origin:bottom; animation:grow .9s cubic-bezier(.2,.8,.2,1) both;
-    }
-    .viz-bars .bar:nth-child(2){animation-delay:.08s} .viz-bars .bar:nth-child(3){animation-delay:.16s}
-    .viz-bars .bar:nth-child(4){animation-delay:.24s} .viz-bars .bar:nth-child(5){animation-delay:.32s}
-    .viz-bars .bar span { position:absolute; bottom:-18px; left:0; right:0; text-align:center; font-size:.62rem; color:rgba(255,255,255,.7); }
-    @keyframes grow { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+    /* Señales en vivo (lo que PROTHEO hace, en pequeño) */
+    .signals { margin-top: 34px; display: grid; grid-template-columns: repeat(3, minmax(0, 190px)); gap: 12px; }
+    .sig { position: relative; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line);
+      background: linear-gradient(160deg, rgba(99, 102, 241, .14), rgba(8, 12, 30, .55)); backdrop-filter: blur(6px); overflow: hidden; }
+    .sig::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.07) 50%, transparent 70%);
+      transform: translateX(-100%); animation: sweep 5s ease-in-out infinite; animation-delay: var(--d, 0s); }
+    @keyframes sweep { 60%, 100% { transform: translateX(100%); } }
+    .sig small { display: block; font-size: .64rem; color: var(--muted); text-transform: uppercase; }
+    .sig b { display: block; margin-top: 4px; font-size: 1.28rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+    .sig em { font-style: normal; font-size: .72rem; color: #6ee7b7; }
+    .sig em.w { color: #fda4af; }
+    .sig svg { position: absolute; right: 12px; top: 12px; width: 54px; height: 20px; opacity: .9; }
 
-    @media (max-width: 980px) { .viz { display:none; } }
-    @media (max-width: 860px) {
-      body { grid-template-columns: 1fr; }
-      .hero { display:none; }
+    /* ---------- Tarjeta de acceso ---------- */
+    .gate { position: relative; border-radius: 24px; padding: 2px; isolation: isolate; }
+    .gate::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+      background: conic-gradient(from var(--ang, 0deg), transparent 0deg, var(--a) 60deg, var(--c) 120deg, transparent 180deg, var(--v) 260deg, transparent 320deg);
+      animation: spin 7s linear infinite; filter: blur(.3px); }
+    .gate::after { content: ""; position: absolute; inset: -40px; z-index: -2; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(99, 102, 241, .28), transparent 70%); filter: blur(20px); }
+    @property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+    @keyframes spin { to { --ang: 360deg; } }
+    .card { border-radius: 22px; padding: 34px 34px 26px; background: linear-gradient(170deg, rgba(17, 22, 52, .92), rgba(7, 10, 26, .94));
+      backdrop-filter: blur(16px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 40px 80px -30px rgba(0, 0, 0, .8); }
+    .card-top { display: flex; align-items: center; justify-content: space-between; font-size: .68rem; color: var(--muted); text-transform: uppercase; }
+    .card-top .id { color: var(--c); }
+    .card h2 { margin: 22px 0 6px; font-size: 1.6rem; font-weight: 700; }
+    .card .sub { margin: 0 0 22px; color: var(--muted); font-size: .92rem; }
+    form { display: flex; flex-direction: column; }
+    label { font-size: .74rem; color: var(--muted); font-weight: 600; margin: 14px 0 7px; text-transform: uppercase; letter-spacing: .08em; }
+    .field { position: relative; }
+    .field .ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #7c89b6; pointer-events: none; transition: color .2s; }
+    input { width: 100%; padding: 13px 14px 13px 42px; font-size: .96rem; color: var(--ink); border-radius: 12px; outline: none;
+      background: rgba(4, 7, 20, .7); border: 1px solid rgba(148, 163, 255, .2); transition: border-color .2s, box-shadow .2s, background .2s; }
+    input::placeholder { color: #55618a; }
+    input:focus { border-color: var(--c); background: rgba(6, 12, 32, .85); box-shadow: 0 0 0 4px rgba(34, 211, 238, .12), 0 0 24px -6px rgba(34, 211, 238, .5); }
+    .field:focus-within .ico { color: var(--c); }
+    input.bad { border-color: var(--danger); box-shadow: 0 0 0 4px rgba(251, 113, 133, .12); }
+    .toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: none; cursor: pointer;
+      color: var(--muted); font-size: .76rem; font-weight: 600; padding: 6px 9px; border-radius: 8px; }
+    .toggle:hover { color: #fff; background: rgba(99, 102, 241, .2); }
+    .err { color: var(--danger); font-size: .84rem; min-height: 1.1em; margin: 12px 0 0; }
+    .btn { position: relative; margin-top: 16px; border: 0; border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; overflow: hidden;
+      background: linear-gradient(100deg, var(--a), var(--v) 45%, var(--c)); box-shadow: 0 14px 34px -12px rgba(99, 102, 241, .95), inset 0 1px 0 rgba(255,255,255,.25);
+      transition: transform .08s, box-shadow .2s, filter .2s; }
+    .btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
+      transform: translateX(-120%); transition: transform .7s; }
+    .btn:hover::after { transform: translateX(120%); }
+    .btn:hover { filter: brightness(1.08); box-shadow: 0 18px 44px -12px rgba(34, 211, 238, .8); }
+    .btn:active { transform: translateY(1px); }
+    .btn[disabled] { opacity: .8; cursor: default; }
+    .btn .arrow { transition: transform .2s; }
+    .btn:hover .arrow { transform: translateX(4px); }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: rot .6s linear infinite; display: none; }
+    .btn.loading .spinner { display: inline-block; }
+    .btn.loading .arrow { display: none; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .meta { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; font-size: .84rem; }
+    .remember { display: flex; align-items: center; gap: 8px; color: var(--muted); cursor: pointer; text-transform: none; letter-spacing: 0; margin: 0; font-weight: 500; font-size: .84rem; }
+    .remember input { width: 15px; height: 15px; padding: 0; accent-color: var(--c); }
+    .link { color: #a5b4fc; text-decoration: none; font-weight: 600; }
+    .link:hover { color: #fff; }
+    .card-foot { margin-top: 22px; padding-top: 16px; border-top: 1px dashed rgba(148, 163, 255, .16); display: flex; justify-content: space-between; font-size: .66rem; color: #6b77a0; text-transform: uppercase; }
+
+    /* ---------- Barra inferior ---------- */
+    .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 14px clamp(28px, 5vw, 86px) 22px; font-size: .68rem; color: #7c89b6; text-transform: uppercase; }
+    .bar .live { display: inline-flex; align-items: center; gap: 8px; }
+    .bar .live i { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399; }
+    .bar .live.off i { background: #fb7185; box-shadow: 0 0 10px #fb7185; }
+    .bar .tick { flex: 1; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+    /* El contenido va duplicado (JS): moverlo -50 % deja la segunda copia donde empezó la primera, sin salto. */
+    .bar .tick > span { display: inline-block; animation: tick 60s linear infinite; }
+    .bar .tick b { color: #a5b4fc; font-weight: 600; }
+    @keyframes tick { to { transform: translateX(-50%); } }
+
+    @media (max-width: 1100px) { .signals { grid-template-columns: repeat(2, minmax(0, 190px)); } .signals .sig:nth-child(3) { display: none; } }
+    @media (max-width: 920px) {
+      body { overflow: auto; }
+      .stage { grid-template-columns: 1fr; padding: 28px 22px 90px; gap: 28px; }
+      .kicker { margin-top: 26px; } .signals, .lead { display: none; }
+      h1.claim { font-size: 2.2rem; }
+      .bar .tick { display: none; }
+      .bar { position: relative; padding: 4px 22px 22px; flex-wrap: wrap; }
+      .stage { height: auto; min-height: calc(100% - 60px); }
     }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
   </style>
   <script src="../js/theme.js"></script>
 </head>
 <body>
-  <!-- ===================== PANEL MARCA ===================== -->
-  <section class="hero">
-    <div class="logo"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="pthh" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#6366f1"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><path d="M16 3.2 27.1 9.6v12.8L16 28.8 4.9 22.4V9.6z" fill="#6366f1" fill-opacity=".16" stroke="url(#pthh)" stroke-width="2" stroke-linejoin="round"/><rect x="9.4" y="17.6" width="3.2" height="6.4" rx="1" fill="url(#pthh)" stroke="none"/><rect x="14.4" y="14.2" width="3.2" height="9.8" rx="1" fill="url(#pthh)" stroke="none"/><rect x="19.4" y="10.8" width="3.2" height="13.2" rx="1" fill="url(#pthh)" stroke="none"/><path d="M11 14.6 16 11.2l5-3.4" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="14.6" r="1.5" fill="#fff" stroke="none"/><circle cx="16" cy="11.2" r="1.5" fill="#fff" stroke="none"/><circle class="q-logo-node" cx="21" cy="7.8" r="1.9" fill="#22d3ee" stroke="#fff" stroke-width="1"/></svg> <span>PROTHEO</span></div>
-    <div class="pitch">
-      <h2>Convierte tus datos<br/>en decisiones.</h2>
-      <p>Carga Excel o CSV, modela asociaciones y construye dashboards interactivos, entrena modelos de ML y conversa con tus datos.</p>
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="scan" aria-hidden="true"></div>
+  <div class="hud" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
-      <!-- Mini-panel de analítica (mockup animado, puro CSS/SVG) -->
-      <div class="viz" aria-hidden="true">
-        <div class="viz-head">
-          <span class="viz-title">Ventas por región</span>
-          <span class="viz-live"><i></i> en vivo</span>
-        </div>
-        <div class="viz-kpis">
-          <div class="kpi"><span class="kpi-v" data-count="1.42M">0</span><span class="kpi-l">Ventas</span></div>
-          <div class="kpi"><span class="kpi-v" data-count="+18%">0</span><span class="kpi-l">vs. mes</span></div>
-          <div class="kpi"><span class="kpi-v" data-count="3.1k">0</span><span class="kpi-l">Pedidos</span></div>
-        </div>
-        <div class="viz-bars">
-          <div class="bar" style="--h:62%"><span>Norte</span></div>
-          <div class="bar" style="--h:88%"><span>Sur</span></div>
-          <div class="bar" style="--h:46%"><span>Centro</span></div>
-          <div class="bar" style="--h:70%"><span>Este</span></div>
-          <div class="bar" style="--h:34%"><span>Oeste</span></div>
-        </div>
+  <div class="stage">
+    <!-- ===================== MARCA ===================== -->
+    <section class="intro">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="pthl" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#6366f1"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><path d="M16 3.2 27.1 9.6v12.8L16 28.8 4.9 22.4V9.6z" fill="#6366f1" fill-opacity=".18" stroke="url(#pthl)" stroke-width="2" stroke-linejoin="round"/><rect x="9.4" y="17.6" width="3.2" height="6.4" rx="1" fill="url(#pthl)"/><rect x="14.4" y="14.2" width="3.2" height="9.8" rx="1" fill="url(#pthl)"/><rect x="19.4" y="10.8" width="3.2" height="13.2" rx="1" fill="url(#pthl)"/><path d="M11 14.6 16 11.2l5-3.4" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="14.6" r="1.5" fill="#fff"/><circle cx="16" cy="11.2" r="1.5" fill="#fff"/><circle cx="21" cy="7.8" r="1.9" fill="#22d3ee" stroke="#fff" stroke-width="1"/></svg>
+        <b>PROTHEO</b>
       </div>
 
-      <div class="feats">
-        <div class="feat"><span class="dot">✓</span> Motor asociativo con filtrado en vivo</div>
-        <div class="feat"><span class="dot">✓</span> Hojas, gráficos y Machine Learning en un solo lugar</div>
+      <div class="kicker mono">Inteligencia de datos · en línea</div>
+      <h1 class="claim">
+        <span class="l1">Tus datos,</span>
+        <span class="l2" id="claim" aria-live="off">ahora piensan.</span>
+      </h1>
+      <p class="lead">Pregunta en español y obtén la cifra exacta, con <strong>cómo se calculó</strong>. Tableros que se arman solos, historias que se presentan solas y agentes que vigilan tu negocio mientras duermes.</p>
+
+      <div class="signals" aria-hidden="true">
+        <div class="sig" style="--d:0s"><small class="mono">Ventas netas</small><b data-to="9522.5" data-fmt="M">$ 0</b><em>▲ 14,6 % vs. periodo anterior</em>
+          <svg viewBox="0 0 62 22"><polyline points="0,18 10,15 20,16 30,10 40,12 50,6 62,3" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="sig" style="--d:1.2s"><small class="mono">Concentración</small><b>8 / 13</b><em>explican el 80 %</em>
+          <svg viewBox="0 0 62 22"><g fill="#8b5cf6"><rect x="0" y="2" width="7" height="20" rx="1"/><rect x="9" y="7" width="7" height="15" rx="1"/><rect x="18" y="10" width="7" height="12" rx="1"/><rect x="27" y="13" width="7" height="9" rx="1"/><rect x="36" y="16" width="7" height="6" rx="1"/><rect x="45" y="18" width="7" height="4" rx="1"/><rect x="54" y="19" width="7" height="3" rx="1"/></g></svg></div>
+        <div class="sig" style="--d:2.4s"><small class="mono">Alerta</small><b>11,8 %</b><em class="w">devoluciones en Yopal</em>
+          <svg viewBox="0 0 62 22"><polyline points="0,16 12,15 24,17 36,14 46,4 54,13 62,12" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round"/><circle cx="46" cy="4" r="2.6" fill="#f472b6"/></svg></div>
       </div>
-    </div>
-    <div class="foot">PROTHEO · entorno local · Spring Boot + JavaScript</div>
-  </section>
+    </section>
 
-  <!-- ===================== PANEL FORMULARIO ===================== -->
-  <section class="pane">
-    <main class="card">
-      <h1>Bienvenido de nuevo</h1>
-      <p class="sub">Inicia sesión para continuar.</p>
+    <!-- ===================== ACCESO ===================== -->
+    <section class="gate">
+      <main class="card">
+        <div class="card-top mono"><span>Acceso seguro</span><span class="id" id="clock">--:--:--</span></div>
+        <h2>Bienvenido de nuevo</h2>
+        <p class="sub">Inicia sesión para entrar a tu espacio de datos.</p>
 
-      <form id="loginForm" novalidate>
-        <label for="email">Correo electrónico</label>
-        <div class="field">
-          <input type="email" id="email" name="email" placeholder="tu@empresa.com" autocomplete="email" required />
+        <form id="loginForm" novalidate>
+          <label for="email">Correo electrónico</label>
+          <div class="field">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+            <input type="email" id="email" name="email" placeholder="tu@empresa.com" autocomplete="email" required />
+          </div>
+
+          <label for="password">Contraseña</label>
+          <div class="field">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/></svg>
+            <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="toggle" id="togglePw" aria-label="Mostrar contraseña">Mostrar</button>
+          </div>
+
+          <p id="formError" class="err" role="alert" aria-live="polite"></p>
+
+          <button type="submit" class="btn" id="submitBtn">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn-label">Entrar</span>
+            <span class="arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <div class="meta">
+          <label class="remember"><input type="checkbox" id="remember" /> <span>Recordarme</span></label>
+          <a class="link" href="#" id="forgot">¿Olvidaste tu contraseña?</a>
         </div>
 
-        <label for="password">Contraseña</label>
-        <div class="field">
-          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
-          <button type="button" class="toggle" id="togglePw" aria-label="Mostrar contraseña">Mostrar</button>
-        </div>
+        <div class="card-foot mono"><span>Tus datos se quedan en este equipo</span><span>v2026.11</span></div>
+      </main>
+    </section>
+  </div>
 
-        <p id="formError" class="err" role="alert" aria-live="polite"></p>
+  <footer class="bar mono">
+    <span class="live" id="live"><i></i><span id="liveTxt">Conectando…</span></span>
+    <span class="tick" aria-hidden="true"><span>
+      <b>Pregúntale a tus datos</b> · respuestas con la consulta exacta &nbsp;—&nbsp; <b>Historias de datos</b> · presentaciones que se arman solas &nbsp;—&nbsp;
+      <b>Qué cambió y por qué</b> · el motivo de cada variación &nbsp;—&nbsp; <b>Automatizaciones</b> · avisos por WhatsApp, correo y Teams &nbsp;—&nbsp;
+      <b>Machine Learning</b> · 24 algoritmos listos &nbsp;—&nbsp; <b>MCP</b> · tus agentes de IA operan PROTHEO
+    </span></span>
+    <span>PROTHEO · Data Intelligence</span>
+  </footer>
 
-        <button type="submit" class="btn" id="submitBtn">
-          <span class="spinner" aria-hidden="true"></span>
-          <span class="btn-label">Entrar</span>
-        </button>
-      </form>
+  <script>
+  (function () {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      <div class="meta">
-        <label class="remember"><input type="checkbox" id="remember" /> <span>Recordarme</span></label>
-        <a class="link" href="#" id="forgot">¿Olvidaste tu contraseña?</a>
-      </div>
+    /* ---------- Esfera de datos 3D (canvas) ---------- */
+    var cv = document.getElementById("field"), ctx = cv.getContext("2d");
+    var W = 0, H = 0, DPR = Math.min(2, window.devicePixelRatio || 1);
+    var N = 520, pts = [], rotY = 0, rotX = -0.35, mx = 0, my = 0, tmx = 0, tmy = 0, t0 = performance.now();
+    var golden = Math.PI * (3 - Math.sqrt(5));
+    for (var i = 0; i < N; i++) {
+      var y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = golden * i;
+      pts.push({ x: Math.cos(th) * r, y: y, z: Math.sin(th) * r, s: Math.random() });
+    }
+    // Paquetes que viajan entre puntos (consultas en vuelo).
+    var packets = [];
+    function newPacket() { var a = (Math.random() * N) | 0, b = (Math.random() * N) | 0; packets.push({ a: a, b: b, t: 0, v: 0.004 + Math.random() * 0.006 }); }
+    for (var k = 0; k < 14; k++) newPacket();
 
-      <p class="legal">Al continuar aceptas el uso local de tus datos en este equipo.</p>
-    </main>
-  </section>
+    function resize() { W = innerWidth; H = innerHeight; cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+    resize(); addEventListener("resize", resize);
+    addEventListener("pointermove", function (e) { tmx = (e.clientX / W - 0.5); tmy = (e.clientY / H - 0.5); });
 
+    function project(p, cy, sy, cx, sx, R, ox, oy) {
+      var x = p.x * cy - p.z * sy, z = p.x * sy + p.z * cy;
+      var y = p.y * cx - z * sx; z = p.y * sx + z * cx;
+      var f = 2.6 / (2.6 + z);
+      return { x: ox + x * R * f, y: oy + y * R * f, z: z, f: f };
+    }
+    function frame(now) {
+      var t = (now - t0) / 1000;
+      mx += (tmx - mx) * 0.05; my += (tmy - my) * 0.05;
+      if (!reduce) rotY = t * 0.12 + mx * 1.2;
+      var rx = rotX + my * 0.6;
+      var cy = Math.cos(rotY), sy = Math.sin(rotY), cx = Math.cos(rx), sx = Math.sin(rx);
+      var R = Math.min(W, H) * (W > 920 ? 0.42 : 0.5), ox = W > 920 ? W * 0.62 : W * 0.5, oy = H * 0.5;
+      ctx.clearRect(0, 0, W, H);
+
+      // Halo
+      var g = ctx.createRadialGradient(ox, oy, R * 0.2, ox, oy, R * 1.35);
+      g.addColorStop(0, "rgba(99,102,241,0.16)"); g.addColorStop(0.6, "rgba(34,211,238,0.05)"); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ox, oy, R * 1.35, 0, Math.PI * 2); ctx.fill();
+
+      var P = new Array(N);
+      for (var i = 0; i < N; i++) P[i] = project(pts[i], cy, sy, cx, sx, R, ox, oy);
+
+      // Anillo de escaneo que recorre la esfera
+      var scanY = Math.sin(t * 0.7) * 0.95;
+
+      // Conexiones cortas (constelación) solo en la cara frontal
+      ctx.lineWidth = 0.6;
+      for (var a = 0; a < N; a += 2) {
+        var pa = P[a]; if (pa.z > 0.15) continue;
+        for (var b = a + 1; b < Math.min(N, a + 22); b++) {
+          var pb = P[b]; if (pb.z > 0.15) continue;
+          var dx = pa.x - pb.x, dy = pa.y - pb.y, d2 = dx * dx + dy * dy, lim = (R * 0.16) * (R * 0.16);
+          if (d2 < lim) {
+            var al = (1 - d2 / lim) * 0.22 * (0.6 - pa.z * 0.5);
+            ctx.strokeStyle = "rgba(129,140,248," + al.toFixed(3) + ")";
+            ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+          }
+        }
+      }
+      // Puntos
+      for (var j = 0; j < N; j++) {
+        var p = P[j], depth = (1 - p.z) / 2; // 0 atrás · 1 frente
+        var near = Math.abs(pts[j].y - scanY) < 0.06;
+        var tw = 0.65 + 0.35 * Math.sin(t * 2 + pts[j].s * 12);
+        var size = (0.6 + depth * 1.8) * p.f * (near ? 1.9 : 1);
+        var c = near ? "34,211,238" : depth > 0.55 ? "165,180,252" : "99,102,241";
+        ctx.fillStyle = "rgba(" + c + "," + (0.12 + depth * 0.75 * tw).toFixed(3) + ")";
+        ctx.beginPath(); ctx.arc(p.x, p.y, size, 0, Math.PI * 2); ctx.fill();
+      }
+      // Paquetes en vuelo (arcos por fuera de la esfera)
+      for (var q = 0; q < packets.length; q++) {
+        var pk = packets[q]; pk.t += reduce ? 0 : pk.v;
+        if (pk.t >= 1) { packets.splice(q, 1); q--; newPacket(); continue; }
+        var A = pts[pk.a], B = pts[pk.b], u = pk.t, lift = 1 + Math.sin(u * Math.PI) * 0.35;
+        var m = { x: (A.x + (B.x - A.x) * u) * lift, y: (A.y + (B.y - A.y) * u) * lift, z: (A.z + (B.z - A.z) * u) * lift };
+        var L = Math.hypot(m.x, m.y, m.z) || 1; var k2 = lift / L; m.x *= k2; m.y *= k2; m.z *= k2;
+        var pm = project(m, cy, sy, cx, sx, R, ox, oy);
+        if (pm.z > 0.3) continue;
+        ctx.fillStyle = "rgba(34,211,238,0.9)"; ctx.shadowColor = "#22d3ee"; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.arc(pm.x, pm.y, 1.8 * pm.f, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+      }
+      // Órbita
+      ctx.strokeStyle = "rgba(139,92,246,0.25)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(ox, oy, R * 1.18, R * 0.32, -0.32 + mx * 0.3, 0, Math.PI * 2); ctx.stroke();
+      var oa = t * 0.6; ctx.fillStyle = "#f472b6"; ctx.shadowColor = "#f472b6"; ctx.shadowBlur = 14;
+      var ex = Math.cos(oa) * R * 1.18, ey = Math.sin(oa) * R * 0.32, rr = -0.32 + mx * 0.3;
+      ctx.beginPath(); ctx.arc(ox + ex * Math.cos(rr) - ey * Math.sin(rr), oy + ex * Math.sin(rr) + ey * Math.cos(rr), 3, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+
+      // Un solo bucle: el navegador pausa requestAnimationFrame en pestañas ocultas.
+      if (!reduce) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    /* ---------- Titular que se reescribe (efecto decodificar) ---------- */
+    var phrases = ["ahora piensan.", "responden en español.", "se presentan solos.", "avisan antes que tú.", "trabajan contigo."];
+    var el = document.getElementById("claim"), pi = 0, GL = "▓▒░/\\_-=+*#%01Ξ∑∆";
+    function scramble(to) {
+      if (reduce) { el.textContent = to; return; }
+      var from = el.textContent, len = Math.max(from.length, to.length), frame = 0, q = [];
+      for (var i = 0; i < len; i++) q.push({ f: from[i] || "", t: to[i] || "", s: (Math.random() * 14) | 0, e: 14 + ((Math.random() * 18) | 0) });
+      (function step() {
+        var out = "", done = 0;
+        for (var i = 0; i < q.length; i++) {
+          var x = q[i];
+          if (frame >= x.e) { done++; out += x.t; }
+          else if (frame >= x.s) out += '<span class="g">' + GL[(Math.random() * GL.length) | 0] + "</span>";
+          else out += x.f;
+        }
+        el.innerHTML = out; // solo frases fijas de esta página y glifos propios
+        if (done < q.length) { frame++; requestAnimationFrame(step); }
+      })();
+    }
+    setInterval(function () { pi = (pi + 1) % phrases.length; scramble(phrases[pi]); }, 3600);
+
+    /* ---------- Cifra animada de la tarjeta de ventas ---------- */
+    document.querySelectorAll(".sig b[data-to]").forEach(function (b) {
+      var to = parseFloat(b.dataset.to), st = performance.now();
+      (function run(n) { var k = Math.min(1, (n - st) / 1600), e = 1 - Math.pow(1 - k, 3);
+        b.textContent = "$ " + (to * e).toLocaleString("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " M";
+        if (k < 1 && !reduce) requestAnimationFrame(run); else b.textContent = "$ " + to.toLocaleString("es-CO", { minimumFractionDigits: 1 }) + " M"; })(st);
+    });
+
+    /* ---------- Cinta inferior sin hueco al inicio ---------- */
+    var tk = document.querySelector(".bar .tick > span");
+    if (tk) tk.innerHTML = tk.innerHTML + " &nbsp;—&nbsp; " + tk.innerHTML + " &nbsp;—&nbsp; ";
+
+    /* ---------- Reloj y estado real del servidor ---------- */
+    var clock = document.getElementById("clock");
+    function tickClock() { clock.textContent = new Date().toLocaleTimeString("es-CO", { hour12: false }); }
+    tickClock(); setInterval(tickClock, 1000);
+    var live = document.getElementById("live"), liveTxt = document.getElementById("liveTxt");
+    function ping() {
+      var s = performance.now();
+      fetch("/favicon.svg?ping=" + Date.now(), { cache: "no-store" }).then(function (r) {
+        if (!r.ok) throw new Error();
+        live.classList.remove("off"); liveTxt.textContent = "Motor en línea · " + Math.max(1, Math.round(performance.now() - s)) + " ms";
+      }).catch(function () { live.classList.add("off"); liveTxt.textContent = "Sin conexión con el servidor"; });
+    }
+    ping(); setInterval(ping, 10000);
+  })();
+  </script>
   <script type="module" src="../js/auth.js"></script>
 </body>
 </html>
