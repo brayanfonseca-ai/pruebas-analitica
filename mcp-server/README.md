@@ -123,6 +123,7 @@ Cubren el resto de la plataforma para que el agente pueda hacer **todo** lo que 
 | Comentarios | `list_comments`, `add_comment`, `resolve_comment`, `delete_comment` |
 | Cuadernos de analisis | `list_notebooks`, `get_notebook`, `notebook_schema`, `save_notebook` (crear o actualizar), `delete_notebook`, `run_notebook_cell` (SQL de una tabla, perfil, Pareto/ABC, correlacion, atipicos o una celda guardada) |
 | Preguntale / archivo a tablero | `ask_data`, `ask_suggestions`, `auto_dashboard` |
+| Informes: historia de datos | `data_story` (solo lectura: diapositivas con titular-conclusion, datos de cada grafico, viñetas, «¿Como leerlo?» y notas; `mainMeasureId`, `mainDim`, `title`, `useAI` opcionales) |
 | Que cambio / simular / actuar | `explain_change`, `find_rows`, `simulate_whatif`, `list_action_lists`, `save_action_list`, `run_action_list`, `delete_action_list`, `get_watchdog`, `set_watchdog`, `run_watchdog` |
 | Automatizar | `get_schedule`, `set_schedule`, `delete_schedule`, `run_reload_now`, `list_reload_runs`, `list_alerts`, `save_alert`, `check_alert`, `delete_alert`, `get_data_health` |
 | SQL, formato y ayuda de IA | `translate_expression`, `suggest_expression`, `convert_script` (+ `format` en `save_master_item`, `fmt` en `create_sheet`) |

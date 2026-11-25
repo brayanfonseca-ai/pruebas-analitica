@@ -20,6 +20,7 @@ import { basename } from "node:path";
 import { z } from "zod";
 import { get, post, put, del, postForm, toToolText } from "../http-client.js";
 import type { ContextTool } from "./context-tools.js";
+import { buildStory } from "./story.js";
 
 const id = (d: string) => z.string().min(1).describe(d);
 const appId = { appId: id("Identificador de la aplicacion (appId).") };
@@ -543,6 +544,24 @@ export const platformTools: ContextTool[] = [
     description: "Genera y guarda una hoja a partir de los datos de una tabla: KPIs (metricas certificadas, registros, distintos del identificador, totales/promedios), barras por la mejor categoria, torta, evolucion en el tiempo, tabla de detalle y panel de filtros, en la rejilla de 24x12. Flujo 'archivo a tablero': create_app -> upload_table -> auto_dashboard. Devuelve 201 {sheet, summary {table, rows, columns, dimensions, measures, time, id, objects}, questions (sugeridas)}. POST /api/v1/apps/{appId}/auto-dashboard con {table?, title?}.",
     inputShape: { ...appId, table: z.string().optional().describe("Tabla base (default: la de mas filas)."), title: z.string().optional().describe("Titulo de la hoja.") },
     handler: async (a) => toToolText(await post(`${A(a.appId)}/auto-dashboard`, pick(a, ["table", "title"]))),
+  },
+
+  /* ===================== Informes: historia de datos ===================== */
+  {
+    name: "data_story",
+    title: "Historia de datos (informe por diapositivas)",
+    description: "Arma la misma 'Historia de datos' de Informes → Historia y presentacion: una secuencia de diapositivas con conclusion en el titular, datos del grafico, viñetas, '¿Como leerlo?' y notas del presentador. Usa las medidas maestras (la principal se elige por significado: ventas/ingresos primero) y el motor de consultas. Diapositivas: cover, kpis (max 4, con variacion ultimo vs anterior periodo), trend (line), pareto (cuantos explican el 80 %), mix (doughnut), perf (tasa por dimension), risk (tasa de riesgo), findings (resumen + recomendaciones; con useAI redacta el resumen con Bedrock), annex (tabla). Solo lectura: no guarda nada. El PDF y el modo presentacion se generan en el navegador (vista Informes). Devuelve {appName, title, period, measure, summarySource ia|reglas, slides:[{id, type, kicker, title, sub, chart? {kind, labels, series, ref?, cum?, highlight?}, items?, bullets?, how?, notes, cards?, recs?, head?, rows?}], measures:[{id,name}], dims, facts}. Usa GET /api/v1/apps/{appId}, GET /fields, GET /master-items, POST /expressions/parse, POST /query y (useAI) POST /api/v1/ai/analizar.",
+    inputShape: {
+      ...appId,
+      title: z.string().optional().describe("Titulo de la portada (default: '<medida>: lo que dicen los datos')."),
+      mainMeasureId: z.string().optional().describe("Id de la medida maestra principal (default: automatica)."),
+      mainDim: z.string().optional().describe("Campo de la dimension principal (default: automatica)."),
+      useAI: z.boolean().optional().describe("Resumen redactado por la IA (default false: resumen por reglas)."),
+    },
+    handler: async (a) => toToolText(await buildStory(String(a.appId), {
+      title: a.title ? String(a.title) : undefined, mainMeasureId: a.mainMeasureId ? String(a.mainMeasureId) : undefined,
+      mainDim: a.mainDim ? String(a.mainDim) : undefined, useAI: a.useAI === true,
+    })),
   },
 
   /* ===================== Automatizar: carga programada, alertas, salud ===================== */

@@ -68,3 +68,9 @@ Archivos de la fase 2: `js/app-editor.js`, `js/app-hoja.js`, `js/app-modelo.js`,
 - **Script de datos**: se ocultó el selector de «espacios» (nombres fijos de ejemplo que no filtraban nada).
 - **Tablas y campos**: el botón «Agregar datos» se veía blanco sobre blanco; ahora usa el color de la marca.
 - **Informes / Modelos de ML**: títulos alineados con el menú («Informes», «Modelos de ML»).
+
+## Fase 4: hojas adaptables y carga de datos ordenada
+- **Cabecera de hoja sin banda de color.** Se quitó la barra degradada con «◆ DataSense · …». Ahora la hoja muestra título, descripción y una navegación en píldora «‹ 1 de N ›» sobre fondo transparente (`js/app-hoja.js` `renderTitle`, `css/hoja.css` `.ho-sheet-title`, `.ho-title-*`).
+- **KPIs que se ajustan a cualquier pantalla.** El cuerpo de un KPI es un *container query*: el valor usa `clamp(14px, min(13cqw, 42cqh), 40px)` y no se corta en dos líneas, así crece o encoge con el tamaño real de la tarjeta, no con la ventana.
+- **Etiquetas de valor en gráficos densos.** Si hay menos de 46 px por punto, solo se rotulan el máximo, el mínimo y el último valor (`js/hoja-render.js`, `valueLabelsPlugin`).
+- **Selector de datos (Seleccionar datos → Transformar).** Se reorganizó en tarjetas plegables (Columnas · Columnas calculadas · Filas), una abierta a la vez; los pasos aplicados son una tira de chips arriba en lugar de una columna lateral. Se retiró el texto «igual que un LOAD de Qlik» (`js/data-selector.js` `drawTransform`, `css/editor.css` `.ed-ds-card`, `.ed-ds-tf-steps`).

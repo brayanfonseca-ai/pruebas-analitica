@@ -489,13 +489,17 @@ export async function render(mount, ctx) {
     if (!st.sheet) { t.innerHTML = ""; t.hidden = true; return; }
     t.hidden = false;
     const i = st.sheets.findIndex((s) => s.id === st.sheet.id);
+    // Encabezado propio (sin la banda degradada estilo Qlik): título, descripción y navegación entre hojas.
     t.innerHTML = `
-      <span class="ho-brand">◆ DataSense</span>
-      <span class="ho-title-text">${esc(st.sheet.title)}</span>
-      <span class="ho-title-nav">
-        <button data-nav="-1" ${i <= 0 ? "disabled" : ""} title="Hoja anterior">‹</button>
-        <button data-nav="1" ${i >= st.sheets.length - 1 ? "disabled" : ""} title="Hoja siguiente">›</button>
-      </span>`;
+      <div class="ho-title-main">
+        <span class="ho-title-text">${esc(st.sheet.title)}</span>
+        ${st.sheet.description ? `<span class="ho-title-desc" title="${esc(st.sheet.description)}">${esc(st.sheet.description)}</span>` : ""}
+      </div>
+      ${st.sheets.length > 1 ? `<span class="ho-title-nav">
+        <button data-nav="-1" ${i <= 0 ? "disabled" : ""} title="Hoja anterior" aria-label="Hoja anterior">‹</button>
+        <span class="ho-title-pos">${i + 1} de ${st.sheets.length}</span>
+        <button data-nav="1" ${i >= st.sheets.length - 1 ? "disabled" : ""} title="Hoja siguiente" aria-label="Hoja siguiente">›</button>
+      </span>` : ""}`;
     t.querySelectorAll("[data-nav]").forEach((b) => b.addEventListener("click", async () => {
       if (saveTimer) await saveNow();
       const next = st.sheets[i + Number(b.dataset.nav)];

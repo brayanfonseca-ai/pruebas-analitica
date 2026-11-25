@@ -25,7 +25,7 @@ Plataforma de analítica de datos **estilo Qlik Sense**, local y autocontenida: 
 | [`modulos/05-editor-hoja.md`](./modulos/05-editor-hoja.md) | Editor de hoja: construcción de dashboards. |
 | [`modulos/06-modelo-logico.md`](./modulos/06-modelo-logico.md) | Modelo lógico (Business Logic de Qlik). |
 | [`modulos/07-conexiones.md`](./modulos/07-conexiones.md) | Conexiones de datos reales (S3, Athena, JDBC…). |
-| [`modulos/08-informes.md`](./modulos/08-informes.md) | Generador de informes PDF (3 modos + agente). |
+| [`modulos/08-informes.md`](./modulos/08-informes.md) | Generador de informes PDF: historia de datos con modo presentación, plantillas, desde una hoja y asistente. |
 | [`modulos/09-asistente-ia.md`](./modulos/09-asistente-ia.md) | Asistente "estrellita" (Bedrock Nova Micro). |
 | [`modulos/10-mcp.md`](./modulos/10-mcp.md) | Servidor MCP (TypeScript). |
 | [`modulos/11-laboratorio-ml.md`](./modulos/11-laboratorio-ml.md) | Experimentos de ML: 24 algoritmos, historial, comparación y AutoML. |
@@ -63,7 +63,7 @@ Sirve el frontend y la API en **http://localhost:8080**.
 | Editor de hoja | ✅ funcional |
 | Modelo lógico | ✅ funcional |
 | Conexiones reales | ✅ S3 / Athena verificadas; otras implementadas. **Conexiones realizadas** (stack de todas las apps) con selector de datos, validación de la extracción y script de carga en paralelo |
-| Informes PDF | ✅ 3 modos con análisis especializado (margen, rentabilidad, Pareto, variación) |
+| Informes PDF | ✅ **Historia de datos** (diapositivas con conclusión, gráfico y explicación; modo presentación con teclado; PDF horizontal una idea por página) + 3 modos con análisis especializado (margen, rentabilidad, Pareto, variación) |
 | Experimentos de ML | ✅ 24 algoritmos verificados con datos de verdad conocida y QA en navegador. **Asociar a**: el resultado pasa a una app como tabla del modelo + hoja nueva que el analista IA explica |
 | Asistente IA (Bedrock Nova Micro) | ✅ funcional |
 | MCP (TypeScript) | ✅ funcional |

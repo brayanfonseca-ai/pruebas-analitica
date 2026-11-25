@@ -14,6 +14,7 @@
 
 import * as api from "./api.js";
 import { PALETTE } from "./chart-types.js";
+import { mountStoryStudio } from "./informe-historia.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -81,11 +82,12 @@ export async function render(mount, ctx) {
       <div class="rp-head">
         <div>
           <h2 class="rp-title">Informes</h2>
-          <p class="rp-muted">Informes en PDF de <strong>${esc(appName)}</strong> con tus datos reales: parte de una plantilla, de una hoja o pídeselo al asistente.</p>
+          <p class="rp-muted">Informes de <strong>${esc(appName)}</strong> con tus datos reales: una historia lista para presentar, una plantilla PDF, una hoja o lo que le pidas al asistente.</p>
         </div>
       </div>
       <div class="rp-modes">
-        <button class="rp-mode active" data-mode="plantillas">Plantillas</button>
+        <button class="rp-mode active" data-mode="historia">Historia y presentación</button>
+        <button class="rp-mode" data-mode="plantillas">Plantillas</button>
         <button class="rp-mode" data-mode="hojas">Desde una hoja</button>
         <button class="rp-mode" data-mode="chat">Con el asistente</button>
       </div>
@@ -115,6 +117,7 @@ export async function render(mount, ctx) {
   function renderMode(mode) {
     if (mode === "hojas") return renderHojas();
     if (mode === "chat") return renderChat();
+    if (mode === "historia") return mountStoryStudio(pane, { appId, appName, fields });
     return renderPlantillas();
   }
 
@@ -223,7 +226,7 @@ export async function render(mount, ctx) {
   function loadChatTpls() { try { return JSON.parse(localStorage.getItem(`ds.informes.${appId}`) || "[]"); } catch { return []; } }
   function saveChatTpls(list) { try { localStorage.setItem(`ds.informes.${appId}`, JSON.stringify(list)); } catch {} }
 
-  renderPlantillas();
+  renderMode("historia");
 
   /* ---------------- Progreso ---------------- */
   const prog = mount.querySelector("#rpProg");

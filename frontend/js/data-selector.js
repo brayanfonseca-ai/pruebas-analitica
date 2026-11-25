@@ -305,12 +305,23 @@ export function openDataSelector(conn, host) {
     const steps = stepsList();
     const allOn = st.tf.columns.every((c) => c.include);
     const fieldChips = st.tf.columns.map((c) => `<button class="ed-ds-chip sm" data-ins="[${esc(c.name || c.source)}]">${esc(c.name || c.source)}</button>`).join("");
+    const open = (k) => (st.tfOpen || "cols") === k ? "open" : "";
+    const nInc = st.tf.columns.filter((c) => c.include).length;
     work.innerHTML = `
       ${st.tErr ? `<div class="ed-ds-banner err">${esc(st.tErr)}</div>` : ""}
       <div class="ed-ds-tf">
+        <div class="ed-ds-tf-steps" aria-label="Pasos aplicados">
+          <span class="ed-ds-tf-steps-h">Pasos</span>
+          <span class="ed-ds-step base">Origen: ${esc(st.useQuery ? "consulta SQL" : st.object || "—")}${isSql ? ` · ${st.mode === "all" ? "todo" : (st.mode === "sample" ? "muestra de " : "primeras ") + Number(st.limit).toLocaleString("es-CO")}` : ""}</span>
+          ${steps.map((s, i) => `<span class="ed-ds-step">${esc(s.t)}<button class="ed-ds-x" data-undo="${i}" title="Deshacer este paso" aria-label="Deshacer: ${esc(s.t)}">✕</button></span>`).join("")}
+          ${steps.length ? `<button class="ed-ds-link" id="dsReset">Quitar todos</button>` : `<span class="ed-muted">Sin transformaciones: se cargan las columnas tal cual.</span>`}
+        </div>
         <div class="ed-ds-tf-main">
-          <div class="ed-ds-sec-h">Columnas <span class="ed-muted">${st.tf.columns.filter((c) => c.include).length} de ${st.tf.columns.length} incluidas</span>
-            <span class="ed-ds-spacer"></span><label class="ed-ds-allchk"><input type="checkbox" id="dsAll" ${allOn ? "checked" : ""}> Todas</label></div>
+        <details class="ed-ds-card" data-card="cols" ${open("cols")}>
+          <summary><span class="ed-ds-card-t">Columnas</span><span class="ed-ds-card-n">${nInc} de ${st.tf.columns.length} incluidas</span>
+            <span class="ed-ds-card-d">Incluir, renombrar, tipo, limpieza de texto y vacíos</span></summary>
+          <div class="ed-ds-card-b">
+          <div class="ed-ds-sec-h"><span class="ed-ds-spacer"></span><label class="ed-ds-allchk"><input type="checkbox" id="dsAll" ${allOn ? "checked" : ""}> Incluir todas</label></div>
           <div class="ed-ds-tf-scroll"><table class="ed-ds-tf-table"><thead><tr><th>Incluir</th><th>Origen</th><th>Nombre en el modelo</th><th>Tipo</th><th>Texto</th><th>Vacíos</th><th>Reemplazo</th></tr></thead>
             <tbody>${st.tf.columns.map((c) => `
               <tr class="${c.include ? "" : "off"}">
@@ -322,31 +333,45 @@ export function openDataSelector(conn, host) {
                 <td><select data-c="${esc(c.source)}" data-k="nulls">${NULL_OPS.map(([k, l]) => `<option value="${k}" ${c.nulls === k ? "selected" : ""}>${l}</option>`).join("")}</select></td>
                 <td><input data-c="${esc(c.source)}" data-k="fill" value="${esc(c.fill ?? "")}" placeholder="${c.nulls === "fill" ? "Valor" : "—"}" ${c.nulls === "fill" ? "" : "disabled"} aria-label="Reemplazo de vacíos de ${esc(c.source)}"></td>
               </tr>`).join("")}</tbody></table></div>
+          </div>
+        </details>
 
-          <div class="ed-ds-sec-h">Columnas calculadas</div>
+        <details class="ed-ds-card" data-card="comp" ${open("comp")}>
+          <summary><span class="ed-ds-card-t">Columnas calculadas</span><span class="ed-ds-card-n">${st.tf.computed.length || "ninguna"}</span>
+            <span class="ed-ds-card-d">Crea campos nuevos con una expresión por fila</span></summary>
+          <div class="ed-ds-card-b">
           ${st.tf.computed.length ? `<ul class="ed-ds-comp">${st.tf.computed.map((c, i) => `<li><strong>${esc(c.name)}</strong> = <code>${esc(c.expr)}</code><button class="ed-ds-x" data-delcomp="${i}" title="Quitar">✕</button></li>`).join("")}</ul>` : ""}
           <div class="ed-ds-compform">
-            <input id="dsCompName" placeholder="Nombre (p. ej. Total)">
-            <input id="dsCompExpr" placeholder="Expresión (p. ej. [Altas Mes] - [Bajas Mes])" spellcheck="false">
-            <button class="ho-btn" id="dsCompAdd">Añadir columna</button>
+            <label class="ed-field"><span>Nombre</span><input id="dsCompName" placeholder="p. ej. Total"></label>
+            <label class="ed-field"><span>Expresión</span><input id="dsCompExpr" placeholder="p. ej. [Altas Mes] - [Bajas Mes]" spellcheck="false"></label>
+            <button class="ho-btn primary" id="dsCompAdd">Añadir</button>
           </div>
-          <p class="ed-muted ed-ds-note">Las columnas calculadas y el filtro leen los valores tal como vienen de la fuente (antes de los cambios de tipo o limpieza), igual que un LOAD de Qlik. Puedes usar el nombre nuevo o el de origen.</p>
-          <div class="ed-ds-chips"><span class="ed-muted">Campos:</span>${fieldChips}</div>
-          <div class="ed-ds-chips"><span class="ed-muted">Funciones:</span>${FUNCS.map((f) => `<button class="ed-ds-chip sm fn" data-ins="${esc(f)}">${esc(f)}</button>`).join("")}</div>
+          <div class="ed-ds-ins">
+            <div class="ed-ds-ins-row"><span>Campos</span><div class="ed-ds-chips">${fieldChips}</div></div>
+            <div class="ed-ds-ins-row"><span>Funciones</span><div class="ed-ds-chips">${FUNCS.map((f) => `<button class="ed-ds-chip sm fn" data-ins="${esc(f)}">${esc(f)}</button>`).join("")}</div></div>
+          </div>
+          <p class="ed-muted ed-ds-note">Clic en un campo o función para insertarlo donde está el cursor. Las expresiones leen los valores tal como vienen de la fuente (antes de cambiar tipos o limpiar); puedes usar el nombre nuevo o el de origen.</p>
+          </div>
+        </details>
 
-          <div class="ed-ds-sec-h">Filas</div>
+        <details class="ed-ds-card" data-card="rows" ${open("rows")}>
+          <summary><span class="ed-ds-card-t">Filas</span><span class="ed-ds-card-n">${[st.tf.filter ? "con filtro" : "", st.tf.distinct ? "sin duplicados" : ""].filter(Boolean).join(" · ") || "todas"}</span>
+            <span class="ed-ds-card-d">Filtrar y quitar duplicados</span></summary>
+          <div class="ed-ds-card-b">
           <div class="ed-ds-rowsopt">
-            <label class="ed-field"><span>Filtrar filas (se conservan las que cumplen)</span><input id="dsFilterExpr" value="${esc(st.tf.filter)}" placeholder="p. ej. [ANIO] >= 2024 AND [ESTADO CONTRATO] = 'ACTIVO'" spellcheck="false"></label>
+            <label class="ed-field"><span>Conservar solo las filas que cumplen</span><input id="dsFilterExpr" value="${esc(st.tf.filter)}" placeholder="p. ej. [ANIO] >= 2024 AND [ESTADO CONTRATO] = 'ACTIVO'" spellcheck="false"></label>
             <label class="ho-check"><input type="checkbox" id="dsDistinct" ${st.tf.distinct ? "checked" : ""}> Quitar filas duplicadas</label>
           </div>
+          </div>
+        </details>
         </div>
-        <aside class="ed-ds-steps">
-          <div class="ed-ds-sec-h">Pasos aplicados</div>
-          <ol><li class="base">Origen: ${esc(st.useQuery ? "consulta SQL" : st.object || "—")}${isSql ? ` · ${st.mode === "all" ? "todo" : (st.mode === "sample" ? "muestra de " : "primeras ") + Number(st.limit).toLocaleString("es-CO")}` : ""}</li>
-          ${steps.map((s, i) => `<li>${esc(s.t)}<button class="ed-ds-x" data-undo="${i}" title="Deshacer este paso">✕</button></li>`).join("")}</ol>
-          ${steps.length ? `<button class="ho-btn" id="dsReset">Quitar todos los pasos</button>` : `<p class="ed-muted">Sin transformaciones: se cargarán las columnas tal cual.</p>`}
-        </aside>
       </div>`;
+    // Acordeón: una tarjeta abierta a la vez (se recuerda al volver a pintar).
+    work.querySelectorAll("details.ed-ds-card").forEach((d) => d.addEventListener("toggle", () => {
+      if (!d.open) return;
+      st.tfOpen = d.dataset.card;
+      work.querySelectorAll("details.ed-ds-card").forEach((o) => { if (o !== d) o.open = false; });
+    }));
     let lastFocus = null;
     work.querySelectorAll("[data-c]").forEach((el) => {
       const ev = el.type === "checkbox" || el.tagName === "SELECT" ? "change" : "change";

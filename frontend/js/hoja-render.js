@@ -384,9 +384,23 @@ function valueLabelsPlugin(on, measures) {
         const isArc = meta.type === "pie" || meta.type === "doughnut";
         const total = isArc ? ds.data.reduce((a, b) => a + (Number(b) || 0), 0) || 1 : 0;
         if (isArc) { ctx.font = "600 11px Segoe UI, sans-serif"; ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; }
+        // Con poco espacio por punto, solo máximo, mínimo y último: las etiquetas no se pisan en pantallas pequeñas.
+        let keep = null;
+        if (!isArc && meta.data.length > 1) {
+          const room = (chart.chartArea?.width || 0) / meta.data.length;
+          if (room < 46) {
+            const nums = ds.data.map((x) => (x == null ? null : Number(x)));
+            const valid = nums.map((x, k) => [x, k]).filter(([x]) => x != null && !Number.isNaN(x));
+            if (valid.length) {
+              const mx = valid.reduce((a, b) => (b[0] > a[0] ? b : a)), mn = valid.reduce((a, b) => (b[0] < a[0] ? b : a));
+              keep = new Set([mx[1], mn[1], valid.at(-1)[1]]);
+            }
+          }
+        }
         meta.data.forEach((el, i) => {
           const v = ds.data[i];
           if (v == null) return;
+          if (keep && !keep.has(i)) return;
           if (isArc) {
             const share = (Number(v) || 0) / total;
             if (share < 0.04) return;   // sectores muy pequeños: sin etiqueta (se lee en el tooltip)
