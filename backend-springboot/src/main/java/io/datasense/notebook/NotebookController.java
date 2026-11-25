@@ -294,7 +294,7 @@ public class NotebookController {
     }
 
     private static void requireEdit(UserRecord me) {
-        if (me == null || !me.has(Permissions.EDIT)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Guardar cuadernos requiere el permiso «Editar contenido» (charts:edit).");
+        if (me == null || !me.has(Permissions.NOTEBOOKS_EDIT)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Guardar cuadernos requiere el permiso «Guardar cuadernos» (notebooks:edit).");
     }
 
     private static void requireOwner(UserRecord me, Map<String, Object> nb) {

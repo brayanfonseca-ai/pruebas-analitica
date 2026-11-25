@@ -271,16 +271,58 @@ export const platformTools: ContextTool[] = [
   {
     name: "set_role_permissions",
     title: "Permisos de un rol",
-    description: "Fija los permisos que trae un rol (editor = Desarrollador, viewer = Visualizador; el admin siempre tiene todo). Se aplica al instante a todas las personas con ese rol; los permisos sueltos por usuario siguen encima. 'permissions' debe incluir dashboard:view. Ids validos en el catalogo de roles y permisos (GET /api/v1/auth/catalog) (ej. apps:publish, charts:edit, embed:manage). Requiere users:manage. PUT /api/v1/users/roles/{role} con {permissions}.",
-    inputShape: { role: id("editor | viewer."), permissions: z.array(z.string()).describe("Lista completa de permisos del rol.") },
+    description: "Fija la lista COMPLETA de permisos detallados de un rol (editor = Desarrollador, viewer = Visualizador o un rol personalizado r-…; el admin siempre tiene todo). Se aplica al instante a todas las personas con ese rol; los permisos sueltos por usuario siguen encima. Debe incluir apps:view. Ids detallados en get_security_catalog (p. ej. sheets:delete, data:reload, business:certify, reports:export); los nombres antiguos (charts:edit, data:import…) se aceptan y se expanden a los detallados que cubrian. Requiere roles:manage. Queda en la auditoria. Devuelve {id, label, permissions, custom, customized, users}. PUT /api/v1/users/roles/{role} con {permissions}.",
+    inputShape: { role: id("Id del rol: editor | viewer | r-…"), permissions: z.array(z.string()).describe("Lista completa de permisos del rol.") },
     handler: async (a) => toToolText(await put(`/api/v1/users/roles/${E(a.role)}`, { permissions: a.permissions })),
   },
   {
     name: "reset_role_permissions",
-    title: "Restablecer permisos de un rol",
-    description: "Devuelve un rol (editor | viewer) a sus permisos de fabrica. DELETE /api/v1/users/roles/{role}.",
+    title: "Restablecer permisos de un rol de fabrica",
+    description: "Devuelve un rol de fabrica (editor | viewer) a sus permisos de fabrica. Con un rol personalizado usa delete_role. Requiere roles:manage. DELETE /api/v1/users/roles/{role}.",
     inputShape: { role: id("editor | viewer.") },
     handler: async (a) => toToolText(await del(`/api/v1/users/roles/${E(a.role)}`)),
+  },
+  {
+    name: "create_role",
+    title: "Crear rol personalizado",
+    description: "Crea un rol para un puesto de trabajo (p. ej. «Analista financiero»). Con copy_from copia los permisos de otro rol; con permissions fija la lista (debe incluir apps:view); sin nada parte del Visualizador. El id se genera (r-analista-financiero). Requiere roles:manage. Devuelve 201 {id, label, description, permissions, custom:true, users}. POST /api/v1/users/roles con {label, description?, copy_from?, permissions?}.",
+    inputShape: {
+      label: id("Nombre visible del rol (unico, max 60)."), description: z.string().optional(),
+      copy_from: z.string().optional().describe("Rol del que copiar los permisos (admin | editor | viewer | r-…)."),
+      permissions: z.array(z.string()).optional().describe("Permisos detallados del rol."),
+    },
+    handler: async (a) => toToolText(await post("/api/v1/users/roles", pick(a, ["label", "description", "copy_from", "permissions"]))),
+  },
+  {
+    name: "update_role",
+    title: "Renombrar o cambiar un rol personalizado",
+    description: "Cambia nombre, descripcion y/o permisos de un rol personalizado (r-…). En roles de fabrica solo se cambian los permisos (usa set_role_permissions). Requiere roles:manage. PUT /api/v1/users/roles/{role} con {label?, description?, permissions?}.",
+    inputShape: { role: id("Id del rol personalizado (r-…)."), label: z.string().optional(), description: z.string().optional(), permissions: z.array(z.string()).optional() },
+    handler: async (a) => toToolText(await put(`/api/v1/users/roles/${E(a.role)}`, pick(a, ["label", "description", "permissions"]))),
+  },
+  {
+    name: "delete_role",
+    title: "Borrar rol personalizado",
+    description: "ACCION DESTRUCTIVA. Borra un rol personalizado. Si alguien lo tiene responde 409 salvo que se indique reassign_to (rol al que pasan esas personas). Requiere roles:manage. DELETE /api/v1/users/roles/{role}?reassign_to=….",
+    inputShape: { role: id("Id del rol personalizado (r-…)."), reassign_to: z.string().optional().describe("Rol de destino para quienes lo tienen.") },
+    handler: async (a) => toToolText(await del(`/api/v1/users/roles/${E(a.role)}${a.reassign_to ? `?reassign_to=${E(a.reassign_to)}` : ""}`)),
+  },
+  {
+    name: "get_effective_permissions",
+    title: "Permisos efectivos de una persona",
+    description: "Cada permiso detallado de un usuario con su origen: source = rol | concedido (excepcion a favor) | denegado (el rol lo da pero se le quito) | ninguno, y granted. Devuelve {user, role, permissions:[{id, label, module, action, risk, source, granted}], granted, total}. Requiere users:manage. GET /api/v1/users/{id}/effective.",
+    inputShape: { userId: id("Id del usuario.") },
+    handler: async (a) => toToolText(await get(`/api/v1/users/${E(a.userId)}/effective`)),
+  },
+  {
+    name: "list_security_audit",
+    title: "Auditoria de seguridad",
+    description: "Historial (mas reciente primero) de cambios de cuentas, roles y permisos: [{at, actor_name, action (user.create|user.role|user.permissions|user.password|user.activate|user.deactivate|user.delete|role.create|role.permissions|role.rename|role.reset|role.delete), target_type user|role, target_id, target_label, summary, detail}]. Requiere audit:view. GET /api/v1/users/audit?limit=&target_type=&target_id=.",
+    inputShape: { limit: z.number().int().min(1).max(500).optional(), target_type: z.enum(["user", "role"]).optional(), target_id: z.string().optional() },
+    handler: async (a) => {
+      const qs = [`limit=${a.limit ?? 100}`, a.target_type ? `target_type=${E(a.target_type)}` : "", a.target_id ? `target_id=${E(a.target_id)}` : ""].filter(Boolean).join("&");
+      return toToolText(await get(`/api/v1/users/audit?${qs}`));
+    },
   },
 
   /* ============================ Notas para el agente (diccionario de datos) ============================ */
@@ -1240,8 +1282,9 @@ export const platformTools: ContextTool[] = [
     name: "get_security_catalog",
     title: "Catalogo de roles, permisos y etapas",
     description:
-      "Roles (admin, editor, viewer) con sus permisos, catálogo de permisos y las etapas de una app " +
-      "(personal → desarrollo → produccion). GET /api/v1/auth/catalog.",
+      "Roles (admin, editor, viewer y personalizados r-…, con custom/customized) con sus permisos detallados, el catálogo de permisos " +
+      "({id, label, module, action ver|crear|editar|eliminar|publicar|ejecutar|exportar|administrar, risk bajo|medio|alto, description}), los módulos, " +
+      "las equivalencias de los permisos antiguos (legacy: {id, anchor, covers}) y las etapas de una app (personal → desarrollo → produccion). GET /api/v1/auth/catalog.",
     inputShape: {},
     handler: async () => toToolText(await get("/api/v1/auth/catalog")),
   },
@@ -1256,13 +1299,14 @@ export const platformTools: ContextTool[] = [
     name: "create_user",
     title: "Crear usuario",
     description:
-      "{email, name?, password (8+), role: admin|editor|viewer, active?, grant?: [permisos extra], deny?: [permisos quitados]}. " +
+      "{email, name?, password (8+), role: admin|editor|viewer|r-… (personalizado), active?, grant?: [permisos extra], deny?: [permisos quitados]}. " +
+      "Dar un rol distinto de viewer o excepciones requiere roles:manage; solo un administrador asigna admin. Queda en la auditoria. " +
       "POST /api/v1/users. Permisos válidos: ver get_security_catalog.",
     inputShape: {
       email: id("Correo (único)."),
       name: z.string().optional().describe("Nombre visible."),
       password: z.string().min(8).describe("Contraseña inicial (mínimo 8 caracteres)."),
-      role: z.enum(["admin", "editor", "viewer"]).describe("Rol base."),
+      role: z.string().min(1).describe("Rol base: admin | editor | viewer | id de un rol personalizado (r-…)."),
       active: z.boolean().optional(),
       grant: z.array(z.string()).optional().describe("Permisos extra sobre los del rol."),
       deny: z.array(z.string()).optional().describe("Permisos que se le quitan aunque su rol los tenga."),
@@ -1274,11 +1318,12 @@ export const platformTools: ContextTool[] = [
     title: "Editar usuario",
     description:
       "Cambia nombre, correo, rol, estado o permisos individuales (solo lo enviado). Al cambiar acceso se cierran sus sesiones. " +
-      "Nunca deja la plataforma sin un administrador activo. PUT /api/v1/users/{id}.",
+      "Nunca deja la plataforma sin un administrador activo. Cambiar rol o grant/deny (permisos detallados; los antiguos se expanden) requiere roles:manage; " +
+      "solo un administrador asigna admin. Cada cambio queda en la auditoria. PUT /api/v1/users/{id}.",
     inputShape: {
       userId: id("Id del usuario."),
       email: z.string().optional(), name: z.string().optional(),
-      role: z.enum(["admin", "editor", "viewer"]).optional(), active: z.boolean().optional(),
+      role: z.string().optional().describe("admin | editor | viewer | r-…"), active: z.boolean().optional(),
       grant: z.array(z.string()).optional(), deny: z.array(z.string()).optional(),
     },
     handler: async (a) => toToolText(await put(`/api/v1/users/${E(a.userId)}`, pick(a, ["email", "name", "role", "active", "grant", "deny"]))),

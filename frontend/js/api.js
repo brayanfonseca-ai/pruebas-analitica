@@ -77,6 +77,14 @@ export const authCatalog = () => request("/auth/catalog");
 // Permisos que trae cada rol (solo administradores): fijar / volver a los de fábrica.
 export const setRolePermissions = (role, permissions) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "PUT", body: { permissions } });
 export const resetRolePermissions = (role) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "DELETE" });
+// Roles personalizados: crear (copiando otro o con permisos), renombrar/cambiar permisos y borrar (con reasignación).
+export const createRole = (body) => request("/users/roles", { method: "POST", body });
+export const updateRole = (role, patch) => request(`/users/roles/${encodeURIComponent(role)}`, { method: "PUT", body: patch });
+export const deleteRole = (role, reassignTo) => request(`/users/roles/${encodeURIComponent(role)}${reassignTo ? `?reassign_to=${encodeURIComponent(reassignTo)}` : ""}`, { method: "DELETE" });
+// Permisos efectivos de una persona con el motivo de cada uno, y auditoría de seguridad.
+export const userEffective = (id) => request(`/users/${encodeURIComponent(id)}/effective`);
+export const securityAudit = ({ limit = 150, targetType, targetId } = {}) =>
+  request(`/users/audit?limit=${limit}${targetType ? `&target_type=${encodeURIComponent(targetType)}` : ""}${targetId ? `&target_id=${encodeURIComponent(targetId)}` : ""}`);
 export const changeMyPassword = (current, password) => request("/auth/password", { method: "PUT", body: { current, password } });
 export const listUsers = () => request("/users");
 export const createUser = (user) => request("/users", { method: "POST", body: user });

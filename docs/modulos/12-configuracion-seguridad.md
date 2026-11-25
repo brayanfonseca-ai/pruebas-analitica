@@ -19,23 +19,41 @@ usuario llega a **Mi cuenta** desde el menú de su perfil (avatar).
   publicar o devolver a borrador desde aquí).
 - **Mi cuenta**: perfil, permisos efectivos y cambio de contraseña.
 
-### Roles y permisos
+### Permisos detallados (modelo empresarial)
 
-| Permiso | Administrador | Desarrollador (`editor`) | Visualizador (`viewer`) |
-|---|:-:|:-:|:-:|
-| `dashboard:view` Ver tableros publicados | ✓ | ✓ | ✓ |
-| `ai:use` Usar el asistente de IA | ✓ | ✓ | |
-| `apps:create` Crear aplicaciones | ✓ | ✓ | |
-| `charts:edit` Editar tableros | ✓ | ✓ | |
-| `data:import` Cargar y preparar datos | ✓ | ✓ | |
-| `connections:manage` Gestionar conexiones | ✓ | ✓ | |
-| `ml:run` Experimentos de ML | ✓ | ✓ | |
-| `apps:delete` Eliminar aplicaciones | ✓ | | |
-| `apps:publish` Publicar (Producción y hojas) | ✓ | ✓ | |
-| `users:manage` Administrar usuarios | ✓ | | |
-| `embed:manage` Gestionar embedding (tokens para incrustar tableros) | ✓ | | |
+Cada permiso es **una acción en un módulo**, con su tipo (Ver, Crear, Editar, Eliminar, Publicar, Ejecutar, Exportar, Administrar) y su **nivel de riesgo** (bajo, medio, alto). Son **42 permisos en 14 módulos**:
 
-Son **11 permisos**. Las conexiones son privadas por usuario (ni el administrador ve las ajenas): ver [07](./07-conexiones.md). Las notas para agente exigen `charts:edit` ([13](./13-notas-agente.md)) y el módulo Embedding `embed:manage` ([14](./14-embedding.md)). Las **Automatizaciones** (`/flows/**`) exigen `charts:edit`, corren con los permisos de quien las creó y sus credenciales son privadas. Su webhook `/api/v1/hooks/flows/{token}` es **público**: `AuthInterceptor` lo exime y se autentica solo con el token (regenerarlo invalida el anterior) ([18](./18-automatizaciones.md)).
+| Módulo | Permisos (id) | Admin | Desarrollador | Visualizador |
+|---|---|:-:|:-:|:-:|
+| Aplicaciones | `apps:view` ver · `apps:create` crear · `apps:edit` editar · `apps:delete` eliminar (alto) · `apps:publish` publicar (alto) | todos | todos menos eliminar | ver |
+| Hojas y tableros | `sheets:create` · `sheets:edit` · `sheets:delete` · `sheets:publish` (alto) | todos | todos | — |
+| Datos | `data:upload` · `data:script` · `data:reload` · `data:model` · `data:schedule` | todos | todos | — |
+| Capa de negocio | `business:edit` · `business:certify` (alto) · `notes:edit` | todos | todos | — |
+| Análisis | `analysis:ask` · `analysis:insights` · `analysis:notebooks` · `notebooks:edit` · `comments:write` | todos | todos | todos menos guardar cuadernos |
+| Informes | `reports:view` · `reports:export` (PDF) | todos | todos | ver |
+| Asistente de IA | `ai:chat` · `ai:expressions` | todos | todos | — |
+| Agentes y conocimiento | `agents:use` · `agents:build` · `knowledge:use` | todos | todos | — |
+| Machine Learning | `ml:view` · `ml:train` · `ml:associate` | todos | todos | — |
+| Automatizaciones | `flows:view` · `flows:edit` · `flows:run` | todos | todos | — |
+| Alertas y vigilancia | `alerts:manage` | ✓ | ✓ | ✓ |
+| Conexiones | `connections:use` · `connections:share` (alto) | todos | todos | — |
+| Embedding | `embed:manage` (alto) | ✓ | — | — |
+| Administración | `users:manage` · `roles:manage` · `audit:view` | todos | — | — |
+
+El servidor exige el permiso exacto de cada acción: por ejemplo, borrar una hoja pide `sheets:delete`, ejecutar «Cargar datos» pide `data:reload`, certificar una métrica `business:certify`, compartir una conexión `connections:share`, ejecutar una automatización a mano `flows:run` y guardar un cuaderno `notebooks:edit`. La exportación a PDF (`reports:export`) la controla la interfaz; los datos que lee el informe ya los controla el servidor.
+
+**Compatibilidad**: los 11 permisos anteriores (`dashboard:view`, `charts:edit`, `data:import`, `ai:use`, `ml:run`, `connections:manage`, `apps:publish`, `users:manage`…) siguen funcionando. Una persona «tiene» un permiso antiguo si tiene su permiso **ancla** (p. ej. `charts:edit` ⇐ `sheets:edit`, `data:import` ⇐ `data:reload`, `dashboard:view` ⇐ `apps:view`). Si un rol o una excepción guardados antes usaban un permiso antiguo, se **expande** a los detallados que cubría. Así nada de lo anterior se rompe.
+
+### Roles personalizados
+Además de Administrador, Desarrollador y Visualizador, el administrador crea roles para cada puesto («Analista financiero», «Auditor», «Coordinador regional»…): **desde cero o copiando** otro, con nombre y descripción. Se renombran y se borran; si alguien tiene el rol, al borrarlo se elige a qué rol pasan esas personas. Todo rol debe incluir `apps:view`.
+
+### Excepciones por persona (tres estados)
+En **Usuarios → editar**, cada permiso tiene tres estados: **Rol** (hereda lo que diga el rol), **Conceder** (lo tiene aunque el rol no lo dé) y **Denegar** (no lo tiene aunque el rol lo dé). Solo se guardan las excepciones: si cambian los permisos del rol, la persona los recibe. El botón 👁 muestra los **permisos efectivos** de alguien y el **origen** de cada uno (del rol, concedido, denegado o sin acceso).
+
+### Matriz de permisos y auditoría
+- **Matriz**: filas = permisos agrupados por módulo, columnas = roles. Buscador, filtros por módulo y riesgo, «solo donde los roles difieren», interruptor por módulo y rol («dar / quitar todo el módulo»), resaltado de la columna elegida. Los cambios quedan en borrador con una barra «+N / −N · afecta a X personas» hasta **Guardar cambios** o **Descartar**.
+- **Auditoría** (`audit:view`): quién cambió qué y cuándo. Cubre crear, borrar, activar o desactivar cuentas; cambios de rol; excepciones; restablecer contraseñas; y crear, renombrar, cambiar, restablecer o borrar roles. Muestra el detalle de permisos añadidos y quitados. Solo se agrega, nunca se edita.
+- **Separación de funciones**: `users:manage` administra cuentas; cambiar el rol o las excepciones de alguien exige además `roles:manage`, y **solo un administrador puede dar el rol Administrador** (nadie se escala a sí mismo). Las conexiones son privadas por usuario (ni el administrador ve las ajenas): ver [07](./07-conexiones.md). Las notas para agente exigen `charts:edit` ([13](./13-notas-agente.md)) y el módulo Embedding `embed:manage` ([14](./14-embedding.md)). Las **Automatizaciones** (`/flows/**`) exigen `charts:edit`, corren con los permisos de quien las creó y sus credenciales son privadas. Su webhook `/api/v1/hooks/flows/{token}` es **público**: `AuthInterceptor` lo exime y se autentica solo con el token (regenerarlo invalida el anterior) ([18](./18-automatizaciones.md)).
 
 El administrador no se puede restringir. Cualquier permiso se puede conceder o quitar a una persona concreta
 sin cambiarle el rol.
@@ -104,6 +122,7 @@ esa contraseña, actualiza las variables en `mcp.json`.
 
 En **Configuración → Roles y permisos** la matriz es editable: el administrador marca o desmarca qué puede hacer el **Desarrollador** y el **Visualizador** (por ejemplo, quitarle o darle *Publicar*) y pulsa **Guardar**. Se aplica al instante a todas las personas con ese rol; **Restablecer** vuelve a los permisos de fábrica. Reglas: el Administrador siempre tiene todo y no se edita; todo rol conserva `dashboard:view`. Los permisos sueltos por usuario (Usuarios → editar) siguen aplicándose encima del rol.
 
-- Tabla `role_permissions (role, permissions)`; `Permissions.setRoleOverride/roleDefaults` aplican lo guardado.
-- API (`users:manage`): `PUT /api/v1/users/roles/{role}` `{permissions:[…]}` y `DELETE /api/v1/users/roles/{role}`; `GET /auth/catalog` devuelve por rol `permissions` (vigentes), `factory`, `customized` y `editable`.
-- MCP: `set_role_permissions`, `reset_role_permissions`.
+- Tablas `role_permissions (role, permissions)`, `custom_roles (id, label, description, permissions, …)` y `security_audit`. `Permissions.setRoleOverride/putCustomRole/roleDefaults/expand/effective/explain` aplican lo guardado; `Permissions.required(método, ruta)` devuelve el permiso detallado y `modifiesApp` decide si además hace falta poder escribir en la app según su etapa.
+- API (`roles:manage` para escribir): `POST /api/v1/users/roles` {label, description?, copy_from?, permissions?}, `PUT /api/v1/users/roles/{role}` {permissions?, label?, description?}, `DELETE /api/v1/users/roles/{role}[?reassign_to=]`; `GET /api/v1/users/{id}/effective` (`users:manage`); `GET /api/v1/users/audit?limit=&target_type=&target_id=` (`audit:view`). `GET /auth/catalog` devuelve `roles` (con `custom`, `customized`, `factory`), `permissions` (con `module`, `action`, `risk`), `modules`, `actions`, `legacy` y `stages`.
+- MCP: `get_security_catalog`, `set_role_permissions`, `reset_role_permissions`, `create_role`, `update_role`, `delete_role` (ACCIÓN DESTRUCTIVA), `get_effective_permissions`, `list_security_audit`; `create_user`/`update_user` aceptan roles personalizados y permisos detallados.
+- Frontend: `js/configuracion.js` (pestañas Usuarios · Roles · Matriz de permisos · Auditoría · Etapas · Mi cuenta), estilos `.pm-*` en `css/theme.css` (sección «Permisos empresariales»).

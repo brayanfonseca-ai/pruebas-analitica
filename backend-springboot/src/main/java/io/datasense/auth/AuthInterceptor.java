@@ -76,7 +76,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Experimentos de ML: la lectura exige poder ver la app a la que pertenece el experimento.
         String expId = experimentIdOf(path);
-        if (expId != null && !Permissions.ML.equals(need)) {
+        if (expId != null && Permissions.APPS_VIEW.equals(need)) {
             Optional<Map<String, Object>> exp = experiments.get(expId);
             if (exp.isPresent() && exp.get().get("app_id") != null) {
                 Optional<AppOut> eapp = apps.getApp(String.valueOf(exp.get().get("app_id")));
@@ -89,8 +89,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             Optional<AppOut> app = apps.getApp(appId);
             if (app.isPresent()) {
                 if (!access.canSee(user, app.get())) return deny(res, 404, "App no encontrada: " + appId);
-                boolean read = "GET".equals(method) || "HEAD".equals(method);
-                boolean writes = !read && !Permissions.VIEW.equals(need);
+                boolean writes = Permissions.modifiesApp(method, path);
                 if (writes && !access.canWrite(user, app.get())) {
                     String why = "produccion".equals(app.get().stage())
                             ? "La app está en Producción: solo quien puede publicar (apps:publish) puede modificarla."

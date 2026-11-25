@@ -83,7 +83,7 @@ public class AuthController {
 
     @GetMapping("/catalog")
     public Map<String, Object> catalog() {
-        List<Map<String, Object>> roles = Permissions.ROLE_DEFS.stream().map(r -> {
+        List<Map<String, Object>> roles = Permissions.roles().stream().map(r -> {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", r.id());
             m.put("label", r.label());
@@ -91,6 +91,7 @@ public class AuthController {
             m.put("permissions", Permissions.roleDefaults(r.id()));
             m.put("factory", Permissions.factoryDefaults(r.id()));
             m.put("customized", Permissions.isCustomized(r.id()));
+            m.put("custom", Permissions.isCustomRole(r.id()));
             m.put("editable", !"admin".equals(r.id()));
             return m;
         }).toList();
@@ -99,13 +100,43 @@ public class AuthController {
             m.put("id", d.id());
             m.put("label", d.label());
             m.put("group", d.group());
+            m.put("module", d.module());
+            m.put("action", d.action());
+            m.put("risk", d.risk());
             m.put("description", d.description());
+            return m;
+        }).toList();
+        List<Map<String, Object>> modules = Permissions.MODULES.stream().map(x -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", x.id());
+            m.put("label", x.label());
+            m.put("icon", x.icon());
+            m.put("description", x.description());
+            return m;
+        }).toList();
+        List<Map<String, Object>> legacy = Permissions.LEGACY.stream().map(l -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", l.id());
+            m.put("label", l.label());
+            m.put("anchor", l.anchor());
+            m.put("covers", l.covers());
             return m;
         }).toList();
         List<Map<String, Object>> stages = List.of(
                 Map.of("id", "personal", "label", "Personal", "description", "Solo la ve su dueño. Es donde nace cada aplicación."),
                 Map.of("id", "desarrollo", "label", "Desarrollo", "description", "La ve el equipo técnico para construir y probar. Los visualizadores no la ven."),
                 Map.of("id", "produccion", "label", "Producción", "description", "Publicada: la ven los visualizadores, pero solo las hojas marcadas como publicadas."));
-        return Map.of("roles", roles, "permissions", perms, "stages", stages);
+        List<Map<String, Object>> actions = List.of(
+                Map.of("id", "ver", "label", "Ver"), Map.of("id", "crear", "label", "Crear"), Map.of("id", "editar", "label", "Editar"),
+                Map.of("id", "eliminar", "label", "Eliminar"), Map.of("id", "publicar", "label", "Publicar"), Map.of("id", "ejecutar", "label", "Ejecutar"),
+                Map.of("id", "exportar", "label", "Exportar"), Map.of("id", "administrar", "label", "Administrar"));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("roles", roles);
+        out.put("permissions", perms);
+        out.put("modules", modules);
+        out.put("actions", actions);
+        out.put("legacy", legacy);
+        out.put("stages", stages);
+        return out;
     }
 }

@@ -310,9 +310,9 @@ public class MasterController {
     private static void guardCertified(HttpServletRequest req, Map<String, Object> it, String action) {
         if (!Boolean.TRUE.equals(it.get("certified"))) return;
         UserRecord me = AccessService.current(req);
-        if (me == null || !me.has(Permissions.PUBLISH))
+        if (me == null || !me.has(Permissions.BUSINESS_CERTIFY))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "«" + it.get("name") + "» es una métrica certificada: solo quien puede publicar (apps:publish) puede " + action + "la.");
+                    "«" + it.get("name") + "» es una métrica certificada: solo quien puede certificar métricas (business:certify) puede " + action + "la.");
     }
 
     private static String authorName(HttpServletRequest req) {

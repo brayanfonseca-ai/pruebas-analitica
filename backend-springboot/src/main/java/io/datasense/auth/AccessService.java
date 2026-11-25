@@ -24,6 +24,10 @@ public class AccessService {
 
     public static final String USER_ATTR = "ds.user";
 
+    /** Permisos que hacen a alguien parte del equipo técnico (ve las apps en Desarrollo). */
+    private static final List<String> BUILDER = List.of(Permissions.SHEETS_CREATE, Permissions.SHEETS_EDIT, Permissions.DATA_SCRIPT,
+            Permissions.DATA_RELOAD, Permissions.DATA_UPLOAD, Permissions.DATA_MODEL, Permissions.BUSINESS_EDIT);
+
     public static UserRecord current(HttpServletRequest req) {
         Object u = req.getAttribute(USER_ATTR);
         return u instanceof UserRecord ur ? ur : null;
@@ -35,8 +39,9 @@ public class AccessService {
         if (u.id().equals(app.owner_id())) return true;
         return switch (app.stage()) {
             case "personal" -> false;
-            case "desarrollo" -> u.has(Permissions.EDIT) || u.has(Permissions.DATA);
-            default -> u.has(Permissions.VIEW);
+            // Desarrollo: el equipo técnico, es decir, quien construye hojas, datos o la capa de negocio.
+            case "desarrollo" -> BUILDER.stream().anyMatch(u::has);
+            default -> u.has(Permissions.APPS_VIEW);
         };
     }
 
@@ -56,7 +61,7 @@ public class AccessService {
 
     /** Un visualizador (sin permiso de edición) solo recibe las hojas publicadas. */
     public List<Map<String, Object>> visibleSheets(UserRecord u, List<Map<String, Object>> sheets) {
-        if (u != null && (u.isAdmin() || u.has(Permissions.EDIT))) return sheets;
+        if (u != null && (u.isAdmin() || u.has(Permissions.SHEETS_EDIT) || u.has(Permissions.SHEETS_PUBLISH))) return sheets;
         return sheets.stream().filter(s -> "publica".equals(s.get("visibility"))).toList();
     }
 }
