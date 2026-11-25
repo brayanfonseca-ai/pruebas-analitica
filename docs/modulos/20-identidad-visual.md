@@ -80,3 +80,10 @@ Archivos de la fase 2: `js/app-editor.js`, `js/app-hoja.js`, `js/app-modelo.js`,
 - **Logo nuevo**: un hexágono de datos con tres barras crecientes y una línea de tendencia con nodos; el último nodo late suavemente (se desactiva con «reducir movimiento»). Es el mismo dibujo en el favicon (`frontend/favicon.svg`, con fondo oscuro) y en la barra superior de cada página (SVG en línea, clase `q-logo-mark`), y más grande en el inicio de sesión. Estilos: `css/theme.css`, sección «Marca PROTHEO».
 - **No cambian** (para no romper datos ni integraciones): el paquete Java `io.datasense`, la clase `DataSenseApplication`, las variables de entorno `DATASENSE_*`, el id `datasense` del servidor MCP en `mcp.json`, las claves `ds.*` del navegador y el valor interno `datasense` de la paleta.
 - **Embedding**: el SDK expone `PROTHEO.embed(...)`; `DataSense.embed(...)` sigue funcionando como alias para los tableros ya incrustados.
+
+## Modo oscuro: gráficos e indicadores legibles
+- **Etiquetas de valor** de barras y líneas: el color se lee del tema en cada pintado (`#e2e8f0` en oscuro, `#334155` en claro) y llevan un halo del color del fondo para leerse sobre líneas y rejilla. Al cambiar de tema se repintan solas (`js/hoja-render.js`, `valueLabelsPlugin`).
+- **Menos etiquetas cuando no caben**: se mide el ancho real de la etiqueta más larga (p. ej. «$ 9.522,5 M»); si no cabe entre puntos, solo se rotulan el máximo, el mínimo y el último.
+- **KPIs**: el color elegido se pasa como `--kpi-c`; en oscuro se aclara mezclándolo con blanco (`color-mix`), así conserva el tono y queda con contraste ≈ 10:1. Comparación ▲ verde claro / ▼ rosa claro.
+- **Tablas**: la fila «Totales», la fila seleccionada y el resaltado al pasar el cursor tenían fondos claros fijos; en oscuro usan las superficies del tema.
+- Estilos en `css/theme.css`, sección «Modo oscuro · indicadores y tablas de la hoja».

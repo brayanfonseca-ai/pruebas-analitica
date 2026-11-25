@@ -2794,3 +2794,21 @@ svg.q-logo-mark .q-logo-node { transform-box: fill-box; transform-origin: center
 .q-topbar .q-logo:hover svg.q-logo-mark { transform: rotate(-8deg) scale(1.06); transition: transform .25s ease; }
 .q-logo-text { letter-spacing: .14em; font-weight: 800; }
 @media (prefers-reduced-motion: reduce) { svg.q-logo-mark, svg.q-logo-mark .q-logo-node { animation: none; } }
+
+/* ======================= Modo oscuro · indicadores y tablas de la hoja ======================= */
+/* El color del KPI llega en línea (style="color:…"); en oscuro se aclara mezclándolo con blanco
+   para que se lea sobre el fondo azul noche sin perder el tono elegido. */
+html[data-theme="dark"] .ho-kpi-value {
+  color: color-mix(in srgb, var(--kpi-c, #6366f1) 42%, #ffffff) !important;
+  background: none !important; -webkit-text-fill-color: currentColor;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--kpi-c, #6366f1) 55%, transparent);
+  filter: none;
+}
+html[data-theme="dark"] .ho-kpi-label { color: var(--ds-text); }
+html[data-theme="dark"] .ho-kpi-cmp.up { color: #6ee7b7; }
+html[data-theme="dark"] .ho-kpi-cmp.down { color: #fda4af; }
+html[data-theme="dark"] .ho-table td { border-bottom-color: var(--ds-border); }
+html[data-theme="dark"] .ho-table .ho-total td { background: var(--ds-surface-3) !important; color: var(--ds-text); }
+html[data-theme="dark"] .ho-table tbody tr:not(.ho-total):hover td,
+html[data-theme="dark"] .ho-table tbody tr:not(.ho-total):hover { background: rgba(var(--ds-a-rgb), .12); }
+html[data-theme="dark"] .ho-table tr.sel td { background: rgba(16, 185, 129, .18); color: var(--ds-text); }

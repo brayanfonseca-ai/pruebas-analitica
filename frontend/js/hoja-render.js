@@ -377,8 +377,14 @@ function valueLabelsPlugin(on, measures) {
         if (!meta || meta.hidden) return;
         const mode = measures?.[si]?.fmt;
         ctx.save();
-        ctx.font = "10px Segoe UI, sans-serif";
-        ctx.fillStyle = "#333";
+        // El color se lee en cada pintado: al cambiar de tema, theme.js repinta y las etiquetas lo siguen.
+        const dark = document.documentElement.getAttribute("data-theme") === "dark";
+        ctx.font = "600 10.5px Segoe UI, sans-serif";
+        ctx.fillStyle = dark ? "#e2e8f0" : "#334155";
+        // Halo del color del fondo para que el número se lea encima de líneas, rejilla y barras.
+        ctx.strokeStyle = dark ? "rgba(11,16,34,.9)" : "rgba(255,255,255,.9)";
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
         ctx.textAlign = "center";
         // Torta: x/y del sector es el centro del círculo; tooltipPosition() da el punto medio de cada sector.
         const isArc = meta.type === "pie" || meta.type === "doughnut";
@@ -388,7 +394,9 @@ function valueLabelsPlugin(on, measures) {
         let keep = null;
         if (!isArc && meta.data.length > 1) {
           const room = (chart.chartArea?.width || 0) / meta.data.length;
-          if (room < 46) {
+          // Espacio que necesita la etiqueta más ancha (p. ej. «$ 9.522,5 M»), no un número fijo.
+          const need = Math.max(46, ...ds.data.map((x) => (x == null ? 0 : ctx.measureText(fmtAs(x, mode)).width))) + 8;
+          if (room < need) {
             const nums = ds.data.map((x) => (x == null ? null : Number(x)));
             const valid = nums.map((x, k) => [x, k]).filter(([x]) => x != null && !Number.isNaN(x));
             if (valid.length) {
@@ -409,7 +417,9 @@ function valueLabelsPlugin(on, measures) {
             ctx.fillText(`${(share * 100).toLocaleString("es-CO", { maximumFractionDigits: 1 })} %`, p.x, p.y + 7);
             return;
           }
-          ctx.fillText(fmtAs(v, mode), el.x, el.y - 4);
+          const txt = fmtAs(v, mode);
+          ctx.strokeText(txt, el.x, el.y - 5);
+          ctx.fillText(txt, el.x, el.y - 5);
         });
         ctx.restore();
       });
@@ -448,7 +458,7 @@ export function renderKpi(host, props, result) {
   host.innerHTML = `
     <div class="ho-kpi" style="text-align:${esc(look.kpiAlign || "center")};">
       ${repeated ? "" : `<div class="ho-kpi-label">${esc(label)}</div>`}
-      <div class="ho-kpi-value" style="color:${esc(themeColor(look.color))};">${esc(fmtAs(result.value, mode))}</div>
+      <div class="ho-kpi-value" style="color:${esc(themeColor(look.color))};--kpi-c:${esc(themeColor(look.color))};">${esc(fmtAs(result.value, mode))}</div>
       ${cmp}
     </div>`;
   return null;
