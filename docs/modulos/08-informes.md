@@ -19,6 +19,7 @@ Primer modo del selector («Historia y presentación»). En vez de un KPI por me
 - **Modo presentación** (pantalla completa, tarjetas animadas): `←/→`, `Espacio`, `RePág/AvPág`, `Inicio/Fin`, `O` (vista general en cuadrícula), `N` (notas), `F` (pantalla completa), `Esc` (salir).
 - **PDF**: horizontal 960×540 pt, **una idea por página**, misma estructura que la presentación. Gráficos en JPEG sobre fondo blanco (un informe pasó de 53 MB a ~256 KB), ejes de barras siempre desde cero y texto Helvetica saneado (signo menos, espacios finos).
 - **MCP**: la tool `data_story` devuelve la misma historia en JSON (`mcp-server/src/tools/story.ts`, port de `buildStory`).
+- **No se pierde**: la última historia de cada app (diapositivas, cuáles están quitadas, título y opciones) se guarda en el navegador (`ds.story.<appId>`) y vuelve al regresar a Informes o al recargar; «Descartar» la quita. Informes recuerda el último modo (`ds.informes.mode.<appId>`) y el modo asistente conserva su conversación y vista previa (`ds.informes.chat.<appId>`).
 - Código: `frontend/js/informe-historia.js` (`buildStory`, `visibleSlides`, `slideThumb`, `openPresentation`, `exportStoryPdf`, `mountStoryStudio`); estilos `.st-*` en `frontend/css/theme.css`.
 
 ## A nivel visual

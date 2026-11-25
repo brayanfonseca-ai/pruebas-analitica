@@ -111,6 +111,7 @@ export async function render(mount, ctx) {
   mount.querySelectorAll(".rp-mode").forEach((b) =>
     b.addEventListener("click", () => {
       mount.querySelectorAll(".rp-mode").forEach((x) => x.classList.toggle("active", x === b));
+      try { localStorage.setItem(`ds.informes.mode.${appId}`, b.dataset.mode); } catch { /* sin almacenamiento */ }
       renderMode(b.dataset.mode);
     }));
 
@@ -186,11 +187,32 @@ export async function render(mount, ctx) {
 
     let currentSpec = null;
     const log = pane.querySelector("#rpChatLog");
-    const addMsg = (who, html) => { const d = document.createElement("div"); d.className = `rp-chat-msg ${who}`; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+    // La conversación y el informe en curso se guardan: al volver a Informes sigue donde la dejaste.
+    const CKEY = `ds.informes.chat.${appId}`;
+    let history = [];
+    const persist = () => { try { localStorage.setItem(CKEY, JSON.stringify({ history: history.slice(-60), spec: currentSpec })); } catch { /* sin almacenamiento */ } };
+    const addMsg = (who, html, keep = true) => {
+      const d = document.createElement("div"); d.className = `rp-chat-msg ${who}`; d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight;
+      if (keep) { history.push({ who, html }); persist(); }
+      return d;
+    };
+    const enableOut = () => { pane.querySelector("#rpChatPdf").disabled = false; pane.querySelector("#rpSaveTpl").disabled = false; };
+    try {
+      const prev = JSON.parse(localStorage.getItem(CKEY) || "null");
+      if (prev?.history?.length) {
+        prev.history.forEach((m) => addMsg(m.who, m.html, false));
+        history = prev.history;
+        if (prev.spec) { currentSpec = prev.spec; renderPreview(prev.spec).then(enableOut).catch(() => {}); }
+        const clr = document.createElement("button");
+        clr.className = "rp-chip"; clr.textContent = "Nueva conversación";
+        clr.addEventListener("click", () => { localStorage.removeItem(CKEY); renderChat(); });
+        pane.querySelector(".rp-chat-input").before(clr);
+      }
+    } catch { /* conversación guardada ilegible: se empieza de cero */ }
 
     async function handle(text) {
       addMsg("user", esc(text));
-      const thinking = addMsg("bot", "Pensando…");
+      const thinking = addMsg("bot", "Pensando…", false);
       const spec = await specFromPrompt(text, currentSpec);
       thinking.remove();
       if (!spec || !spec.sections.length) {
@@ -200,8 +222,7 @@ export async function render(mount, ctx) {
       currentSpec = spec;
       addMsg("bot", "Listo. Actualicé la vista previa: " + esc(describeSpec(spec)) + ". Dime si ajustamos algo o descarga el PDF.");
       await renderPreview(spec);
-      pane.querySelector("#rpChatPdf").disabled = false;
-      pane.querySelector("#rpSaveTpl").disabled = false;
+      enableOut();
     }
 
     pane.querySelector("#rpChatSend").addEventListener("click", () => {
@@ -220,13 +241,17 @@ export async function render(mount, ctx) {
       renderChat();
     });
     pane.querySelectorAll("[data-saved]").forEach((b) =>
-      b.addEventListener("click", async () => { const t = loadChatTpls()[+b.dataset.saved]; if (t) { currentSpec = t.spec; await renderPreview(t.spec); pane.querySelector("#rpChatPdf").disabled = false; pane.querySelector("#rpSaveTpl").disabled = false; } }));
+      b.addEventListener("click", async () => { const t = loadChatTpls()[+b.dataset.saved]; if (t) { currentSpec = t.spec; persist(); await renderPreview(t.spec); enableOut(); } }));
   }
 
   function loadChatTpls() { try { return JSON.parse(localStorage.getItem(`ds.informes.${appId}`) || "[]"); } catch { return []; } }
   function saveChatTpls(list) { try { localStorage.setItem(`ds.informes.${appId}`, JSON.stringify(list)); } catch {} }
 
-  renderMode("historia");
+  // Vuelve al modo en que estabas (por defecto, Historia y presentación).
+  let startMode = "historia";
+  try { const m = localStorage.getItem(`ds.informes.mode.${appId}`); if (["historia", "plantillas", "hojas", "chat"].includes(m)) startMode = m; } catch { /* sin almacenamiento */ }
+  mount.querySelectorAll(".rp-mode").forEach((x) => x.classList.toggle("active", x.dataset.mode === startMode));
+  renderMode(startMode);
 
   /* ---------------- Progreso ---------------- */
   const prog = mount.querySelector("#rpProg");

@@ -667,9 +667,24 @@ export function mountStoryStudio(pane, { appId, appName, fields }) {
       <div class="st-out" id="stOut"><div class="st-empty">Pulsa <b>Armar historia</b>: en unos segundos tendrás las diapositivas listas para presentar.</div></div>
     </div>`;
   const $ = (s) => pane.querySelector(s);
+  // La última historia de cada app se guarda en el navegador: al volver a Informes (o recargar) sigue ahí.
+  const KEY = `ds.story.${appId}`;
+  const save = () => {
+    try { localStorage.setItem(KEY, JSON.stringify({ v: 1, saved: new Date().toISOString(), cfg: st.cfg, story: st.story })); }
+    catch { /* almacenamiento lleno: la historia sigue en pantalla */ }
+  };
+  const readCfg = () => ({ title: $("#stTitle").value.trim(), mainMeasureId: $("#stMeas").value, mainDim: $("#stDim").value, useAI: $("#stAI").checked });
+  let restored = null;
+  try { restored = JSON.parse(localStorage.getItem(KEY) || "null"); } catch { restored = null; }
+  if (restored?.story?.slides?.length) {
+    st.story = restored.story; st.cfg = { ...st.cfg, ...(restored.cfg || {}) }; st.savedAt = restored.saved;
+    $("#stTitle").value = st.cfg.title || ""; $("#stDim").value = st.cfg.mainDim || ""; $("#stAI").checked = st.cfg.useAI !== false;
+    paint();
+  }
   loadMeasures(appId, fields).then((ms) => {
     st.measures = ms;
     $("#stMeas").insertAdjacentHTML("beforeend", ms.map((m) => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join(""));
+    if (st.cfg.mainMeasureId) $("#stMeas").value = st.cfg.mainMeasureId;
   }).catch(() => {});
   $("#stBuild").addEventListener("click", build);
 
@@ -680,10 +695,10 @@ export function mountStoryStudio(pane, { appId, appName, fields }) {
     const out = $("#stOut");
     out.innerHTML = `<div class="st-empty"><span class="in-spin"></span> <span id="stStep">Preparando…</span></div>`;
     try {
-      st.story = await buildStory(appId, appName, fields, {
-        title: $("#stTitle").value.trim(), mainMeasureId: $("#stMeas").value, mainDim: $("#stDim").value, useAI: $("#stAI").checked,
-        onStep: (t) => { const e = $("#stStep"); if (e) e.textContent = t; },
-      });
+      st.cfg = readCfg();
+      st.story = await buildStory(appId, appName, fields, { ...st.cfg, onStep: (t) => { const e = $("#stStep"); if (e) e.textContent = t; } });
+      st.savedAt = new Date().toISOString();
+      save();
       paint();
       // Base de conocimiento (solo guarda si la persona la tiene activa): titulares y hallazgos de la historia.
       const s = st.story;
@@ -700,7 +715,8 @@ export function mountStoryStudio(pane, { appId, appName, fields }) {
     const s = st.story, n = s.slides.length;
     $("#stOut").innerHTML = `
       <div class="st-actions">
-        <div><b>${esc(s.title)}</b><span>${visibleSlides(s).length} diapositivas · ${esc(s.period || "sin dimensión de tiempo")}</span></div>
+        <div><b>${esc(s.title)}</b><span>${visibleSlides(s).length} diapositivas · ${esc(s.period || "sin dimensión de tiempo")}${st.savedAt ? ` · <em class="st-saved">✓ Guardada ${esc(new Date(st.savedAt).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</em>` : ""}</span></div>
+        <button class="q-btn" id="stClear" title="Quitar la historia guardada de este navegador">Descartar</button>
         <button class="q-btn primary" id="stPlay">▶ Presentar</button>
         <button class="q-btn" id="stPdf">⤓ PDF apaisado</button>
       </div>
@@ -719,7 +735,12 @@ export function mountStoryStudio(pane, { appId, appName, fields }) {
       const sl = s.slides[i], cv = card.querySelector("canvas");
       if (sl.type === "chart" && cv && window.Chart) { try { new window.Chart(cv, chartConfig(sl.chart, { animate: false, dark: true })); } catch { /* miniatura sin gráfico */ } }
     });
-    pane.querySelectorAll("[data-tog]").forEach((c) => c.addEventListener("change", () => { s.slides[Number(c.dataset.tog)].off = !c.checked; paint(); }));
+    pane.querySelectorAll("[data-tog]").forEach((c) => c.addEventListener("change", () => { s.slides[Number(c.dataset.tog)].off = !c.checked; save(); paint(); }));
+    $("#stClear").addEventListener("click", () => {
+      if (!confirm("¿Descartar esta historia? Podrás armar otra cuando quieras.")) return;
+      localStorage.removeItem(KEY); st.story = null; st.savedAt = null;
+      $("#stOut").innerHTML = `<div class="st-empty">Pulsa <b>Armar historia</b>: en unos segundos tendrás las diapositivas listas para presentar.</div>`;
+    });
     pane.querySelectorAll("[data-play]").forEach((bt) => bt.addEventListener("click", () => {
       const i = Number(bt.dataset.play);
       if (s.slides[i].off) return;
