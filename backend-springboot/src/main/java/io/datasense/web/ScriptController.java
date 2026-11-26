@@ -290,7 +290,8 @@ public class ScriptController {
     public Map<String, Object> runAs(String appId, io.datasense.auth.UserRecord user) {
         List<String> log = new ArrayList<>();
         List<Map<String, Object>> summary = new ArrayList<>();
-        log.add("Reconstruyendo el modelo desde las tablas cargadas…");
+        long t0 = System.currentTimeMillis();
+        log.add("Preparando la carga del modelo…");
         Map<String, Map<String, Object>> sources = connections.tableSources(appId);
         List<Map<String, Object>> saved = jdbc.queryForList("SELECT text FROM scripts WHERE app_id = ?", appId);
         String script = saved.isEmpty() ? null : String.valueOf(saved.get(0).get("text"));
@@ -319,7 +320,7 @@ public class ScriptController {
                 } else if (conn.isEmpty() || exec == null) {
                     log.add("ADVERTENCIA: la conexión '" + connName + "' ya no existe; " + name + " conserva los datos de la última carga.");
                 } else {
-                    log.add("LIB CONNECT TO '" + connName + "' → extrayendo " + name + "…");
+                    log.add("Conectando con «" + connName + "» y trayendo " + name + "…");
                     Map<String, Object> params = (Map<String, Object>) src.get("params");
                     Map<String, Object> fromScript = null;
                     try {
@@ -356,10 +357,17 @@ public class ScriptController {
             DataFrame df = store.load(appId, tableId);
             int rows = df.rowCount();
             total += rows;
-            log.add(String.format("LOAD %s: %d filas, %d campos.", name, rows, df.columns().size()));
-            summary.add(Map.of("table", name, "rows", rows, "fields", df.columns()));
+            log.add(String.format("Tabla %s lista: %,d filas y %d campos.", name, rows, df.columns().size()).replace(',', '.'));
+            Map<String, Object> s = new LinkedHashMap<>();
+            s.put("table", name); s.put("rows", rows); s.put("fields", df.columns());
+            s.put("source", src == null ? "archivo" : String.valueOf(src.get("conn_name")));
+            s.put("connector", src == null ? "file" : String.valueOf(src.get("connector")));
+            summary.add(s);
         }
-        log.add(String.format("Listo. %d tabla(s), %d filas en total.", summary.size(), total));
-        return Map.of("ok", true, "log", log, "tables", summary);
+        log.add(String.format("Carga completa: %d tabla(s) y %,d filas.", summary.size(), total).replace(',', '.'));
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("ok", true); out.put("log", log); out.put("tables", summary);
+        out.put("rows", total); out.put("duration_ms", System.currentTimeMillis() - t0);
+        return out;
     }
 }

@@ -348,6 +348,7 @@ export async function render(mount, ctx) {
       const lines = log.map((l) => `<span class="log ${logClass(l)}">${esc(l)}</span>`).join("\n");
       bottom.innerHTML = `<pre class="ed-console">${lines}</pre>`;
       const nTables = (result.tables || []).length;
+      prog.tables(result.tables || []);
       prog.done(`Modelo reconstruido: ${nTables} ${nTables === 1 ? "tabla cargada" : "tablas cargadas"}.`);
       runHistory.unshift({ at: new Date().toLocaleTimeString("es-CO"), tables: nTables, ok: true });
     } catch (err) {
@@ -619,7 +620,7 @@ export async function render(mount, ctx) {
   async function doLoadConnection(conn, params, filter) {
     const prog = openLoadProgress(`Carga desde “${conn.name}”`);
     try {
-      prog.step(`LIB CONNECT TO '${conn.name}'…`);
+      prog.step(`Conectando con «${conn.name}»…`);
       const modeTxt = params.mode === "all" ? "todas las filas" : params.mode === "sample" ? `muestra aleatoria de ${params.limit} filas` : params.limit ? `primeras ${params.limit} filas` : "";
       prog.step((params.query ? "Ejecutando la consulta SQL en la fuente" : `Extrayendo ${params.table || params.key || "datos"}`) + (modeTxt ? ` (${modeTxt})…` : "…"));
       const r = await loadConnection(ctx.appId, conn.id, params);
@@ -632,11 +633,12 @@ export async function render(mount, ctx) {
       if (params.transform) prog.step(`Transformaciones aplicadas: ${r.rowsExtracted ?? "?"} filas extraídas → ${t.rows} cargadas.`, "ok");
       (r.warnings || []).forEach((w) => prog.step(w, "warn"));
       prog.step("Materializando la tabla en el modelo…", "ok");
+      prog.tables([{ table: t.name, rows: t.rows, fields: t.columns || t.fields || [], source: conn.name }]);
       // En paralelo: el código de carga queda en el editor para empezar a modelar.
       const fresh = await getScript(ctx.appId).catch(() => null);
       if (!dirty && fresh && !fresh.is_custom) {
         setCode(fresh.text || ""); genBadge.textContent = "auto-generado"; renderSectionList();
-        prog.step("Script auto-generado actualizado con LIB CONNECT + SQL SELECT.", "ok");
+        prog.step("El script de datos se actualizó con esta tabla.", "ok");
       } else if (r.script) {
         const nm = String(t.name || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const already = getCode().includes(`[${t.name}]:`) || new RegExp(`CREATE\\s+(OR\\s+REPLACE\\s+)?TABLE\\s+"?${nm}"?\\s+AS`, "i").test(getCode());
@@ -723,67 +725,128 @@ export async function render(mount, ctx) {
      Modal emergente "Cargando…" con pasos/log en vivo, estética de marca
      (azul empresarial #172983). Devuelve un controlador {step, done, fail}. */
   function openLoadProgress(title) {
+    // Pipeline visual: Preparar → Conectar → Traer datos → Modelo listo. Las tablas aparecen como tarjetas
+    // con sus filas contando; el registro técnico queda plegado en «Ver detalle».
+    const STAGES = [["prep", "Preparar", "M4 7h16M4 12h10M4 17h7"], ["conn", "Conectar", "M7 12h10M4 9v6M20 9v6M10 7l-3 5 3 5M14 7l3 5-3 5"],
+      ["pull", "Traer datos", "M12 4v12M7 11l5 5 5-5M5 20h14"], ["model", "Modelo listo", "M5 12l4 4 10-10"]];
+    const t0 = performance.now();
     loadModal.innerHTML = `
-      <div class="ed-modal ed-load-modal">
-        <div class="ed-modal-head">
-          <h3><span class="ed-load-spinner" id="edLoadSpinner"></span>Cargando…</h3>
-          <button class="ho-x" data-close hidden>✕</button>
-        </div>
-        <div class="ed-modal-body">
-          <div class="ed-load-title">${esc(title || "Carga de datos")}</div>
-          <ul class="ed-load-steps" id="edLoadSteps"></ul>
-          <div class="ed-load-result" id="edLoadResult" hidden></div>
-        </div>
-        <div class="ed-modal-foot">
-          <button class="ho-btn" id="edLoadClose" disabled>Cerrar</button>
-        </div>
+      <div class="ed-modal lp" role="dialog" aria-modal="true" aria-label="Carga de datos">
+        <div class="lp-aurora" aria-hidden="true"></div>
+        <header class="lp-head">
+          <div class="lp-orb" id="lpOrb" aria-hidden="true"><i></i><i></i><i></i><svg viewBox="0 0 24 24"><path d="M12 3c4.4 0 8 1.6 8 3.5S16.4 10 12 10 4 8.4 4 6.5 7.6 3 12 3z"/><path d="M4 6.5v11C4 19.4 7.6 21 12 21s8-1.6 8-3.5v-11M4 12c0 1.9 3.6 3.5 8 3.5s8-1.6 8-3.5"/></svg></div>
+          <div class="lp-htxt"><h3 id="lpTitle">Cargando tus datos</h3><p>${esc(String(title || "Carga de datos").replace(/^Ejecución del script de carga$/, "Script de datos").replace(/^Carga desde /, "Desde "))}</p></div>
+          <span class="lp-time" id="lpTime">0,0 s</span>
+          <button class="lp-x" id="lpX" hidden aria-label="Cerrar">✕</button>
+        </header>
+        <ol class="lp-pipe" id="lpPipe">${STAGES.map(([id, l, d], i) => `<li data-st="${id}" class="${i === 0 ? "on" : ""}">
+          <span class="lp-node"><svg viewBox="0 0 24 24"><path d="${d}"/></svg></span><b>${l}</b>${i < STAGES.length - 1 ? '<i class="lp-wire"><em></em></i>' : ""}</li>`).join("")}</ol>
+        <div class="lp-now" id="lpNow"><span class="lp-dot"></span><span id="lpNowTxt">Preparando…</span></div>
+        <div class="lp-tables" id="lpTables"></div>
+        <div class="lp-result" id="lpResult" hidden></div>
+        <details class="lp-log"><summary>Ver detalle técnico <em id="lpLogN">0</em></summary><ol id="lpLog"></ol></details>
+        <footer class="lp-foot" id="lpFoot"><button class="ho-btn" id="lpClose" disabled>Cerrar</button></footer>
       </div>`;
     loadModal.hidden = false;
-
-    const stepsEl = loadModal.querySelector("#edLoadSteps");
-    const resultEl = loadModal.querySelector("#edLoadResult");
-    const spinner = loadModal.querySelector("#edLoadSpinner");
-    const closeBtn = loadModal.querySelector("#edLoadClose");
-    const xBtn = loadModal.querySelector(".ho-x");
-
-    function closeLoad() { loadModal.hidden = true; loadModal.innerHTML = ""; }
-    function enableClose() {
-      spinner.classList.add("done");
-      closeBtn.disabled = false;
-      xBtn.hidden = false;
-      closeBtn.addEventListener("click", closeLoad);
-      xBtn.addEventListener("click", closeLoad);
-    }
-
-    let lastStep = null;
-    return {
-      /** Añade (o marca) un paso. estado: '' | 'ok' | 'warn' | 'err'. */
+    const $l = (s) => loadModal.querySelector(s);
+    const timer = setInterval(() => { const e = $l("#lpTime"); if (e) e.textContent = `${((performance.now() - t0) / 1000).toLocaleString("es-CO", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} s`; }, 100);
+    const warns = [];
+    let stage = 0;
+    const setStage = (n, state = "") => {
+      stage = Math.max(stage, n);
+      loadModal.querySelectorAll("#lpPipe li").forEach((li, i) => {
+        li.classList.toggle("done", i < stage || state === "done");
+        li.classList.toggle("on", i === stage && state !== "done");
+        li.classList.toggle("err", i === stage && state === "err");
+      });
+    };
+    // Mensajes del motor → lenguaje humano y etapa del pipeline.
+    const human = (t) => String(t)
+      .replace(/^LIB CONNECT TO '([^']+)'\s*(→|…)?\s*(extrayendo\s*)?/i, (_, c, __, x) => `Conectando con «${c}»${x ? " y trayendo " : "…"}`)
+      .replace(/^LOAD\s+([^:]+):\s*/i, "Tabla $1 lista: ")
+      .replace(/LIB CONNECT \+ SQL SELECT/g, "la tabla nueva")
+      .replace(/^Reconstruyendo el modelo desde las tablas cargadas…/, "Preparando la carga del modelo…");
+    const stageOf = (t) => /conectando|consulta|extrayendo|trayendo/i.test(t) ? 1 : /tabla .* lista|materializando|transformaciones/i.test(t) ? 2 : /guardando|preparando|script/i.test(t) ? 0 : -1;
+    const tableCard = (name, rows, fields, source, max) => `<article class="lp-tcard" style="--p:${Math.max(4, Math.round((rows / Math.max(1, max)) * 100))}%">
+        <header><span class="lp-tico">▦</span><b title="${esc(name)}">${esc(name)}</b>${source ? `<em>${esc(source)}</em>` : ""}</header>
+        <div class="lp-tnum"><strong data-to="${rows}">0</strong><span>filas</span><strong class="sm">${fields}</strong><span>campos</span></div>
+        <i class="lp-tbar"><i></i></i></article>`;
+    const countUp = (root) => root.querySelectorAll("[data-to]").forEach((el) => {
+      const to = Number(el.dataset.to) || 0, s = performance.now();
+      const run = (n) => { const k = Math.min(1, (n - s) / 900), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(to * e).toLocaleString("es-CO"); if (k < 1) requestAnimationFrame(run); };
+      requestAnimationFrame(run);
+    });
+    const seenTables = new Map();
+    const close = () => { clearInterval(timer); loadModal.hidden = true; loadModal.innerHTML = ""; };
+    const finish = (ok) => {
+      clearInterval(timer);
+      $l("#lpOrb").classList.add(ok ? "ok" : "bad");
+      $l("#lpNow").hidden = true;
+      const b = $l("#lpClose"); b.disabled = false; b.addEventListener("click", close);
+      const x = $l("#lpX"); x.hidden = false; x.addEventListener("click", close);
+      const onKey = (e) => { if (e.key === "Escape" && !loadModal.hidden) { close(); document.removeEventListener("keydown", onKey); } };
+      document.addEventListener("keydown", onKey);
+    };
+    const api = {
+      /** Añade un paso. estado: '' | 'ok' | 'warn' | 'err'. */
       step(text, estado = "") {
-        if (lastStep) lastStep.classList.add("prev");
+        const t = human(text);
         const li = document.createElement("li");
-        li.className = "ed-load-step" + (estado ? " " + estado : "");
-        li.textContent = text;
-        stepsEl.appendChild(li);
-        stepsEl.scrollTop = stepsEl.scrollHeight;
-        lastStep = li;
+        li.className = estado || logClass(t) || "";
+        li.textContent = t;
+        $l("#lpLog").appendChild(li);
+        $l("#lpLogN").textContent = String($l("#lpLog").children.length);
+        if (/^ADVERTENCIA/i.test(t) || estado === "warn") { warns.push(t.replace(/^ADVERTENCIA:\s*/i, "")); return li; }
+        const m = t.match(/^Tabla (.+?) lista:\s*([\d.]+) filas y (\d+) campos/i) || t.match(/^Tabla (.+?) lista:\s*([\d.]+) filas, (\d+) campos/i);
+        if (m) { seenTables.set(m[1], { rows: Number(m[2].replace(/\./g, "")), fields: Number(m[3]) }); setStage(2); }
+        const sg = stageOf(t);
+        if (sg >= 0) setStage(sg);
+        if (!/^\s*·/.test(t) && !/^Carga completa/i.test(t)) $l("#lpNowTxt").textContent = t;
         return li;
       },
-      /** Éxito: muestra el resumen y habilita Cerrar. */
-      done(resumen) {
-        if (lastStep) lastStep.classList.add("prev");
-        resultEl.hidden = false;
-        resultEl.className = "ed-load-result ok";
-        resultEl.textContent = resumen || "Carga completada.";
-        enableClose();
+      /** Tarjetas de tablas con su origen (opcional; si no, se usan las vistas en el registro). */
+      tables(list) {
+        const arr = (list || []).map((x) => ({ name: x.table || x.name, rows: Number(x.rows) || 0, fields: Array.isArray(x.fields) ? x.fields.length : Number(x.fields) || 0, source: x.source && x.source !== "archivo" ? x.source : x.source === "archivo" ? "Archivo" : "" }));
+        const max = Math.max(1, ...arr.map((x) => x.rows));
+        const host = $l("#lpTables");
+        host.innerHTML = arr.map((x) => tableCard(x.name, x.rows, x.fields, x.source, max)).join("");
+        countUp(host);
       },
-      /** Fallo: pinta el error de forma destacada y habilita Cerrar. */
+      /** Éxito: resumen grande con lo que quedó en el modelo y accesos directos. */
+      done(resumen) {
+        setStage(3, "done");
+        $l("#lpTitle").textContent = warns.length ? "Datos cargados con avisos" : "Tus datos están listos";
+        const host = $l("#lpTables");
+        if (!host.children.length && seenTables.size) api.tables([...seenTables].map(([name, v]) => ({ name, ...v })));
+        const cards = [...host.querySelectorAll(".lp-tcard")];
+        const rows = cards.reduce((a, c) => a + (Number(c.querySelector("[data-to]").dataset.to) || 0), 0);
+        const fields = cards.reduce((a, c) => a + (Number(c.querySelector(".sm").textContent) || 0), 0);
+        const secs = ((performance.now() - t0) / 1000).toLocaleString("es-CO", { maximumFractionDigits: 1 });
+        const r = $l("#lpResult");
+        r.hidden = false;
+        r.className = `lp-result ok${warns.length ? " warn" : ""}`;
+        r.innerHTML = `${cards.length ? `<div class="lp-stats"><div><b data-to="${cards.length}">0</b><span>${cards.length === 1 ? "tabla" : "tablas"}</span></div>
+            <div><b data-to="${rows}">0</b><span>filas</span></div><div><b data-to="${fields}">0</b><span>campos</span></div><div><b>${secs} s</b><span>duración</span></div></div>` : ""}
+          <p>${esc(String(resumen || "Carga completada.").replace(/^Modelo reconstruido:\s*/, "Modelo actualizado: "))}</p>
+          ${warns.length ? `<ul class="lp-warns">${warns.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}`;
+        countUp(r);
+        $l("#lpFoot").insertAdjacentHTML("afterbegin", `<a class="ho-btn ghost" href="#datos" data-go>Ver tablas y campos</a><a class="ho-btn ghost" href="#modelo" data-go>Mapa de relaciones</a><span class="lp-sp"></span>`);
+        loadModal.querySelectorAll("[data-go]").forEach((a) => a.addEventListener("click", close));
+        $l("#lpClose").classList.add("primary");
+        finish(true);
+      },
+      /** Fallo: lo dice claro y deja el detalle a mano. */
       fail(mensajeError) {
-        resultEl.hidden = false;
-        resultEl.className = "ed-load-result err";
-        resultEl.textContent = mensajeError || "La carga falló.";
-        enableClose();
+        setStage(stage, "err");
+        $l("#lpTitle").textContent = "La carga no se completó";
+        const r = $l("#lpResult");
+        r.hidden = false; r.className = "lp-result err";
+        r.innerHTML = `<p><b>Qué pasó:</b> ${esc(human(mensajeError || "La carga falló."))}</p><p class="lp-hint">Los datos anteriores se conservan. Revisa el detalle técnico o la conexión e inténtalo de nuevo.</p>`;
+        $l(".lp-log").open = true;
+        finish(false);
       },
     };
+    return api;
   }
 
   /* ---------------- Modal genérico ---------------- */
